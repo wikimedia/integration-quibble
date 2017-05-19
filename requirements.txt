@@ -1,0 +1,1 @@
+git+https://gerrit.wikimedia.org/r/p/integration/zuul.git@patch-queue/debian/precise-wikimedia#egg=zuul
