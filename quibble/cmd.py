@@ -15,6 +15,7 @@ class QuibbleCmd(object):
 
     def __init__(self):
         self.dependencies = []
+        self.extra_dependencies = []
 
     def parse_arguments(self):
         """
