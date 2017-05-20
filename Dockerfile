@@ -15,4 +15,7 @@ RUN mkdir -p /srv/git/mediawiki && \
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y mysql-server php5 php5-mysql && \
     /usr/sbin/service mysql start
 
+RUN git clone "https://gerrit.wikimedia.org/r/p/integration/composer" "/srv/deployment/integration/composer" && \
+	ln -s "/srv/deployment/integration/composer/vendor/bin/composer" "/usr/local/bin/composer"
+
 COPY . /opt/quibble
