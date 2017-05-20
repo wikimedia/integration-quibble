@@ -12,7 +12,7 @@ RUN mkdir -p /srv/git/mediawiki && \
     git clone --bare "https://gerrit.wikimedia.org/r/p/mediawiki/vendor" "/srv/git/mediawiki/vendor.git" && \
     git clone "https://gerrit.wikimedia.org/r/p/integration/jenkins" "/srv/deployment/integration/slave-scripts"
 
-RUN apt-get install -y mysql-server php5 php5-mysql && \
-    /usr/bin/service mysql start
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y mysql-server php5 php5-mysql && \
+    /usr/sbin/service mysql start
 
 COPY . /opt/quibble
