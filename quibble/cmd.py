@@ -82,7 +82,7 @@ class QuibbleCmd(object):
         cloner = zuul.lib.cloner.Cloner(
             git_base_url='https://gerrit.wikimedia.org/r/p',
             projects=repos,
-            workspace='src',
+            workspace=os.path.join(self.workspace, 'src'),
             zuul_branch=os.environ['ZUUL_BRANCH'],
             zuul_ref=os.environ['ZUUL_REF'],
             zuul_url=os.environ['ZUUL_URL'],
