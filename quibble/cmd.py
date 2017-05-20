@@ -50,8 +50,9 @@ class QuibbleCmd(object):
                 os.environ.get('SKIN_DEPENDENCIES').split('\\n'))
 
         if 'EXT_DEPENDENCIES' in os.environ:
-            self.dependencies.extend(
-                os.environ.get('EXT_DEPENDENCIES').split('\\n'))
+            self.extra_dependencies = os.environ.get(
+                'EXT_DEPENDENCIES').split('\\n')
+            self.dependencies.extend(self.extra_dependencies)
 
         if 'EXECUTOR_NUMBER' not in os.environ:
             os.environ['EXECUTOR_NUMBER'] = '1'
@@ -79,8 +80,6 @@ class QuibbleCmd(object):
         self.clonerepos(projects_to_clone)
 
     def clonerepos(self, repos):
-        import code
-        code.interact(local=locals())
         cloner = zuul.lib.cloner.Cloner(
             git_base_url='https://gerrit.wikimedia.org/r/p',
             projects=repos,
@@ -107,7 +106,7 @@ class QuibbleCmd(object):
         extension_path = os.path.join(
                 self.workspace, 'src', 'extensions_load.txt')
         with open(extension_path, 'w') as f:
-            f.writelines(self.get_extra_extensions())
+            f.writelines(self.extra_dependencies)
 
     def run_script(self, script_name):
         self.log.debug('Running script: %s' % script_name)
