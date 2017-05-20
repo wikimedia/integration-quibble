@@ -9,7 +9,7 @@ import subprocess
 import zuul.lib.cloner
 
 
-class QuibbleCmd():
+class QuibbleCmd(object):
 
     log = logging.getLogger('quibble.cmd')
 
@@ -66,7 +66,7 @@ class QuibbleCmd():
 
         self.log.info('Repositories to clone: %s'
                       % ', '.join(projects_to_clone))
-        #self.clonerepos(projects_to_clone)
+        # self.clonerepos(projects_to_clone)
 
     def clonerepos(self, repos):
         cloner = zuul.lib.cloner.Cloner(
@@ -112,9 +112,12 @@ class QuibbleCmd():
                 script, proc.returncode))
 
     def mw_install(self):
-        proc = subprocess.Popen([ 'php', 'maintenance/install.php' ],
+        proc = subprocess.Popen(
+            ['php', 'maintenance/install.php'],
             cwd=''
         )
+        print(proc)
+
 
 if __name__ == '__main__':
     cmd = QuibbleCmd()
