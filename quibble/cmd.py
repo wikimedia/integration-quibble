@@ -113,8 +113,7 @@ class QuibbleCmd(object):
             raise Exception('Script %s does not exist in %s' % (
                             script_name, self.scripts_dir))
 
-        proc = subprocess.Popen(script, stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE)
+        proc = subprocess.Popen(script)
         proc.communicate()
 
         if proc.returncode > 0:
