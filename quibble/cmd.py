@@ -102,7 +102,9 @@ class QuibbleCmd(object):
         cloner.execute()
 
     def generate_extensions_load(self):
-        with open('src/extensions_load.txt', 'w') as f:
+        extension_path = os.path.join(
+                self.workspace, 'src', 'extensions_load.txt')
+        with open(extension_path, 'w') as f:
             f.writelines(self.get_extra_extensions())
 
     def run_script(self, script_name):
