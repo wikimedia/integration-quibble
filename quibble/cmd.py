@@ -13,7 +13,13 @@ class QuibbleCmd(object):
 
     log = logging.getLogger('quibble.cmd')
 
+    def __init__(self):
+        self.dependencies = []
+
     def parse_arguments(self):
+        """
+        Parse arguments
+        """
         parser = argparse.ArgumentParser(
             description='Quibble: the MediaWiki test runner',
             prog='quibble',
@@ -35,50 +41,46 @@ class QuibbleCmd(object):
             )
         return parser.parse_args()
 
-    def execute(self):
-        logging.basicConfig(level=logging.DEBUG)
-        args = self.parse_arguments()
+    def setup_environment(self):
+        """
+        Set and get needed environment variables.
+        """
+        if 'SKIN_DEPENDENCIES' in os.environ:
+            self.dependencies.extend(
+                os.environ.get('SKIN_DEPENDENCIES').split('\\n'))
 
-        self.scripts_dir = args.scripts_dir
-        self.workspace = args.workspace
-        self.mw_install_path = os.path.join(self.workspace, 'src')
+        if 'EXT_DEPENDENCIES' in os.environ:
+            self.dependencies.extend(
+                os.environ.get('EXT_DEPENDENCIES').split('\\n'))
 
-        self.prepare_sources(args)
-        self.generate_extensions_load()
-        self.mw_install()
+        if 'EXECUTOR_NUMBER' not in os.environ:
+            os.environ['EXECUTOR_NUMBER'] = '1'
 
-    def get_extra_skins(self):
-        if 'SKIN_DEPENDENCIES' not in os.environ:
-            return []
-        return os.environ.get('SKIN_DEPENDENCIES').split('\\n')
+        if 'WORKSPACE' not in os.environ:
+            os.environ['WORKSPACE'] = self.workspace
 
-    def get_extra_extensions(self):
-        if 'EXT_DEPENDENCIES' not in os.environ:
-            return []
-        return os.environ.get('EXT_DEPENDENCIES').split('\\n')
-
-    def get_repos_to_clone(self, args):
+    def get_repos_to_clone(self, clone_vendor=False):
         """
         Find repos to clone basedon passed arguments and environment
         """
-        projects_to_clone = ['mediawiki/core']
-        if args.packages_source == 'vendor':
+        self.dependencies.append('mediawiki/core')
+        if clone_vendor:
             self.log.info('Will clone mediawiki/vendor')
-            projects_to_clone.append('mediawiki/vendor')
-
-        projects_to_clone.extend(self.get_extra_skins())
-        projects_to_clone.extend(self.get_extra_extensions())
+            self.dependencies.append('mediawiki/vendor')
 
         self.log.info('Repositories to clone: %s'
-                      % ', '.join(projects_to_clone))
+                      % ', '.join(self.dependencies))
 
-        return projects_to_clone
+        return self.dependencies
 
-    def prepare_sources(self, args):
-        projects_to_clone = self.get_repos_to_clone(args)
+    def prepare_sources(self):
+        clone_vendor = (self.args.packages_source == 'vendor')
+        projects_to_clone = self.get_repos_to_clone(clone_vendor)
         self.clonerepos(projects_to_clone)
 
     def clonerepos(self, repos):
+        import code
+        code.interact(local=locals())
         cloner = zuul.lib.cloner.Cloner(
             git_base_url='https://gerrit.wikimedia.org/r/p',
             projects=repos,
@@ -122,32 +124,24 @@ class QuibbleCmd(object):
             raise Exception('Script %s failed with exit code: %s' % (
                 script, proc.returncode))
 
-    def mw_install_cmd(self):
-        """
-        Build a list commands to install mw
-        """
-        return [
-            'php',
-            'maintenance/install.php',
-            '--confpath', self.mw_install_path,
-            '--dbtype', 'mysql',
-            '--dbserver', '127.0.0.1',
-            '--dbuser', 'root',
-            '--dbname', 'quibble',
-            '--pass', 'testpass',
-            'TestWiki',
-            'WikiAdmin'
-        ]
-
     def mw_install(self):
-        if 'EXECUTOR_NUMBER' not in os.environ:
-            os.environ['EXECUTOR_NUMBER'] = '1'
-        if 'WORKSPACE' not in os.environ:
-            os.environ['WORKSPACE'] = self.workspace
         self.run_script('global-setup.sh')
         self.run_script('mw-install-mysql.sh')
         self.run_script('mw-apply-settings.sh')
         self.run_script('mw-run-update-script.sh')
+
+    def execute(self):
+        logging.basicConfig(level=logging.DEBUG)
+        self.args = self.parse_arguments()
+
+        self.scripts_dir = self.args.scripts_dir
+        self.workspace = self.args.workspace
+        self.mw_install_path = os.path.join(self.workspace, 'src')
+
+        self.setup_environment()
+        self.prepare_sources()
+        self.generate_extensions_load()
+        self.mw_install()
 
 
 if __name__ == '__main__':
