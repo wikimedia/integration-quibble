@@ -1,4 +1,5 @@
 /.coverage
+/quibble.egg-info/
 /cover/
 /.tox
 *.pyc

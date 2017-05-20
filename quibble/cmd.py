@@ -144,6 +144,10 @@ class QuibbleCmd(object):
         self.mw_install()
 
 
-if __name__ == '__main__':
+def main():
     cmd = QuibbleCmd()
     cmd.execute()
+
+
+if __name__ == '__main__':
+    main()

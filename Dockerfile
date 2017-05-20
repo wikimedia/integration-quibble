@@ -19,3 +19,7 @@ RUN git clone "https://gerrit.wikimedia.org/r/p/integration/composer" "/srv/depl
 	ln -s "/srv/deployment/integration/composer/vendor/bin/composer" "/usr/local/bin/composer"
 
 COPY . /opt/quibble
+
+RUN cd /opt/quibble && \
+	pip3 install -rrequirements.txt && \
+	python3 setup.py install
