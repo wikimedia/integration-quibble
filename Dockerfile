@@ -18,6 +18,21 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y mysql-server php5 php5-mys
 RUN git clone "https://gerrit.wikimedia.org/r/p/integration/composer" "/srv/deployment/integration/composer" && \
 	ln -s "/srv/deployment/integration/composer/vendor/bin/composer" "/usr/local/bin/composer"
 
+# Some of Zuul dependencies. Would be better done by install the zuul.deb package from apt.wikimedia.org
+RUN apt-get install -y \
+    python3-pbr \
+    python3-yaml \
+    python3-paste \
+    python3-webob \
+    python3-paramiko \
+    python3-prettytable \
+    python3-extras \
+    python3-voluptuous \
+    python3-six \
+    python3-tz \
+    python3-docutils \
+    python3-babel
+
 COPY . /opt/quibble
 
 RUN cd /opt/quibble && \
