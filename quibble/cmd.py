@@ -143,6 +143,12 @@ class QuibbleCmd(object):
         self.generate_extensions_load()
         self.mw_install()
 
+        if self.args.packages_source == 'vendor':
+            self.log.info('Requiring composer dev dependencies')
+            self.run_script('mw-fetch-composer-dev.sh')
+
+        self.run_script('mw-phpunit.sh')
+
 
 def main():
     cmd = QuibbleCmd()

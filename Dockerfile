@@ -12,7 +12,7 @@ RUN mkdir -p /srv/git/mediawiki && \
     git clone --bare "https://gerrit.wikimedia.org/r/p/mediawiki/vendor" "/srv/git/mediawiki/vendor.git" && \
     git clone "https://gerrit.wikimedia.org/r/p/integration/jenkins" "/srv/deployment/integration/slave-scripts"
 
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y mysql-server php5 php5-mysql && \
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y mysql-server php5 php5-mysql php5-gd php5-curl djvulibre-bin nodejs-legacy && \
     /usr/sbin/service mysql start
 
 RUN git clone "https://gerrit.wikimedia.org/r/p/integration/composer" "/srv/deployment/integration/composer" && \
