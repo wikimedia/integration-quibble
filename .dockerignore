@@ -1,0 +1,7 @@
+# vim
+**/*.swp
+# Local cache when mounting with -v`pwd`/cache:cache
+cache
+# Dev related
+.git
+.tox
