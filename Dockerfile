@@ -36,5 +36,6 @@ RUN apt-get install -y \
 COPY . /opt/quibble
 
 RUN cd /opt/quibble && \
-	pip3 install -rrequirements.txt && \
-	python3 setup.py install
+    pip3 install -rrequirements.txt && \
+    python3 setup.py install && \
+    rm -fR /opt/quibble
