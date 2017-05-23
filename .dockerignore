@@ -1,7 +1,8 @@
 # vim
 **/*.swp
-# Local cache when mounting with -v`pwd`/cache:cache
+# Local caches bind mounted in the container
 cache
+ref
 # Dev related
 .git
 .tox

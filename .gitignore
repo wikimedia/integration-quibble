@@ -1,6 +1,8 @@
 /.coverage
 /quibble.egg-info/
+/cache/
 /cover/
+/ref/
 /.tox
 *.pyc
 /tests/.tmp
