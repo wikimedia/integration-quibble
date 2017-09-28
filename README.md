@@ -18,9 +18,15 @@ repositories to be used as cache to copy from:
   git clone --bare mediawiki/core ref/mediawiki/core.git
   git clone --bare mediawiki/vendor ref/mediawiki/vendor.git
 
-Then bindmount it READ-ONLY as /srv/git:
+We have `XDG_CACHE_HOME=/cache` which is recognized by package managers.
+Create a cache directory writable by any user:
 
-  docker run -it --rm -v `pwd`/ref:/srv/git:ro quibble bash
+  install --directory --mode 777 cache
+
+We then mount the git repositories as a READ-ONLY volume as /srv/git and the
+cache dir in read-write:
+
+  docker run -it --rm -v "$(pwd)"/ref:/srv/git:ro -v "$(pwd)"/cache:/cache quibble bash
 
 TESTING
 -------
