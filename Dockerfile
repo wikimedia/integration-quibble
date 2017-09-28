@@ -1,7 +1,8 @@
-FROM debian:jessie
+FROM wmfreleng/ci-jessie
 
-# Git repositories mirroring to speed up git clone in CI
-RUN apt-get update && apt-get install -y git
+ARG DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y zuul
 
 # CI utilities
 RUN git clone --depth=1 "https://gerrit.wikimedia.org/r/p/integration/composer" "/srv/deployment/integration/composer" && \
@@ -11,8 +12,13 @@ RUN git clone --depth=1 "https://gerrit.wikimedia.org/r/p/integration/composer" 
 	ln -s "/srv/deployment/integration/composer/vendor/bin/composer" "/usr/local/bin/composer"
 
 # Mediawiki related dependencies
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y mysql-server php5 php5-mysql php5-gd php5-curl djvulibre-bin nodejs-legacy
-
+RUN apt-get install -y \
+    mysql-server \
+    php5 php5-mysql \
+    php5-gd \
+    php5-curl \
+    djvulibre-bin \
+    nodejs-legacy
 # Quibble dependencies
 RUN apt-get install -y \
     python3-pip \
