@@ -14,19 +14,19 @@ CACHING
 To avoid cloning MediaWiki over the network, you should initialize local bare
 repositories to be used as cache to copy from:
 
-  mkdir -p ref/mediawiki
-  git clone --bare mediawiki/core ref/mediawiki/core.git
-  git clone --bare mediawiki/vendor ref/mediawiki/vendor.git
+    mkdir -p ref/mediawiki
+    git clone --bare mediawiki/core ref/mediawiki/core.git
+    git clone --bare mediawiki/vendor ref/mediawiki/vendor.git
 
-We have `XDG_CACHE_HOME=/cache` which is recognized by package managers.
+We have `XDG_CACHE_HOME=/cache` set which is recognized by package managers.
 Create a cache directory writable by any user:
 
-  install --directory --mode 777 cache
+    install --directory --mode 777 cache
 
-We then mount the git repositories as a READ-ONLY volume as /srv/git and the
-cache dir in read-write:
+We then mount the git repositories as a READ-ONLY volume as `/srv/git` and the
+`cache` dir in read-write mode:
 
-  docker run -it --rm -v "$(pwd)"/ref:/srv/git:ro -v "$(pwd)"/cache:/cache quibble bash
+    docker run -it --rm -v "$(pwd)"/ref:/srv/git:ro -v "$(pwd)"/cache:/cache quibble bash
 
 TESTING
 -------
