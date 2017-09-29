@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 
 import argparse
+import json
 import logging
 import os
 import os.path
 import subprocess
-
-import zuul.lib.cloner
+import tempfile
 
 
 class QuibbleCmd(object):
@@ -81,27 +81,39 @@ class QuibbleCmd(object):
         self.clonerepos(projects_to_clone)
 
     def clonerepos(self, repos):
-        cloner = zuul.lib.cloner.Cloner(
-            git_base_url='https://gerrit.wikimedia.org/r/p',
-            projects=repos,
-            workspace=os.path.join(self.workspace, 'src'),
-            zuul_branch=os.environ['ZUUL_BRANCH'],
-            zuul_ref=os.environ['ZUUL_REF'],
-            zuul_url=os.environ['ZUUL_URL'],
-            cache_dir='/srv/git',
-        )
-        # Map a repo to a target dir under workspace
-        cloner.clone_map = [
-            {'name': 'mediawiki/core',
-             'dest': '.'},
-            {'name': 'mediawiki/vendor',
-             'dest': './vendor'},
-            {'name': 'mediawiki/extensions/(.*)',
-             'dest': './extensions/\\1'},
-            {'name': 'mediawiki/skins/(.*)',
-             'dest': './skins/\\1'},
-        ]
-        cloner.execute()
+        zuul_env = {k: v for k, v in os.environ.items()
+                    if k.startswith('ZUUL_')}
+
+        try:
+            temp_mapfile = ''
+            with tempfile.NamedTemporaryFile(mode='w', delete=False) as fp:
+                temp_mapfile = fp.name
+                # Map a repo to a target dir under workspace
+                clone_map = json.dumps({'clonemap': [
+                    {'name': 'mediawiki/core',
+                        'dest': '.'},
+                    {'name': 'mediawiki/vendor',
+                        'dest': './vendor'},
+                    {'name': 'mediawiki/extensions/(.*)',
+                        'dest': './extensions/\\1'},
+                    {'name': 'mediawiki/skins/(.*)',
+                        'dest': './skins/\\1'},
+                    ]
+                })
+                fp.write(clone_map)
+                fp.close()
+                cmd = [
+                    '/usr/bin/zuul-cloner',
+                    '--map', temp_mapfile,
+                    '--workspace', os.path.join(self.workspace, 'src'),
+                    '--cache-dir', '/srv/git',
+                    'https://gerrit.wikimedia.org/r/p',
+                    ]
+                cmd.extend(repos)
+                subprocess.check_call(cmd, env=zuul_env)
+        finally:
+            if temp_mapfile:
+                os.remove(temp_mapfile)
 
     def generate_extensions_load(self):
         extension_path = os.path.join(

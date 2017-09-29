@@ -2,7 +2,9 @@ FROM wmfreleng/ci-jessie
 
 ARG DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update && apt-get install -y zuul
+RUN apt-get update \
+    && apt-get install -y -t jessie python-pbr \
+    && apt-get install -y zuul
 
 # CI utilities
 RUN git clone --depth=1 "https://gerrit.wikimedia.org/r/p/integration/composer" "/srv/deployment/integration/composer" && \
@@ -26,24 +28,9 @@ RUN apt-get install -y \
     python3 \
     python3-dev \
     python-tox
-# Some of Zuul dependencies. Would be better done by install the zuul.deb package from apt.wikimedia.org
-RUN apt-get install -y \
-    python3-pbr \
-    python3-yaml \
-    python3-paste \
-    python3-webob \
-    python3-paramiko \
-    python3-prettytable \
-    python3-extras \
-    python3-voluptuous \
-    python3-six \
-    python3-tz \
-    python3-docutils \
-    python3-babel
 
 COPY . /opt/quibble
 
 RUN cd /opt/quibble && \
-    pip3 install -rrequirements.txt && \
     python3 setup.py install && \
     rm -fR /opt/quibble
