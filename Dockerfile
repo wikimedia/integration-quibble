@@ -31,3 +31,8 @@ COPY . /opt/quibble
 RUN cd /opt/quibble && \
     python3 setup.py install && \
     rm -fR /opt/quibble
+
+# Unprivileged
+RUN install --directory /workspace --owner=nobody --group=nogroup
+USER nobody
+WORKDIR /workspace
