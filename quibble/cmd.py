@@ -137,7 +137,6 @@ class QuibbleCmd(object):
                 script, proc.returncode))
 
     def mw_install(self):
-        self.run_script('global-setup.sh')
         self.run_script('mw-install-mysql.sh')
         self.run_script('mw-apply-settings.sh')
         self.run_script('mw-run-update-script.sh')
