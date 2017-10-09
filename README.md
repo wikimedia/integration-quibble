@@ -5,7 +5,6 @@ TLDR:
 
 Then run the quibble command:
 
-	service mysql start
 	ZUUL_URL=https://gerrit.wikimedia.org/r/p ZUUL_BRANCH=master ZUUL_REF=master quibble --packages-source vendor --workspace /workspace
 
 CACHING

@@ -19,8 +19,7 @@ RUN apt-get update \
         python3-setuptools \
     && : "MediaWiki related dependencies" \
     && apt-get install -y \
-        mysql-server \
-        php5 php5-mysql \
+        php5 php5-sqlite \
         php5-gd \
         php5-curl \
         djvulibre-bin \
