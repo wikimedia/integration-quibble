@@ -1,4 +1,4 @@
-FROM wmfreleng/ci-jessie
+FROM docker-registry.wikimedia.org/releng/ci-jessie:latest
 
 ARG DEBIAN_FRONTEND=noninteractive
 
