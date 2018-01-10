@@ -1,7 +1,7 @@
 TLDR:
 
 	docker build --tag quibble .
-	docker run -it --rm quibble bash
+	docker run -it --entrypoint=/bin/bash --rm quibble
 
 Then run the quibble command:
 
@@ -25,7 +25,7 @@ Create a cache directory writable by any user:
 We then mount the git repositories as a READ-ONLY volume as `/srv/git` and the
 `cache` dir in read-write mode:
 
-    docker run -it --rm -v "$(pwd)"/ref:/srv/git:ro -v "$(pwd)"/cache:/cache quibble bash
+    docker run -it --rm -v "$(pwd)"/ref:/srv/git:ro -v "$(pwd)"/cache:/cache quibble
 
 TESTING
 -------

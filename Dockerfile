@@ -36,3 +36,4 @@ RUN cd /opt/quibble && \
 RUN install --directory /workspace --owner=nobody --group=nogroup
 USER nobody
 WORKDIR /workspace
+ENTRYPOINT ["/usr/local/bin/quibble"]
