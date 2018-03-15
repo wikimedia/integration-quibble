@@ -8,6 +8,9 @@ import os.path
 import subprocess
 import tempfile
 
+import quibble.mediawiki.maintenance
+import quibble.backend
+
 
 class QuibbleCmd(object):
 
@@ -16,6 +19,9 @@ class QuibbleCmd(object):
     def __init__(self):
         self.dependencies = []
         self.extra_dependencies = []
+        # Hold backend objects so they do not get garbage collected until end
+        # of script.
+        self.backends = {}
 
     def parse_arguments(self):
         """
@@ -29,7 +35,12 @@ class QuibbleCmd(object):
             '--packages-source',
             choices=['composer', 'vendor'],
             default='composer',
-            help='Source to install PHP dependencies from.')
+            help='Source to install PHP dependencies from')
+        parser.add_argument(
+            '--db',
+            choices=['sqlite', 'mysql'],
+            default='sqlite',
+            help='Database backed to use')
         parser.add_argument(
             '--scripts-dir',
             default='/srv/deployment/integration/slave-scripts/bin',
@@ -137,7 +148,32 @@ class QuibbleCmd(object):
                 script, proc.returncode))
 
     def mw_install(self):
-        self.run_script('mw-install-sqlite.sh')
+        dbclass = quibble.backend.getDBClass(engine=self.args.db)
+        db = dbclass()
+        self.backends['db'] = db  # hold a reference to prevent gc
+        db.start()
+
+        install_args = [
+            '--dbtype=%s' % self.args.db,
+            '--dbname=%s' % db.dbname,
+        ]
+        if self.args.db == 'sqlite':
+            install_args.extend([
+                '--dbpath=%s' % db.datadir,
+            ])
+        elif self.args.db == 'mysql':
+            install_args.extend([
+                '--dbuser=%s' % db.user,
+                '--dbpass=%s' % db.password,
+                '--dbserver=localhost:%s' % db.socket,
+            ])
+        else:
+            raise Exception('Unsupported database: %s' % self.args.db)
+
+        quibble.mediawiki.maintenance.install(
+            args=install_args,
+            mwdir=self.mw_install_path
+        )
         self.run_script('mw-apply-settings.sh')
         self.run_script('mw-run-update-script.sh')
 
