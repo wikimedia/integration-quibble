@@ -38,6 +38,14 @@ class QuibbleCmd(object):
             default='composer',
             help='Source to install PHP dependencies from')
         parser.add_argument(
+            '--skip-zuul',
+            action='store_true',
+            help='Do not clone/checkout in workspace')
+        parser.add_argument(
+            '--skip-deps',
+            action='store_true',
+            help='Do not run composer/npm')
+        parser.add_argument(
             '--db',
             choices=['sqlite', 'mysql'],
             default='sqlite',
@@ -188,16 +196,18 @@ class QuibbleCmd(object):
         self.mw_install_path = os.path.join(self.workspace, 'src')
 
         self.setup_environment()
-        self.prepare_sources()
+        if not self.args.skip_zuul:
+            self.prepare_sources()
         self.generate_extensions_load()
         self.mw_install()
 
-        if self.args.packages_source == 'vendor':
-            self.log.info('Requiring composer dev dependencies')
-            self.run_script('mw-fetch-composer-dev.sh')
+        if not self.args.skip_deps:
+            if self.args.packages_source == 'vendor':
+                self.log.info('Requiring composer dev dependencies')
+                self.run_script('mw-fetch-composer-dev.sh')
 
-        subprocess.check_call(['npm', 'prune'], cwd=self.mw_install_path)
-        subprocess.check_call(['npm', 'install'], cwd=self.mw_install_path)
+            subprocess.check_call(['npm', 'prune'], cwd=self.mw_install_path)
+            subprocess.check_call(['npm', 'install'], cwd=self.mw_install_path)
 
         with quibble.backend.DevWebServer(
                 mwdir=self.mw_install_path,
