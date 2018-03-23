@@ -214,7 +214,7 @@ class QuibbleCmd(object):
                 port=9412):
             quibble.test.run_qunit(self.mw_install_path)
 
-        self.run_script('mw-phpunit.sh')
+        quibble.test.run_phpunit(mwdir=self.mw_install_path),
 
 
 def main():

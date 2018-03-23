@@ -15,7 +15,8 @@ def install(args, mwdir=None):
 
     log.info(' '.join(cmd))
 
-    p = subprocess.Popen(cmd, cwd=mwdir)
+    # LANG is passed to $wgShellLocale
+    p = subprocess.Popen(cmd, cwd=mwdir, env={'LANG': 'C.UTF-8'})
     p.communicate()
     if p.returncode > 0:
         raise Exception(

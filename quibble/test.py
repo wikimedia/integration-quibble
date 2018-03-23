@@ -1,3 +1,4 @@
+import logging
 import os
 import os.path
 import subprocess
@@ -25,3 +26,25 @@ def run_qunit(mwdir):
     qunit.communicate()
     if qunit.returncode > 0:
         raise Exception('Qunit failed :(')
+
+
+def run_phpunit(mwdir, group=[], exclude_group=[], testsuite=None,
+                junit_file=None):
+
+    log = logging.getLogger('test.run_phpunit')
+    always_excluded = ['Broken', 'ParserFuzz', 'Stub']
+
+    cmd = ['php', 'tests/phpunit/phpunit.php', '--debug-tests']
+    if group:
+        cmd.extend(['--group', ','.join(group)])
+
+    cmd.extend(['--exclude-group',
+                ','.join(always_excluded + exclude_group)])
+
+    if junit_file:
+        cmd.extend('--log-junit', junit_file)
+    log.info(' '.join(cmd))
+    phpunit = subprocess.Popen(cmd, cwd=mwdir, env={'LANG': 'C.UTF-8'})
+    phpunit.communicate()
+    if phpunit.returncode > 0:
+        raise Exception('phpunit failed :(')
