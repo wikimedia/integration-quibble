@@ -5,6 +5,7 @@ import pwd
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 
 
@@ -14,6 +15,22 @@ def getDBClass(engine):
         if engine.lower() == attr.lower():
             return getattr(this_module, attr)
     raise Exception('Backend database engine not supported: %s' % engine)
+
+
+def stderr_relayer(process, log_function):
+    thread = threading.Thread(
+        target=stderr_to_log,
+        args=(process, log_function))
+    thread.start()
+    return thread
+
+
+def stderr_to_log(process, log_function):
+    while True:
+        line = process.stderr.readline()
+        if not line:
+            break
+        log_function(line.rstrip())
 
 
 class MySQL(object):
@@ -116,3 +133,60 @@ class SQLite(object):
     def start(self):
         # Created by MediaWiki
         pass
+
+
+class DevWebServer(object):
+
+    webserver = None
+
+    def __init__(self, port=4881, mwdir=None):
+        self.log = logging.getLogger('backend.devwebserver')
+
+        self.port = port
+        self.mwdir = mwdir
+
+    def __enter__(self):
+        self.start()
+
+    def __exit__(self, *args):
+        self.stop()
+
+    def start(self):
+        self.log.info('Starting MediaWiki built in webserver')
+
+        router = os.path.join(
+            self.mwdir, 'maintenance/dev/includes/router.php')
+
+        webserver = subprocess.Popen([
+            'php',
+            '-S', '127.0.0.1:%s' % self.port,
+            router,
+            ],
+            cwd=self.mwdir,
+            universal_newlines=True,
+            bufsize=1,  # line buffered
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.PIPE,
+        )
+        stderr_relayer(webserver, self.log.info)
+        self.webserver = webserver
+
+    def stop(self):
+        if self.webserver is not None:
+            self.log.info('Terminating webserver')
+            self.webserver.terminate()
+            try:
+                self.webserver.wait(2)
+            except subprocess.TimeoutExpired:
+                self.webserver.kill()  # SIGKILL
+            finally:
+                self.webserver = None
+
+    def __str__(self):
+        return 'http://127.0.0.1:%s' % self.port
+
+    def __repr__(self):
+        return '<DevWebServer :%s %s>' % (self.port, self.mwdir)
+
+    def __del__(self):
+        self.stop()

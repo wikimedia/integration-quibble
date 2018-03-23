@@ -10,6 +10,7 @@ import tempfile
 
 import quibble.mediawiki.maintenance
 import quibble.backend
+import quibble.test
 
 
 class QuibbleCmd(object):
@@ -154,6 +155,7 @@ class QuibbleCmd(object):
         db.start()
 
         install_args = [
+            '--scriptpath=',
             '--dbtype=%s' % self.args.db,
             '--dbname=%s' % db.dbname,
         ]
@@ -193,6 +195,14 @@ class QuibbleCmd(object):
         if self.args.packages_source == 'vendor':
             self.log.info('Requiring composer dev dependencies')
             self.run_script('mw-fetch-composer-dev.sh')
+
+        subprocess.check_call(['npm', 'prune'], cwd=self.mw_install_path)
+        subprocess.check_call(['npm', 'install'], cwd=self.mw_install_path)
+
+        with quibble.backend.DevWebServer(
+                mwdir=self.mw_install_path,
+                port=9412):
+            quibble.test.run_qunit(self.mw_install_path)
 
         self.run_script('mw-phpunit.sh')
 
