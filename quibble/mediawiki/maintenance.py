@@ -1,4 +1,5 @@
 import logging
+import os
 import subprocess
 
 
@@ -16,7 +17,8 @@ def install(args, mwdir=None):
     log.info(' '.join(cmd))
 
     # LANG is passed to $wgShellLocale
-    p = subprocess.Popen(cmd, cwd=mwdir, env={'LANG': 'C.UTF-8'})
+    p = subprocess.Popen(cmd, cwd=mwdir,
+                         env={'LANG': 'C.UTF-8'}.update(os.environ))
     p.communicate()
     if p.returncode > 0:
         raise Exception(

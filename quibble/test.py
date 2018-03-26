@@ -17,11 +17,10 @@ def run_qunit(mwdir):
          'MW_SCRIPT_PATH': '',
          'FORCE_COLOR': '1',  # for 'supports-color'
          }
-    karma_env.update(os.environ)
     qunit = subprocess.Popen(
         ['./node_modules/.bin/grunt', 'karma:main'],
         cwd=mwdir,
-        env=karma_env,
+        env=karma_env.update(os.environ),
     )
     qunit.communicate()
     if qunit.returncode > 0:
@@ -44,7 +43,9 @@ def run_phpunit(mwdir, group=[], exclude_group=[], testsuite=None,
     if junit_file:
         cmd.extend('--log-junit', junit_file)
     log.info(' '.join(cmd))
-    phpunit = subprocess.Popen(cmd, cwd=mwdir, env={'LANG': 'C.UTF-8'})
+    phpunit = subprocess.Popen(
+        cmd, cwd=mwdir,
+        env={'LANG': 'C.UTF-8'}.update(os.environ))
     phpunit.communicate()
     if phpunit.returncode > 0:
         raise Exception('phpunit failed :(')
