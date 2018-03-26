@@ -276,6 +276,11 @@ class QuibbleCmd(object):
             subprocess.check_call(['npm', 'prune'], cwd=self.mw_install_path)
             subprocess.check_call(['npm', 'install'], cwd=self.mw_install_path)
 
+        self.log.info("PHPUnit without Database group")
+        quibble.test.run_phpunit(
+            mwdir=self.mw_install_path,
+            exclude_group=['Database'])
+
         with quibble.backend.DevWebServer(
                 mwdir=self.mw_install_path,
                 port=9412):
@@ -293,7 +298,10 @@ class QuibbleCmd(object):
                         'MEDIAWIKI_PASSWORD': 'testpass',
                         })
 
-        quibble.test.run_phpunit(mwdir=self.mw_install_path),
+        self.log.info("PHPUnit Database group")
+        quibble.test.run_phpunit(
+            mwdir=self.mw_install_path,
+            group=['Database'])
 
 
 def main():
