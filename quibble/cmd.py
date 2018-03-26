@@ -103,6 +103,7 @@ class QuibbleCmd(object):
     def clonerepos(self, repos):
         zuul_env = {k: v for k, v in os.environ.items()
                     if k.startswith('ZUUL_')}
+        zuul_env['PATH'] = os.environ['PATH']
 
         try:
             temp_mapfile = ''
@@ -123,7 +124,9 @@ class QuibbleCmd(object):
                 fp.write(clone_map)
                 fp.close()
                 cmd = [
-                    '/usr/bin/zuul-cloner',
+                    'zuul-cloner',
+                    '--color',
+                    '--verbose',
                     '--map', temp_mapfile,
                     '--workspace', os.path.join(self.workspace, 'src'),
                     '--cache-dir', '/srv/git',
