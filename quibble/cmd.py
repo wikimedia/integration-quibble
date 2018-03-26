@@ -123,14 +123,14 @@ class QuibbleCmd(object):
                 fp.write(clone_map)
                 fp.close()
                 cmd = [
-                    'zuul-cloner',
+                    '/usr/bin/zuul-cloner',
                     '--map', temp_mapfile,
                     '--workspace', os.path.join(self.workspace, 'src'),
                     '--cache-dir', '/srv/git',
                     'https://gerrit.wikimedia.org/r/p',
                     ]
                 cmd.extend(repos)
-                subprocess.check_call(cmd, env=zuul_env.update(os.environ))
+                subprocess.check_call(cmd, env=zuul_env)
         finally:
             if temp_mapfile:
                 os.remove(temp_mapfile)
@@ -224,7 +224,7 @@ class QuibbleCmd(object):
                         'FORCE_COLOR': '1',  # for 'supports-color'
                         'MEDIAWIKI_USER': 'WikiAdmin',
                         'MEDIAWIKI_PASSWORD': 'testpass',
-                        }.update(os.environ))
+                        })
 
         quibble.test.run_phpunit(mwdir=self.mw_install_path),
 
