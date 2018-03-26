@@ -217,6 +217,8 @@ class QuibbleCmd(object):
         self.scripts_dir = self.args.scripts_dir
         self.workspace = self.args.workspace
         self.mw_install_path = os.path.join(self.workspace, 'src')
+        self.log_dir = os.path.join(self.workspace, 'log')
+        os.makedirs(self.log_dir)
 
         self.setup_environment()
         if not self.args.skip_zuul:
