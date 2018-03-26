@@ -157,6 +157,23 @@ class SQLite(object):
         pass
 
 
+class ChromeWebDriver(BackendServer):
+
+    def __init__(self, port=4444, url_base='/wd/hub'):
+        super(ChromeWebDriver, self).__init__()
+
+        self.port = port
+        self.url_base = url_base
+
+    def start(self):
+        self.log.info('Starting Chromedriver')
+        self.server = subprocess.Popen([
+            'chromedriver',
+            '--port=%s' % self.port,
+            '--url-base=%s' % self.url_base,
+            ])
+
+
 class DevWebServer(BackendServer):
 
     def __init__(self, port=4881, mwdir=None):
