@@ -185,7 +185,27 @@ class QuibbleCmd(object):
             mwdir=self.mw_install_path
         )
         self.run_script('mw-apply-settings.sh')
-        self.run_script('mw-run-update-script.sh')
+
+        update_args = []
+        if (self.args.packages_source == 'vendor'):
+            # When trying to update a library in mediawiki/core and
+            # mediawiki/vendor, a circular dependency is produced as both
+            # patches depend upon each other.
+            #
+            # All non-mediawiki/vendor jobs will skip checking for matching
+            # versions and continue "at their own risk". mediawiki/vendor will
+            # still check versions to make sure it stays in sync with MediaWiki
+            # core.
+            #
+            # T88211
+            self.log.info('mediawiki/vendor used. '
+                          'Skipping external dependencies')
+            update_args.append('--skip-external-dependencies')
+
+        quibble.mediawiki.maintenance.update(
+            args=update_args,
+            mwdir=self.mw_install_path
+        )
 
     def execute(self):
         logging.basicConfig(level=logging.DEBUG)

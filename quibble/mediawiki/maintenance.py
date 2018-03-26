@@ -2,6 +2,20 @@ import logging
 import subprocess
 
 
+def update(args, mwdir=None):
+    log = logging.getLogger('mw.maintenance.update')
+
+    cmd = ['php', 'maintenance/update.php', '--quick']
+    cmd.extend(args)
+    log.info(' '.join(cmd))
+
+    p = subprocess.Popen(cmd, cwd=mwdir, env={})
+    p.communicate()
+    if p.returncode > 0:
+        raise Exception(
+            'Update failed with exit code: %s' % p.returncode)
+
+
 def install(args, mwdir=None):
     log = logging.getLogger('mw.maintenance.install')
 
