@@ -33,12 +33,36 @@ def stderr_to_log(process, log_function):
         log_function(line.rstrip())
 
 
-class MySQL(object):
+class BackendServer(object):
 
-    mysqld = None
+    server = None
+
+    def __init__(self):
+        self.log = logging.getLogger('backend.%s' % self.__class__.__name__)
+
+    def __enter__(self):
+        self.start()
+
+    def __exit__(self, *args):
+        self.stop()
+
+    def stop(self):
+        if self.server is not None:
+            self.log.info('Terminating %s' % self.__class__.__name__)
+            self.server.terminate()
+            try:
+                self.server.wait(2)
+            except subprocess.TimeoutExpired:
+                self.server.kill()  # SIGKILL
+            finally:
+                self.server = None
+
+
+class MySQL(BackendServer):
 
     def __init__(self, user='wikiuser', password='secret', dbname='wikidb'):
-        self.log = logging.getLogger('backend.MySQL')
+        super(MySQL, self).__init__()
+
         self.user = user
         self.password = password
         self.dbname = dbname
@@ -87,7 +111,7 @@ class MySQL(object):
 
     def start(self):
         self.log.info('Starting MySQL')
-        mysqld = subprocess.Popen([
+        self.server = subprocess.Popen([
             '/usr/sbin/mysqld',  # fixme drop path
             '--skip-networking',
             '--datadir=%s' % self.rootdir,
@@ -100,14 +124,13 @@ class MySQL(object):
         )
 
         while not os.path.exists(self.socket):
-            if mysqld.poll() is not None:
+            if self.server.poll() is not None:
                 with open(self.errorlog) as errlog:
                     print(errlog.read())
                 raise Exception(
-                    "MySQL died during startup (%s)" % mysqld.returncode)
+                    "MySQL died during startup (%s)" % self.server.returncode)
             self.log.info("Waiting for MySQL socket")
             time.sleep(1)
-        self.mysqld = mysqld
         self._createwikidb()
         self.log.info('MySQL is ready')
 
@@ -115,15 +138,14 @@ class MySQL(object):
         return self.socket
 
     def __del__(self):
-        if self.mysqld is not None:
-            self.log.info('Killing MySQL')
-            self.mysqld.kill()
+        self.stop()
 
 
 class SQLite(object):
 
     def __init__(self, dbname='wikidb'):
         self.log = logging.getLogger('backend.SQLite')
+
         self.dbname = dbname
 
         self.tmpdir = tempfile.TemporaryDirectory(prefix='quibble-sqlite-')
@@ -135,21 +157,13 @@ class SQLite(object):
         pass
 
 
-class DevWebServer(object):
-
-    webserver = None
+class DevWebServer(BackendServer):
 
     def __init__(self, port=4881, mwdir=None):
-        self.log = logging.getLogger('backend.devwebserver')
+        super(DevWebServer, self).__init__()
 
         self.port = port
         self.mwdir = mwdir
-
-    def __enter__(self):
-        self.start()
-
-    def __exit__(self, *args):
-        self.stop()
 
     def start(self):
         self.log.info('Starting MediaWiki built in webserver')
@@ -157,7 +171,7 @@ class DevWebServer(object):
         router = os.path.join(
             self.mwdir, 'maintenance/dev/includes/router.php')
 
-        webserver = subprocess.Popen([
+        self.server = subprocess.Popen([
             'php',
             '-S', '127.0.0.1:%s' % self.port,
             router,
@@ -168,19 +182,7 @@ class DevWebServer(object):
             stdout=subprocess.DEVNULL,
             stderr=subprocess.PIPE,
         )
-        stderr_relayer(webserver, self.log.info)
-        self.webserver = webserver
-
-    def stop(self):
-        if self.webserver is not None:
-            self.log.info('Terminating webserver')
-            self.webserver.terminate()
-            try:
-                self.webserver.wait(2)
-            except subprocess.TimeoutExpired:
-                self.webserver.kill()  # SIGKILL
-            finally:
-                self.webserver = None
+        stderr_relayer(self.server, self.log.info)
 
     def __str__(self):
         return 'http://127.0.0.1:%s' % self.port
