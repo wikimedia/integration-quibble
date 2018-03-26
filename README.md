@@ -5,13 +5,13 @@ TLDR:
 
 Then run the quibble command:
 
-	ZUUL_URL=https://gerrit.wikimedia.org/r/p ZUUL_BRANCH=master ZUUL_REF=master quibble --packages-source vendor
+    quibble --packages-source vendor --db mysql
 
 CACHING
 -------
 
 To avoid cloning MediaWiki over the network, you should initialize local bare
-repositories to be used as cache to copy from:
+repositories to be used as a reference for git to copy from:
 
     mkdir -p ref/mediawiki/skins
     git clone --bare mediawiki/core ref/mediawiki/core.git
@@ -23,10 +23,17 @@ Create a cache directory writable by any user:
 
     install --directory --mode 777 cache
 
-We then mount the git repositories as a READ-ONLY volume as `/srv/git` and the
-`cache` dir in read-write mode:
+When running in a Docker container, mount the git repositories as a READ-ONLY
+volume as `/srv/git` and the `cache` dir in read-write mode:
 
     docker run -it --rm -v "$(pwd)"/ref:/srv/git:ro -v "$(pwd)"/cache:/cache quibble
+
+You can get log with:
+
+    mkdir -p workspace/log
+    chmod 777 workspace/log
+
+And then passing `-v "$(pwd)"/workspace/log:/workspace/log`.
 
 TESTING
 -------

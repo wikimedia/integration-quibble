@@ -6,3 +6,4 @@ ref
 # Dev related
 .git
 .tox
+/workspace
