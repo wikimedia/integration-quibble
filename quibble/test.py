@@ -3,6 +3,8 @@ import os
 import os.path
 import subprocess
 
+import quibble
+
 
 def run_qunit(mwdir):
     localsettings = os.path.join(
@@ -26,7 +28,7 @@ def run_qunit(mwdir):
             '--disable-gpu',
             '--remote-debugging-port=9222',
             ])
-    if os.path.exists('/.dockerenv'):
+    if quibble.is_in_docker():
         chromium_flags += ' --no-sandbox'
     karma_env.update({'CHROMIUM_FLAGS': chromium_flags})
 

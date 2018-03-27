@@ -9,6 +9,7 @@ from shutil import copyfile
 import subprocess
 import tempfile
 
+import quibble
 import quibble.mediawiki.maintenance
 import quibble.backend
 import quibble.test
@@ -51,6 +52,13 @@ class QuibbleCmd(object):
             choices=['sqlite', 'mysql'],
             default='sqlite',
             help='Database backed to use')
+        parser.add_argument(
+            '--git-cache',
+            default='/srv/git' if quibble.is_in_docker() else 'ref',
+            help='Path to bare git repositories to speed up git clone'
+                 'operation. Passed to zuul-cloner as --cache-dir. '
+                 'In Docker: /srv/git, else ref/'
+            )
         parser.add_argument(
             '--scripts-dir',
             default='/srv/deployment/integration/slave-scripts/bin',
@@ -134,7 +142,7 @@ class QuibbleCmd(object):
                     '--verbose',
                     '--map', temp_mapfile,
                     '--workspace', os.path.join(self.workspace, 'src'),
-                    '--cache-dir', '/srv/git',
+                    '--cache-dir', self.args.git_cache,
                     'https://gerrit.wikimedia.org/r/p',
                     ]
                 cmd.extend(repos)
