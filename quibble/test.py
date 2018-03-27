@@ -18,15 +18,17 @@ def run_qunit(mwdir):
          }
     karma_env.update(os.environ)
 
+    chromium_flags = os.environ.get('CHROMIUM_FLAGS', '')
     if 'DISPLAY' not in os.environ:
         # Run Chromium in headless mode
-        chromium_flags = os.environ.get('CHROMIUM_FLAGS', '')
         chromium_flags += ' ' + ' '.join([
             '--headless',
             '--disable-gpu',
             '--remote-debugging-port=9222',
             ])
-        karma_env.update({'CHROMIUM_FLAGS': chromium_flags})
+    if os.path.exists('/.dockerenv'):
+        chromium_flags += ' --no-sandbox'
+    karma_env.update({'CHROMIUM_FLAGS': chromium_flags})
 
     qunit = subprocess.Popen(
         ['./node_modules/.bin/grunt', 'karma:main'],
