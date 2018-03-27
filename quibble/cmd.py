@@ -82,6 +82,10 @@ class QuibbleCmd(object):
         if 'WORKSPACE' not in os.environ:
             os.environ['WORKSPACE'] = self.workspace
 
+        os.environ['MW_INSTALL_PATH'] = self.mw_install_path
+        os.environ['MW_LOG_DIR'] = self.log_dir
+        os.environ['TMPDIR'] = '/tmp'
+
     def get_repos_to_clone(self, clone_vendor=False):
         """
         Find repos to clone basedon passed arguments and environment
