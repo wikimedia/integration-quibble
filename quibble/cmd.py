@@ -5,6 +5,7 @@ import json
 import logging
 import os
 import os.path
+from shutil import copyfile
 import subprocess
 import tempfile
 
@@ -210,6 +211,47 @@ class QuibbleCmd(object):
             mwdir=self.mw_install_path
         )
 
+    def fetch_composer_dev(self):
+        mw_composer_json = os.path.join(self.mw_install_path, 'composer.json')
+        vendor_dir = os.path.join(self.mw_install_path, 'vendor')
+        with open(mw_composer_json, 'r') as f:
+            composer = json.load(f)
+        for dependency, version in composer['require-dev'].items():
+            req = '='.join([dependency, version])
+            self.log.debug('composer require %s' % req)
+            subprocess.check_call([
+                'composer', 'require', '--dev', '--ansi', '--no-progress',
+                '--prefer-dist', '-v', req],
+                cwd=vendor_dir)
+        if self.args.packages_source == 'vendor':
+            # Point composer-merge-plugin to mediawiki/core.
+            # That let us easily merge autoload-dev section and thus complete
+            # the autoloader.
+            # T158674
+            subprocess.check_call([
+                'composer', 'config',
+                'extra.merge-plugin.include', mw_composer_json],
+                cwd=vendor_dir)
+
+        # FIXME integration/composer used to be outdated and broke the
+        # autoloader. Since composer 1.0.0-alpha11 the following might not
+        # be needed anymore.
+        subprocess.check_call([
+            'composer', 'dump-autoload', '--optimize'],
+            cwd=vendor_dir)
+
+        def logdest(fname):
+            return os.path.join(self.log_dir, fname)
+
+        copyfile(mw_composer_json,
+                 logdest('composer.core.json.txt'))
+
+        copyfile(os.path.join(vendor_dir, 'composer.json'),
+                 logdest('composer.vendor.json.txt'))
+
+        copyfile(os.path.join(vendor_dir, 'composer/autoload_files.php'),
+                 logdest('composer.autoload_files.php.txt'))
+
     def execute(self):
         logging.basicConfig(level=logging.DEBUG)
         self.args = self.parse_arguments()
@@ -218,7 +260,7 @@ class QuibbleCmd(object):
         self.workspace = self.args.workspace
         self.mw_install_path = os.path.join(self.workspace, 'src')
         self.log_dir = os.path.join(self.workspace, 'log')
-        os.makedirs(self.log_dir)
+        os.makedirs(self.log_dir, exist_ok=True)
 
         self.setup_environment()
         if not self.args.skip_zuul:
@@ -229,7 +271,7 @@ class QuibbleCmd(object):
         if not self.args.skip_deps:
             if self.args.packages_source == 'vendor':
                 self.log.info('Requiring composer dev dependencies')
-                self.run_script('mw-fetch-composer-dev.sh')
+                self.fetch_composer_dev()
 
             subprocess.check_call(['npm', 'prune'], cwd=self.mw_install_path)
             subprocess.check_call(['npm', 'install'], cwd=self.mw_install_path)
