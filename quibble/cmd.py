@@ -194,6 +194,11 @@ class QuibbleCmd(object):
         )
         self.run_script('mw-apply-settings.sh')
 
+        # XXX monkey patching
+        localsettings = os.path.join(self.mw_install_path, 'LocalSettings.php')
+        with open(localsettings, 'a') as lf:
+            lf.write('<?php $wgTmpDirectory = "/tmp"; ?>')
+
         update_args = []
         if (self.args.packages_source == 'vendor'):
             # When trying to update a library in mediawiki/core and
