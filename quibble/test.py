@@ -12,12 +12,22 @@ def run_qunit(mwdir):
 
     karma_env = {
          'CHROME_BIN': '/usr/bin/chromium',
-         'DISPLAY': os.environ['DISPLAY'],
          'MW_SERVER': 'http://127.0.0.1:9412',
          'MW_SCRIPT_PATH': '',
          'FORCE_COLOR': '1',  # for 'supports-color'
          }
     karma_env.update(os.environ)
+
+    if 'DISPLAY' not in os.environ:
+        # Run Chromium in headless mode
+        chromium_flags = os.environ.get('CHROMIUM_FLAGS', '')
+        chromium_flags += ' ' + ' '.join([
+            '--headless',
+            '--disable-gpu',
+            '--remote-debugging-port=9222',
+            ])
+        karma_env.update({'CHROMIUM_FLAGS': chromium_flags})
+
     qunit = subprocess.Popen(
         ['./node_modules/.bin/grunt', 'karma:main'],
         cwd=mwdir,
