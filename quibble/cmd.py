@@ -287,17 +287,20 @@ class QuibbleCmd(object):
                 port=9412):
             quibble.test.run_qunit(self.mw_install_path)
 
-            with quibble.backend.ChromeWebDriver():
-                subprocess.check_call([
-                    'node_modules/.bin/grunt', 'webdriver:test'],
-                    cwd=self.mw_install_path,
-                    env={
-                        'MW_SERVER': 'http://127.0.0.1:9412',
-                        'MW_SCRIPT_PATH': '',
-                        'FORCE_COLOR': '1',  # for 'supports-color'
-                        'MEDIAWIKI_USER': 'WikiAdmin',
-                        'MEDIAWIKI_PASSWORD': 'testpass',
-                        })
+            display = ':94'
+            with quibble.backend.Xvfb(display=display):
+                with quibble.backend.ChromeWebDriver(display=display):
+                    subprocess.check_call([
+                        'node_modules/.bin/grunt', 'webdriver:test'],
+                        cwd=self.mw_install_path,
+                        env={
+                            'MW_SERVER': 'http://127.0.0.1:9412',
+                            'MW_SCRIPT_PATH': '',
+                            'FORCE_COLOR': '1',  # for 'supports-color'
+                            'MEDIAWIKI_USER': 'WikiAdmin',
+                            'MEDIAWIKI_PASSWORD': 'testpass',
+                            'DISPLAY': ':94',
+                            })
 
         self.log.info("PHPUnit Database group")
         quibble.test.run_phpunit(

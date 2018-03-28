@@ -159,9 +159,10 @@ class SQLite(object):
 
 class ChromeWebDriver(BackendServer):
 
-    def __init__(self, port=4444, url_base='/wd/hub'):
+    def __init__(self, display=':94', port=4444, url_base='/wd/hub'):
         super(ChromeWebDriver, self).__init__()
 
+        self.display = display
         self.port = port
         self.url_base = url_base
 
@@ -171,7 +172,9 @@ class ChromeWebDriver(BackendServer):
             'chromedriver',
             '--port=%s' % self.port,
             '--url-base=%s' % self.url_base,
-            ])
+            ],
+            env={'DISPLAY': self.display}
+        )
 
 
 class DevWebServer(BackendServer):
@@ -209,3 +212,19 @@ class DevWebServer(BackendServer):
 
     def __del__(self):
         self.stop()
+
+
+class Xvfb(BackendServer):
+
+    def __init__(self, display=':94'):
+        super(Xvfb, self).__init__()
+        self.display = display
+
+    def start(self):
+        self.log.info('Starting Xvfb on display %s' % self.display)
+        self.server = subprocess.Popen([
+            'Xvfb', self.display,
+            '-screen', '0', '1280x1024x24'
+            '-ac',
+            '-nolisten', 'tcp'
+            ])

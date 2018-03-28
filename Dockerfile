@@ -22,6 +22,10 @@ RUN apt-get update \
         php5-curl \
         djvulibre-bin \
         nodejs-legacy \
+    && : "Xvfb" \
+    && apt-get install -y \
+        xvfb \
+        xauth \
     && rm -rf /var/lib/apt/lists/*
 
 COPY . /opt/quibble
