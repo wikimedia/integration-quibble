@@ -12,14 +12,14 @@ class CmdTest(unittest.TestCase):
         q = cmd.QuibbleCmd()
         self.assertEqual(
             q.get_repos_to_clone(),
-            ['mediawiki/core'],
+            ['mediawiki/core', 'mediawiki/skins/Vector'],
             'Incorrect repos to clone')
 
     def test_projects_to_clone_with_vendor(self):
         q = cmd.QuibbleCmd()
         self.assertEqual(
             q.get_repos_to_clone(clone_vendor=True),
-            ['mediawiki/core', 'mediawiki/vendor'],
+            ['mediawiki/core', 'mediawiki/skins/Vector', 'mediawiki/vendor'],
             'Incorrect repos to clone')
 
     def test_generate_extensions_load(self):

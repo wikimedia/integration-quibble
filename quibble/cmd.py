@@ -95,6 +95,7 @@ class QuibbleCmd(object):
         Find repos to clone basedon passed arguments and environment
         """
         self.dependencies.append('mediawiki/core')
+        self.dependencies.append('mediawiki/skins/Vector')
         if clone_vendor:
             self.log.info('Will clone mediawiki/vendor')
             self.dependencies.append('mediawiki/vendor')
