@@ -5,6 +5,7 @@ import json
 import logging
 import os
 import os.path
+import pkg_resources
 from shutil import copyfile
 import subprocess
 import tempfile
@@ -58,11 +59,6 @@ class QuibbleCmd(object):
             help='Path to bare git repositories to speed up git clone'
                  'operation. Passed to zuul-cloner as --cache-dir. '
                  'In Docker: /srv/git, else ref/'
-            )
-        parser.add_argument(
-            '--scripts-dir',
-            default='/srv/deployment/integration/slave-scripts/bin',
-            help='Path to integration/jenkins checkout'
             )
         parser.add_argument(
             '--workspace',
@@ -157,21 +153,6 @@ class QuibbleCmd(object):
         with open(extension_path, 'w') as f:
             f.writelines(self.extra_dependencies)
 
-    def run_script(self, script_name):
-        self.log.debug('Running script: %s' % script_name)
-        script = os.path.join(self.scripts_dir,
-                              os.path.basename(script_name))
-        if not os.path.exists(script):
-            raise Exception('Script %s does not exist in %s' % (
-                            script_name, self.scripts_dir))
-
-        proc = subprocess.Popen(script)
-        proc.communicate()
-
-        if proc.returncode > 0:
-            raise Exception('Script %s failed with exit code: %s' % (
-                script, proc.returncode))
-
     def mw_install(self):
         dbclass = quibble.backend.getDBClass(engine=self.args.db)
         db = dbclass()
@@ -200,12 +181,16 @@ class QuibbleCmd(object):
             args=install_args,
             mwdir=self.mw_install_path
         )
-        self.run_script('mw-apply-settings.sh')
 
-        # XXX monkey patching
         localsettings = os.path.join(self.mw_install_path, 'LocalSettings.php')
         with open(localsettings, 'a') as lf:
-            lf.write('<?php $wgTmpDirectory = "/tmp"; ?>')
+            extra_conf = subprocess.check_output([
+                'php',
+                pkg_resources.resource_filename(
+                    __name__, 'mediawiki.d/_join.php')
+                ])
+            lf.write(extra_conf.decode())
+        subprocess.check_call(['php', '-l', localsettings])
 
         update_args = []
         if (self.args.packages_source == 'vendor'):
@@ -273,7 +258,6 @@ class QuibbleCmd(object):
         logging.basicConfig(level=logging.DEBUG)
         self.args = self.parse_arguments()
 
-        self.scripts_dir = self.args.scripts_dir
         self.workspace = self.args.workspace
         self.mw_install_path = os.path.join(self.workspace, 'src')
         self.log_dir = os.path.join(self.workspace, 'log')

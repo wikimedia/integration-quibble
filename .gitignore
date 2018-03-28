@@ -2,6 +2,7 @@
 /quibble.egg-info/
 /cache/
 /cover/
+/dist/
 /ref/
 /.tox
 *.pyc

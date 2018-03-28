@@ -5,8 +5,6 @@ ARG DEBIAN_FRONTEND=noninteractive
 # CI utilities
 RUN git clone --depth=1 "https://gerrit.wikimedia.org/r/p/integration/composer" "/srv/deployment/integration/composer" && \
     rm -fR /srv/deployment/integration/composer/.git && \
-    git clone --depth=1 "https://gerrit.wikimedia.org/r/p/integration/jenkins" "/srv/deployment/integration/slave-scripts" && \
-    rm -fR /srv/deployment/integration/slave-scripts/.git && \
 	ln -s "/srv/deployment/integration/composer/vendor/bin/composer" "/usr/local/bin/composer"
 
 RUN apt-get update \
