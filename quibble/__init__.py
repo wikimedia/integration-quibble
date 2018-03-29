@@ -1,8 +1,12 @@
+import logging
 import os
 import os.path
 
 
 def use_headless():
+    log = logging.getLogger('quibble.use_headless')
+    log.info("Display: %s" % os.environ.get('DISPLAY', '<None>'))
+
     return not bool(os.environ.get('DISPLAY'))
 
 
@@ -17,6 +21,8 @@ def chromium_flags():
             '--remote-debugging-port=9222',
         ])
 
+    log = logging.getLogger('quibble.chromium_flags')
+    log.debug("Flags: %s" % args)
     return ' '.join(args)
 
 
