@@ -9,6 +9,7 @@ import os.path
 import pkg_resources
 from shutil import copyfile
 import subprocess
+import sys
 import tempfile
 
 import quibble
@@ -28,7 +29,7 @@ class QuibbleCmd(object):
         # of script.
         self.backends = {}
 
-    def parse_arguments(self):
+    def parse_arguments(self, args=sys.argv[1:]):
         """
         Parse arguments
         """
@@ -59,14 +60,14 @@ class QuibbleCmd(object):
             default='/srv/git' if quibble.is_in_docker() else 'ref',
             help='Path to bare git repositories to speed up git clone'
                  'operation. Passed to zuul-cloner as --cache-dir. '
-                 'In Docker: /srv/git, else ref/'
-            )
+                 'In Docker: "/srv/git", else "ref"')
         parser.add_argument(
             '--workspace',
-            default=os.environ.get('WORKSPACE', os.getcwd()),
-            help='Base path to work from. Default: $WORKSPACE or $CWD'
+            default='/workspace' if quibble.is_in_docker() else os.getcwd(),
+            help='Base path to work from. In Docker: "/workspace", '
+                 'else current working directory'
             )
-        return parser.parse_args()
+        return parser.parse_args(args)
 
     def setup_environment(self):
         """
@@ -84,7 +85,11 @@ class QuibbleCmd(object):
         if 'EXECUTOR_NUMBER' not in os.environ:
             os.environ['EXECUTOR_NUMBER'] = '1'
 
-        if 'WORKSPACE' not in os.environ:
+        if quibble.is_in_docker() or 'WORKSPACE' not in os.environ:
+            # Override WORKSPACE in Docker, we really want /workspace or
+            # whatever was given from the command line.
+            # Else set it, since some code might rely on it being set to detect
+            # whether they are under CI.
             os.environ['WORKSPACE'] = self.workspace
 
         os.environ['MW_INSTALL_PATH'] = self.mw_install_path
