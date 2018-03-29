@@ -39,8 +39,8 @@ class QuibbleCmd(object):
         parser.add_argument(
             '--packages-source',
             choices=['composer', 'vendor'],
-            default='composer',
-            help='Source to install PHP dependencies from')
+            default='vendor',
+            help='Source to install PHP dependencies from. Default: vendor')
         parser.add_argument(
             '--skip-zuul',
             action='store_true',
@@ -52,8 +52,8 @@ class QuibbleCmd(object):
         parser.add_argument(
             '--db',
             choices=['sqlite', 'mysql'],
-            default='sqlite',
-            help='Database backed to use')
+            default='mysql',
+            help='Database backed to use. Default: mysql')
         parser.add_argument(
             '--git-cache',
             default='/srv/git' if quibble.is_in_docker() else 'ref',

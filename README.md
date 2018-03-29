@@ -5,7 +5,11 @@ TLDR:
 
 Then run the quibble command:
 
-    quibble --packages-source vendor --db mysql
+    quibble
+
+Or try another set:
+
+    quibble  --packages-source composer --db sqlite
 
 CACHING
 -------
