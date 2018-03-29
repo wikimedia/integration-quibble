@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+from contextlib import ExitStack
 import json
 import logging
 import os
@@ -288,8 +289,13 @@ class QuibbleCmd(object):
                 port=9412):
             quibble.test.run_qunit(self.mw_install_path)
 
-            display = ':94'
-            with quibble.backend.Xvfb(display=display):
+            with ExitStack() as stack:
+                display = os.environ.get('DISPLAY', None)
+                if not display:
+                    display = ':94'  # XXX racy when run concurrently!
+                    self.log.info("No DISPLAY, using Xvfb.")
+                    stack.enter_context(quibble.backend.Xvfb(display=display))
+
                 with quibble.backend.ChromeWebDriver(display=display):
                     subprocess.check_call([
                         'node_modules/.bin/grunt', 'webdriver:test'],
@@ -300,7 +306,7 @@ class QuibbleCmd(object):
                             'FORCE_COLOR': '1',  # for 'supports-color'
                             'MEDIAWIKI_USER': 'WikiAdmin',
                             'MEDIAWIKI_PASSWORD': 'testpass',
-                            'DISPLAY': ':94',
+                            'DISPLAY': display,
                             })
 
         self.log.info("PHPUnit Database group")
