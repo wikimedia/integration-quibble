@@ -8,6 +8,8 @@ import tempfile
 import threading
 import time
 
+import quibble
+
 
 def getDBClass(engine):
     this_module = sys.modules[__name__]
@@ -159,7 +161,7 @@ class SQLite(object):
 
 class ChromeWebDriver(BackendServer):
 
-    def __init__(self, display=':94', port=4444, url_base='/wd/hub'):
+    def __init__(self, display=None, port=4444, url_base='/wd/hub'):
         super(ChromeWebDriver, self).__init__()
 
         self.display = display
@@ -168,13 +170,29 @@ class ChromeWebDriver(BackendServer):
 
     def start(self):
         self.log.info('Starting Chromedriver')
-        self.server = subprocess.Popen([
-            'chromedriver',
-            '--port=%s' % self.port,
-            '--url-base=%s' % self.url_base,
-            ],
-            env={'DISPLAY': self.display}
-        )
+        try:
+            prev_display = os.environ.get('DISPLAY', None)
+            if self.display:
+                # We need DISPLAY in the env for chromium_flags()
+                os.environ.update({'DISPLAY': self.display})
+            env = {'CHROMIUM_FLAGS': quibble.chromium_flags()}
+
+            if self.display is not None:
+                # Pass it to chromedriver
+                env.update({'DISPLAY': self.display})
+
+            self.server = subprocess.Popen([
+                'chromedriver',
+                '--port=%s' % self.port,
+                '--url-base=%s' % self.url_base,
+                ],
+                env=env
+            )
+        finally:
+            if prev_display:
+                os.environ.update({'DISPLAY': prev_display})
+            elif prev_display is None and self.display:
+                del(os.environ['DISPLAY'])
 
 
 class DevWebServer(BackendServer):

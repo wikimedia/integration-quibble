@@ -19,18 +19,7 @@ def run_qunit(mwdir):
          'FORCE_COLOR': '1',  # for 'supports-color'
          }
     karma_env.update(os.environ)
-
-    chromium_flags = os.environ.get('CHROMIUM_FLAGS', '')
-    if 'DISPLAY' not in os.environ:
-        # Run Chromium in headless mode
-        chromium_flags += ' ' + ' '.join([
-            '--headless',
-            '--disable-gpu',
-            '--remote-debugging-port=9222',
-            ])
-    if quibble.is_in_docker():
-        chromium_flags += ' --no-sandbox'
-    karma_env.update({'CHROMIUM_FLAGS': chromium_flags})
+    karma_env.update({'CHROMIUM_FLAGS': quibble.chromium_flags()})
 
     qunit = subprocess.Popen(
         ['./node_modules/.bin/grunt', 'karma:main'],
