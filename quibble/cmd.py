@@ -227,7 +227,9 @@ class QuibbleCmd(object):
                  logdest('composer.autoload_files.php.txt'))
 
     def execute(self):
-        logging.basicConfig(level=logging.DEBUG)
+        logging.basicConfig(level=logging.INFO)
+        logging.getLogger('quibble').setLevel(logging.DEBUG)
+
         # Color codes http://www.tldp.org/HOWTO/Bash-Prompt-HOWTO/x329.html
         logging.addLevelName(  # cyan
             logging.DEBUG, "\033[36m%s\033[0m" %
