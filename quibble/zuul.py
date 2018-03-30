@@ -2,6 +2,14 @@ import logging
 import os
 
 from zuul.lib.cloner import Cloner
+from zuul.lib.clonemapper import CloneMapper
+
+CLONE_MAP = [
+    {'name': 'mediawiki/core', 'dest': '.'},
+    {'name': 'mediawiki/vendor', 'dest': './vendor'},
+    {'name': 'mediawiki/extensions/(.*)', 'dest': './extensions/\\1'},
+    {'name': 'mediawiki/skins/(.*)', 'dest': './skins/\\1'},
+]
 
 
 def clone(repos, workspace, cache_dir):
@@ -34,12 +42,11 @@ def clone(repos, workspace, cache_dir):
         cache_no_hardlinks=False,  # False allows hardlink
         )
     # The constructor expects a file, set the value directly
-    zuul_cloner.clone_map = [
-        {'name': 'mediawiki/core', 'dest': '.'},
-        {'name': 'mediawiki/vendor', 'dest': './vendor'},
-        {'name': 'mediawiki/extensions/(.*)', 'dest': './extensions/\\1'},
-        {'name': 'mediawiki/skins/(.*)', 'dest': './skins/\\1'},
-        ]
-    # XXX color and logging.DEBUG
+    zuul_cloner.clone_map = CLONE_MAP
 
-    zuul_cloner.execute()
+    return zuul_cloner.execute()
+
+
+def repo_dir(repo):
+    mapper = CloneMapper(CLONE_MAP, [repo])
+    return mapper.expand(workspace='./')[repo]

@@ -67,6 +67,11 @@ class QuibbleCmd(object):
             help='Base path to work from. In Docker: "/workspace", '
                  'else current working directory'
             )
+        parser.add_argument(
+            'projects', default=[], nargs='*',
+            help='MediaWiki extensions and skins to clone'
+            )
+
         return parser.parse_args(args)
 
     def setup_environment(self):
@@ -113,7 +118,8 @@ class QuibbleCmd(object):
 
     def prepare_sources(self):
         clone_vendor = (self.args.packages_source == 'vendor')
-        projects_to_clone = self.get_repos_to_clone(clone_vendor)
+        projects_to_clone = (
+            self.get_repos_to_clone(clone_vendor) + self.args.projects)
         quibble.zuul.clone(
             projects_to_clone,
             workspace=os.path.join(self.workspace, 'src'),
@@ -257,6 +263,31 @@ class QuibbleCmd(object):
         self.setup_environment()
         if not self.args.skip_zuul:
             self.prepare_sources()
+
+        zuul_project = os.environ.get('ZUUL_PROJECT', None)
+        self.log.debug("ZUUL_PROJECT=%s" % zuul_project)
+        if (
+            zuul_project and
+            zuul_project not in ('mediawiki/core', 'mediawiki/vendor')
+        ):
+            project_dir = os.path.join(
+                self.workspace, 'src',
+                quibble.zuul.repo_dir(os.environ['ZUUL_PROJECT']))
+            if not os.path.exists(os.path.join(project_dir, 'composer.json')):
+                self.log.warning("%s lacks a composer.json" % zuul_project)
+            else:
+                self.log.info('Running "composer test" for %s in %s' % (
+                              os.environ['ZUUL_PROJECT'], project_dir))
+                cmds = [
+                    ['composer', '--ansi', 'validate', '--no-check-publish'],
+                    ['composer', '--ansi', 'install', '--no-progress',
+                     '--prefer-dist', '--profile', '-v'],
+                    ['composer', '--ansi', 'test'],
+                    ['git', 'clean', '-xddf'],
+                ]
+                for cmd in cmds:
+                    subprocess.check_call(cmd, cwd=project_dir)
+
         self.generate_extensions_load()
         self.mw_install()
 
