@@ -17,20 +17,12 @@ RUN apt-get update \
     && apt-get install -y python3 python3-setuptools python3-pip
 
 RUN apt-get update \
-    && : "Zuul installation" \
+    && : "Zuul cloner dependencies" \
     && apt-get install -y \
-        python3-babel \
-        python3-docutils \
-        python3-ecdsa \
         python3-extras \
-        python3-lockfile \
-        python3-paste \
-        python3-prettytable \
-        python3-tz \
-        python3-voluptuous \
-        python3-webob \
+        python3-six \
         python3-yaml \
-    && pip3 install git+https://gerrit.wikimedia.org/r/p/integration/zuul.git#egg=zuul \
+        python3-git \
     && rm -fR /cache/pip
 
 RUN apt-get update \

@@ -1,10 +1,12 @@
-import json
+import logging
 import os
-import subprocess
-import tempfile
+
+from zuul.lib.cloner import Cloner
 
 
 def clone(repos, workspace, cache_dir):
+    logging.getLogger('zuul').setLevel(logging.DEBUG)
+
     if isinstance(repos, str):
         repos = [repos]
 
@@ -12,35 +14,32 @@ def clone(repos, workspace, cache_dir):
                 if k.startswith('ZUUL_')}
     zuul_env['PATH'] = os.environ['PATH']
 
-    try:
-        temp_mapfile = ''
-        with tempfile.NamedTemporaryFile(mode='w', delete=False) as fp:
-            temp_mapfile = fp.name
-            # Map a repo to a target dir under workspace
-            clone_map = json.dumps({'clonemap': [
-                {'name': 'mediawiki/core',
-                    'dest': '.'},
-                {'name': 'mediawiki/vendor',
-                    'dest': './vendor'},
-                {'name': 'mediawiki/extensions/(.*)',
-                    'dest': './extensions/\\1'},
-                {'name': 'mediawiki/skins/(.*)',
-                    'dest': './skins/\\1'},
-                ]
-            })
-            fp.write(clone_map)
-            fp.close()
-            cmd = [
-                'zuul-cloner',
-                '--color',
-                '--verbose',
-                '--map', temp_mapfile,
-                '--workspace', workspace,
-                '--cache-dir', cache_dir,
-                'https://gerrit.wikimedia.org/r/p',
-                ]
-            cmd.extend(repos)
-            subprocess.check_call(cmd, env=zuul_env)
-    finally:
-        if temp_mapfile:
-            os.remove(temp_mapfile)
+    # Ripped off from zuul/cmd/cloner.py
+    if 'ZUUL_REF' in zuul_env and 'ZUUL_URL' not in zuul_env:
+        raise Exception('Zuul ref requires a Zuul url')
+    if 'ZUUL_NEWREV' in zuul_env and 'ZUUL_PROJECT' not in zuul_env:
+        raise Exception('Zuul newrev requires a Zuul project')
+
+    zuul_cloner = Cloner(
+        git_base_url='https://gerrit.wikimedia.org/r/p',
+        projects=repos,
+        workspace=workspace,
+        zuul_branch=zuul_env.get('ZUUL_BRANCH'),
+        zuul_ref=zuul_env.get('ZUUL_REF'),
+        zuul_url=zuul_env.get('ZUUL_URL'),
+        branch=None,
+        cache_dir=cache_dir,
+        zuul_newrev=zuul_env.get('ZUUL_NEWREV'),
+        zuul_project=zuul_env.get('ZUUL_PROJECT'),
+        cache_no_hardlinks=False,  # False allows hardlink
+        )
+    # The constructor expects a file, set the value directly
+    zuul_cloner.clone_map = [
+        {'name': 'mediawiki/core', 'dest': '.'},
+        {'name': 'mediawiki/vendor', 'dest': './vendor'},
+        {'name': 'mediawiki/extensions/(.*)', 'dest': './extensions/\\1'},
+        {'name': 'mediawiki/skins/(.*)', 'dest': './skins/\\1'},
+        ]
+    # XXX color and logging.DEBUG
+
+    zuul_cloner.execute()
