@@ -51,3 +51,17 @@ def run_phpunit(mwdir, group=[], exclude_group=[], testsuite=None,
     phpunit.communicate()
     if phpunit.returncode > 0:
         raise Exception('phpunit failed :(')
+
+
+def run_webdriver(mwdir, display):
+    subprocess.check_call([
+        'node_modules/.bin/grunt', 'webdriver:test'],
+        cwd=mwdir,
+        env={
+            'MW_SERVER': 'http://127.0.0.1:9412',
+            'MW_SCRIPT_PATH': '',
+            'FORCE_COLOR': '1',  # for 'supports-color'
+            'MEDIAWIKI_USER': 'WikiAdmin',
+            'MEDIAWIKI_PASSWORD': 'testpass',
+            'DISPLAY': display,
+            })
