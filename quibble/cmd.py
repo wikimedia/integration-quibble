@@ -10,12 +10,12 @@ import pkg_resources
 from shutil import copyfile
 import subprocess
 import sys
-import tempfile
 
 import quibble
 import quibble.mediawiki.maintenance
 import quibble.backend
 import quibble.test
+import quibble.zuul
 
 
 class QuibbleCmd(object):
@@ -114,45 +114,10 @@ class QuibbleCmd(object):
     def prepare_sources(self):
         clone_vendor = (self.args.packages_source == 'vendor')
         projects_to_clone = self.get_repos_to_clone(clone_vendor)
-        self.clonerepos(projects_to_clone)
-
-    def clonerepos(self, repos):
-        zuul_env = {k: v for k, v in os.environ.items()
-                    if k.startswith('ZUUL_')}
-        zuul_env['PATH'] = os.environ['PATH']
-
-        try:
-            temp_mapfile = ''
-            with tempfile.NamedTemporaryFile(mode='w', delete=False) as fp:
-                temp_mapfile = fp.name
-                # Map a repo to a target dir under workspace
-                clone_map = json.dumps({'clonemap': [
-                    {'name': 'mediawiki/core',
-                        'dest': '.'},
-                    {'name': 'mediawiki/vendor',
-                        'dest': './vendor'},
-                    {'name': 'mediawiki/extensions/(.*)',
-                        'dest': './extensions/\\1'},
-                    {'name': 'mediawiki/skins/(.*)',
-                        'dest': './skins/\\1'},
-                    ]
-                })
-                fp.write(clone_map)
-                fp.close()
-                cmd = [
-                    'zuul-cloner',
-                    '--color',
-                    '--verbose',
-                    '--map', temp_mapfile,
-                    '--workspace', os.path.join(self.workspace, 'src'),
-                    '--cache-dir', self.args.git_cache,
-                    'https://gerrit.wikimedia.org/r/p',
-                    ]
-                cmd.extend(repos)
-                subprocess.check_call(cmd, env=zuul_env)
-        finally:
-            if temp_mapfile:
-                os.remove(temp_mapfile)
+        quibble.zuul.clone(
+            projects_to_clone,
+            workspace=os.path.join(self.workspace, 'src'),
+            cache_dir=self.args.git_cache)
 
     def generate_extensions_load(self):
         extension_path = os.path.join(
