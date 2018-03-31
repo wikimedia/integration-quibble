@@ -293,7 +293,8 @@ class QuibbleCmd(object):
 
         if not self.args.skip_deps:
             if self.args.packages_source == 'vendor':
-                self.log.info('Requiring composer dev dependencies')
+                self.log.info('vendor.git used. '
+                              'Requiring composer dev dependencies')
                 self.fetch_composer_dev()
 
             subprocess.check_call(['npm', 'prune'], cwd=self.mw_install_path)
