@@ -74,6 +74,11 @@ class QuibbleCmd(object):
 
         return parser.parse_args(args)
 
+    def copylog(self, src, dest):
+        dest = os.path.join(self.log_dir, dest)
+        self.log.info('Copying %s to %s' % (src, dest))
+        copyfile(src, dest)
+
     def setup_environment(self):
         """
         Set and get needed environment variables.
@@ -169,6 +174,7 @@ class QuibbleCmd(object):
                 ])
             lf.write(extra_conf.decode())
         subprocess.check_call(['php', '-l', localsettings])
+        self.copylog(localsettings, 'LocalSettings.php')
 
         update_args = []
         if (self.args.packages_source == 'vendor'):
@@ -220,17 +226,11 @@ class QuibbleCmd(object):
             'composer', 'dump-autoload', '--optimize'],
             cwd=vendor_dir)
 
-        def logdest(fname):
-            return os.path.join(self.log_dir, fname)
-
-        copyfile(mw_composer_json,
-                 logdest('composer.core.json.txt'))
-
-        copyfile(os.path.join(vendor_dir, 'composer.json'),
-                 logdest('composer.vendor.json.txt'))
-
-        copyfile(os.path.join(vendor_dir, 'composer/autoload_files.php'),
-                 logdest('composer.autoload_files.php.txt'))
+        self.copylog(mw_composer_json, 'composer.core.json.txt')
+        self.copylog(os.path.join(vendor_dir, 'composer.json'),
+                     'composer.vendor.json.txt')
+        self.copylog(os.path.join(vendor_dir, 'composer/autoload_files.php'),
+                     'composer.autoload_files.php.txt')
 
     def execute(self):
         logging.basicConfig(level=logging.INFO)
