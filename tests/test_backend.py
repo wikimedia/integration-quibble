@@ -2,7 +2,23 @@ import os
 import unittest
 from unittest import mock
 
+from quibble.backend import getDBClass
 from quibble.backend import ChromeWebDriver
+
+
+class TestGetDBClass(unittest.TestCase):
+
+    def test_recognizes_mysql(self):
+        getDBClass('mysql')
+        getDBClass('MySQL')
+
+    def test_recongizes_sqlite(self):
+        getDBClass('sqlite')
+
+    def test_raises_an_exception_on_unknown_db(self):
+        with self.assertRaisesRegex(Exception,
+                                    '^Backend database engine not supported'):
+            getDBClass('fakeDBengine')
 
 
 class TestChromeWebDriver(unittest.TestCase):
