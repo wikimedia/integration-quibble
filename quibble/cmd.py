@@ -314,6 +314,14 @@ class QuibbleCmd(object):
             mwdir=self.mw_install_path,
             exclude_group=['Database'])
 
+        self.log.info("Running composer test .")
+        # '.' is passed to composer lint which then pass it
+        # to parallel-lint and phpcs
+        subprocess.check_call(['composer', 'test', '.'],
+                              cwd=self.mw_install_path)
+        self.log.info("Running npm test")
+        subprocess.check_call(['npm', 'test'], cwd=self.mw_install_path)
+
         with quibble.backend.DevWebServer(
                 mwdir=self.mw_install_path,
                 port=9412):
