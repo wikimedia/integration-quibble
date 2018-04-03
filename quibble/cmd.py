@@ -136,6 +136,23 @@ class QuibbleCmd(object):
         with open(extension_path, 'w') as f:
             f.writelines(self.extra_dependencies)
 
+    # Used to be bin/mw-create-composer-local.py
+    def create_composer_local(self):
+        self.log.info('composer.local.json for merge plugin')
+        extensions = [ext.strip()[len('mediawiki/'):] + '/composer.json'
+                      for ext in self.dependencies
+                      if ext.strip().startswith('mediawiki/extensions/')]
+        out = {
+            'extra': {
+                'merge-plugin': {'include': extensions}
+                }
+            }
+        composer_local = os.path.join(self.mw_install_path,
+                                      'composer.local.json')
+        with open(composer_local, 'w') as f:
+            json.dump(out, f)
+        self.log.info('Created composer.local.json')
+
     def mw_install(self):
         dbclass = quibble.backend.getDBClass(engine=self.args.db)
         db = dbclass()
@@ -296,6 +313,7 @@ class QuibbleCmd(object):
         self.generate_extensions_load()
 
         if not self.args.skip_deps and self.args.packages_source == 'composer':
+                self.create_composer_local()
                 self.log.info('Running "composer update for mediawiki/core')
                 cmd = ['composer', 'update',
                        '--ansi', '--no-progress', '--prefer-dist',
