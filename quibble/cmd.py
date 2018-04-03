@@ -277,22 +277,9 @@ class QuibbleCmd(object):
             zuul_project not in ('mediawiki/core', 'mediawiki/vendor')
         ):
             project_dir = os.path.join(
-                self.workspace, 'src',
+                self.mw_install_path,
                 quibble.zuul.repo_dir(os.environ['ZUUL_PROJECT']))
-            if not os.path.exists(os.path.join(project_dir, 'composer.json')):
-                self.log.warning("%s lacks a composer.json" % zuul_project)
-            else:
-                self.log.info('Running "composer test" for %s in %s' % (
-                              os.environ['ZUUL_PROJECT'], project_dir))
-                cmds = [
-                    ['composer', '--ansi', 'validate', '--no-check-publish'],
-                    ['composer', '--ansi', 'install', '--no-progress',
-                     '--prefer-dist', '--profile', '-v'],
-                    ['composer', '--ansi', 'test'],
-                    ['git', 'clean', '-xddf'],
-                ]
-                for cmd in cmds:
-                    subprocess.check_call(cmd, cwd=project_dir)
+            quibble.test.run_extskin(directory=project_dir)
 
         self.generate_extensions_load()
 
