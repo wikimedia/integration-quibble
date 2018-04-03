@@ -28,17 +28,23 @@ RUN apt-get update \
 RUN apt-get update \
     && : "Composer/MediaWiki related dependencies" \
     && apt-get install -y \
+        php-apcu \
         php-cli \
+        php-curl \
         php-gd \
         php-intl \
         php-mbstring \
         php-mysql \
         php-sqlite3 \
+        php-tidy \
         php-xml \
         php-zip \
         djvulibre-bin \
+        imagemagick \
+        libimage-exiftool-perl \
         mariadb-server \
         nodejs-legacy \
+        tidy \
     && : "Xvfb" \
     && apt-get install -y \
         xvfb \
