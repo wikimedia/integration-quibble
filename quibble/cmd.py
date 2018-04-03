@@ -252,23 +252,7 @@ class QuibbleCmd(object):
     def execute(self):
         logging.basicConfig(level=logging.INFO)
         logging.getLogger('quibble').setLevel(logging.DEBUG)
-
-        # Color codes http://www.tldp.org/HOWTO/Bash-Prompt-HOWTO/x329.html
-        logging.addLevelName(  # cyan
-            logging.DEBUG, "\033[36m%s\033[0m" %
-            logging.getLevelName(logging.DEBUG))
-        logging.addLevelName(  # green
-            logging.INFO, "\033[32m%s\033[0m" %
-            logging.getLevelName(logging.INFO))
-        logging.addLevelName(  # yellow
-            logging.WARNING, "\033[33m%s\033[0m" %
-            logging.getLevelName(logging.WARNING))
-        logging.addLevelName(  # red
-            logging.ERROR, "\033[31m%s\033[0m" %
-            logging.getLevelName(logging.ERROR))
-        logging.addLevelName(  # red background
-            logging.CRITICAL, "\033[41m%s\033[0m" %
-            logging.getLevelName(logging.CRITICAL))
+        quibble.colored_logging()
 
         self.args = self.parse_arguments()
 
