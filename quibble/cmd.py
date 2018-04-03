@@ -107,27 +107,26 @@ class QuibbleCmd(object):
         os.environ['MW_LOG_DIR'] = self.log_dir
         os.environ['TMPDIR'] = '/tmp'
 
-    def get_repos_to_clone(self, clone_vendor=False):
+    def set_repos_to_clone(self, projects=[], clone_vendor=False):
         """
         Find repos to clone basedon passed arguments and environment
         """
         self.dependencies.append('mediawiki/core')
         self.dependencies.append('mediawiki/skins/Vector')
         if clone_vendor:
-            self.log.info('Will clone mediawiki/vendor')
+            self.log.info('Adding mediawiki/vendor')
             self.dependencies.append('mediawiki/vendor')
 
-        self.log.info('Repositories to clone: %s'
+        self.dependencies.extend(projects)
+
+        self.log.info('Projects: %s'
                       % ', '.join(self.dependencies))
 
         return self.dependencies
 
-    def prepare_sources(self):
-        clone_vendor = (self.args.packages_source == 'vendor')
-        projects_to_clone = (
-            self.get_repos_to_clone(clone_vendor) + self.args.projects)
+    def clone(self, projects):
         quibble.zuul.clone(
-            projects_to_clone,
+            projects,
             workspace=os.path.join(self.workspace, 'src'),
             cache_dir=self.args.git_cache)
 
@@ -262,8 +261,13 @@ class QuibbleCmd(object):
         os.makedirs(self.log_dir, exist_ok=True)
 
         self.setup_environment()
+
+        projects_to_clone = self.set_repos_to_clone(
+            projects=self.args.projects,
+            clone_vendor=(self.args.packages_source == 'vendor'))
+
         if not self.args.skip_zuul:
-            self.prepare_sources()
+            self.clone(projects_to_clone)
 
         zuul_project = os.environ.get('ZUUL_PROJECT', None)
         self.log.debug("ZUUL_PROJECT=%s" % zuul_project)
