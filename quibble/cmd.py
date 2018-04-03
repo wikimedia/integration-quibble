@@ -12,6 +12,7 @@ import subprocess
 import sys
 
 import quibble
+from quibble.gitchangedinhead import GitChangedInHead
 import quibble.mediawiki.maintenance
 import quibble.backend
 import quibble.test
@@ -314,11 +315,26 @@ class QuibbleCmd(object):
             mwdir=self.mw_install_path,
             exclude_group=['Database'])
 
-        self.log.info("Running composer test .")
-        # '.' is passed to composer lint which then pass it
-        # to parallel-lint and phpcs
-        subprocess.check_call(['composer', 'test', '.'],
-                              cwd=self.mw_install_path)
+        files = []
+        changed = GitChangedInHead([], cwd=self.mw_install_path).changedFiles()
+        if 'composer.json' in changed or '.phpcs.xml' in changed:
+            self.log.info('composer.json or .phpcs.xml changed: linting "."')
+            # '.' is passed to composer lint which then pass it
+            # to parallel-lint and phpcs
+            files = ['.']
+        else:
+            files = GitChangedInHead(
+                ['php', 'php5', 'inc', 'sample'],
+                cwd=self.mw_install_path
+                ).changedFiles()
+
+        if not files:
+            self.log.info('Skipping composer test (unneeded)')
+        else:
+            composer_test_cmd = ['composer', 'test']
+            composer_test_cmd.extend(files)
+            subprocess.check_call(composer_test_cmd, cwd=self.mw_install_path)
+
         self.log.info("Running npm test")
         subprocess.check_call(['npm', 'test'], cwd=self.mw_install_path)
 
