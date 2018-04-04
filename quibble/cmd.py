@@ -249,6 +249,14 @@ class QuibbleCmd(object):
         self.copylog(os.path.join(vendor_dir, 'composer/autoload_files.php'),
                      'composer.autoload_files.php.txt')
 
+    def isCoreOrVendor(self, project):
+        return project == 'mediawiki/core' or project == 'mediawiki/vendor'
+
+    def isExtOrSkin(self, project):
+        return project.startswith(
+            ('mediawiki/extensions/', 'mediawiki/skins/')
+        )
+
     def execute(self):
         logging.basicConfig(level=logging.INFO)
         logging.getLogger('quibble').setLevel(logging.DEBUG)
@@ -277,7 +285,7 @@ class QuibbleCmd(object):
         else:
             self.log.debug("ZUUL_PROJECT=%s" % zuul_project)
 
-        if zuul_project not in ('mediawiki/core', 'mediawiki/vendor'):
+        if self.isExtOrSkin(zuul_project):
             project_dir = os.path.join(
                 self.mw_install_path,
                 quibble.zuul.repo_dir(os.environ['ZUUL_PROJECT']))

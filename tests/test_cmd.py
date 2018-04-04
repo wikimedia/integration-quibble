@@ -83,3 +83,18 @@ class CmdTest(unittest.TestCase):
                 # When not in Docker, we honor $WORKSPACE
                 q.setup_environment()
                 self.assertEqual(os.environ['WORKSPACE'], '/fromenv')
+
+    def test_isCoreOrVendor(self):
+        q = cmd.QuibbleCmd()
+        self.assertTrue(q.isCoreOrVendor('mediawiki/core'))
+        self.assertTrue(q.isCoreOrVendor('mediawiki/vendor'))
+        self.assertFalse(q.isCoreOrVendor('mediawiki/extensions/Foo'))
+        self.assertFalse(q.isCoreOrVendor('mediawiki/skins/Bar'))
+
+    def test_isExtOrSkin(self):
+        q = cmd.QuibbleCmd()
+        q.isExtOrSkin
+        self.assertTrue(q.isExtOrSkin('mediawiki/extensions/Foo'))
+        self.assertTrue(q.isExtOrSkin('mediawiki/skins/Bar'))
+        self.assertFalse(q.isExtOrSkin('mediawiki/core'))
+        self.assertFalse(q.isExtOrSkin('mediawiki/vendor'))
