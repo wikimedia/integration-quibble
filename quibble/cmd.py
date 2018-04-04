@@ -364,8 +364,8 @@ class QuibbleCmd(object):
                 subprocess.check_call(composer_test_cmd,
                                       cwd=self.mw_install_path)
 
-        self.log.info("Running npm test")
-        subprocess.check_call(['npm', 'test'], cwd=self.mw_install_path)
+            self.log.info("Running npm test")
+            subprocess.check_call(['npm', 'test'], cwd=self.mw_install_path)
 
         with quibble.backend.DevWebServer(
                 mwdir=self.mw_install_path,
