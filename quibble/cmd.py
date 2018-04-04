@@ -339,25 +339,30 @@ class QuibbleCmd(object):
         else:
             raise Exception('Unrecognized zuul_project: %s' % zuul_project)
 
-        files = []
-        changed = GitChangedInHead([], cwd=self.mw_install_path).changedFiles()
-        if 'composer.json' in changed or '.phpcs.xml' in changed:
-            self.log.info('composer.json or .phpcs.xml changed: linting "."')
-            # '.' is passed to composer lint which then pass it
-            # to parallel-lint and phpcs
-            files = ['.']
-        else:
-            files = GitChangedInHead(
-                ['php', 'php5', 'inc', 'sample'],
-                cwd=self.mw_install_path
-                ).changedFiles()
+        if zuul_project == 'mediawiki/core':
+            files = []
+            changed = GitChangedInHead(
+                    [],
+                    cwd=self.mw_install_path).changedFiles()
+            if 'composer.json' in changed or '.phpcs.xml' in changed:
+                self.log.info(
+                    'composer.json or .phpcs.xml changed: linting "."')
+                # '.' is passed to composer lint which then pass it
+                # to parallel-lint and phpcs
+                files = ['.']
+            else:
+                files = GitChangedInHead(
+                    ['php', 'php5', 'inc', 'sample'],
+                    cwd=self.mw_install_path
+                    ).changedFiles()
 
-        if not files:
-            self.log.info('Skipping composer test (unneeded)')
-        else:
-            composer_test_cmd = ['composer', 'test']
-            composer_test_cmd.extend(files)
-            subprocess.check_call(composer_test_cmd, cwd=self.mw_install_path)
+            if not files:
+                self.log.info('Skipping composer test (unneeded)')
+            else:
+                composer_test_cmd = ['composer', 'test']
+                composer_test_cmd.extend(files)
+                subprocess.check_call(composer_test_cmd,
+                                      cwd=self.mw_install_path)
 
         self.log.info("Running npm test")
         subprocess.check_call(['npm', 'test'], cwd=self.mw_install_path)
