@@ -313,10 +313,31 @@ class QuibbleCmd(object):
             subprocess.check_call(['npm', 'prune'], cwd=self.mw_install_path)
             subprocess.check_call(['npm', 'install'], cwd=self.mw_install_path)
 
-        self.log.info("PHPUnit without Database group")
-        quibble.test.run_phpunit(
-            mwdir=self.mw_install_path,
-            exclude_group=['Database'])
+        if self.isCoreOrVendor(zuul_project):
+            self.log.info("PHPUnit without Database group")
+            quibble.test.run_phpunit(
+                mwdir=self.mw_install_path,
+                exclude_group=['Database'])
+        elif self.isExtOrSkin(zuul_project):
+            testsuite = None
+            if zuul_project.startswith('mediawiki/extensions/'):
+                testsuite = 'extensions'
+            elif zuul_project.startswith('mediawiki/skins/'):
+                testsuite = 'skins'
+            if testsuite is None:
+                raise Exception('Could not find a PHPUnit testsuite '
+                                'for %s' % zuul_project)
+
+            self.log.info('PHPUnit %s testsuite' % testsuite)
+            # XXX might want to run the triggered extension first then the
+            # other tests.
+            # XXX some mediawiki/core smoke PHPunit tests should probably be
+            # run as well.
+            quibble.test.run_phpunit(
+                mwdir=self.mw_install_path,
+                testsuite=testsuite)
+        else:
+            raise Exception('Unrecognized zuul_project: %s' % zuul_project)
 
         files = []
         changed = GitChangedInHead([], cwd=self.mw_install_path).changedFiles()
@@ -358,10 +379,11 @@ class QuibbleCmd(object):
                         mwdir=self.mw_install_path,
                         display=display)
 
-        self.log.info("PHPUnit Database group")
-        quibble.test.run_phpunit(
-            mwdir=self.mw_install_path,
-            group=['Database'])
+        if self.isCoreOrVendor(zuul_project):
+            self.log.info("PHPUnit Database group")
+            quibble.test.run_phpunit(
+                mwdir=self.mw_install_path,
+                group=['Database'])
 
 
 def main():

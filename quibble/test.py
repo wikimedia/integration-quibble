@@ -72,6 +72,9 @@ def run_phpunit(mwdir, group=[], exclude_group=[], testsuite=None,
     always_excluded = ['Broken', 'ParserFuzz', 'Stub']
 
     cmd = ['php', 'tests/phpunit/phpunit.php', '--debug-tests']
+    if testsuite:
+        cmd.extend(['--testsuite', testsuite])
+
     if group:
         cmd.extend(['--group', ','.join(group)])
 
