@@ -271,11 +271,13 @@ class QuibbleCmd(object):
             self.clone(projects_to_clone)
 
         zuul_project = os.environ.get('ZUUL_PROJECT', None)
-        self.log.debug("ZUUL_PROJECT=%s" % zuul_project)
-        if (
-            zuul_project and
-            zuul_project not in ('mediawiki/core', 'mediawiki/vendor')
-        ):
+        if zuul_project is None:
+            self.log.warning('ZUUL_PROJECT not set. Assuming mediawiki/core')
+            zuul_project = 'mediawiki/core'
+        else:
+            self.log.debug("ZUUL_PROJECT=%s" % zuul_project)
+
+        if zuul_project not in ('mediawiki/core', 'mediawiki/vendor'):
             project_dir = os.path.join(
                 self.mw_install_path,
                 quibble.zuul.repo_dir(os.environ['ZUUL_PROJECT']))
