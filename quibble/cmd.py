@@ -219,13 +219,17 @@ class QuibbleCmd(object):
         vendor_dir = os.path.join(self.mw_install_path, 'vendor')
         with open(mw_composer_json, 'r') as f:
             composer = json.load(f)
-        for dependency, version in composer['require-dev'].items():
-            req = '='.join([dependency, version])
-            self.log.debug('composer require %s' % req)
-            subprocess.check_call([
-                'composer', 'require', '--dev', '--ansi', '--no-progress',
-                '--prefer-dist', '-v', req],
-                cwd=vendor_dir)
+
+        reqs = ['='.join([dependency, version])
+                for dependency, version in composer['require-dev'].items()]
+
+        self.log.debug('composer require %s' % ' '.join(reqs))
+        composer_require = ['composer', 'require', '--dev', '--ansi',
+                            '--no-progress', '--prefer-dist', '-v']
+        composer_require.extend(reqs)
+
+        subprocess.check_call(composer_require, cwd=vendor_dir)
+
         if self.args.packages_source == 'vendor':
             # Point composer-merge-plugin to mediawiki/core.
             # That let us easily merge autoload-dev section and thus complete
