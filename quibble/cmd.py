@@ -294,13 +294,13 @@ class QuibbleCmd(object):
         self.generate_extensions_load()
 
         if not self.args.skip_deps and self.args.packages_source == 'composer':
-                self.create_composer_local()
-                self.log.info('Running "composer update for mediawiki/core')
-                cmd = ['composer', 'update',
-                       '--ansi', '--no-progress', '--prefer-dist',
-                       '--profile', '-v',
-                       ]
-                subprocess.check_call(cmd, cwd=self.mw_install_path)
+            self.create_composer_local()
+            self.log.info('Running "composer update for mediawiki/core')
+            cmd = ['composer', 'update',
+                   '--ansi', '--no-progress', '--prefer-dist',
+                   '--profile', '-v',
+                   ]
+            subprocess.check_call(cmd, cwd=self.mw_install_path)
 
         self.mw_install()
 
