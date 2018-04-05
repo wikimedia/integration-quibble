@@ -130,12 +130,6 @@ class QuibbleCmd(object):
             workspace=os.path.join(self.workspace, 'src'),
             cache_dir=self.args.git_cache)
 
-    def generate_extensions_load(self):
-        extension_path = os.path.join(
-                self.workspace, 'src', 'extensions_load.txt')
-        with open(extension_path, 'w') as f:
-            f.writelines(self.extra_dependencies)
-
     # Used to be bin/mw-create-composer-local.py
     def create_composer_local(self):
         self.log.info('composer.local.json for merge plugin')
@@ -294,8 +288,6 @@ class QuibbleCmd(object):
                 self.mw_install_path,
                 quibble.zuul.repo_dir(os.environ['ZUUL_PROJECT']))
             quibble.test.run_extskin(directory=project_dir)
-
-        self.generate_extensions_load()
 
         if not self.args.skip_deps and self.args.packages_source == 'composer':
             self.create_composer_local()

@@ -34,15 +34,6 @@ class CmdTest(unittest.TestCase):
              'mediawiki/extensions/BoilerPlate',
              'mediawiki/extensions/Example'])
 
-    def test_generate_extensions_load(self):
-        q = cmd.QuibbleCmd()
-        os.makedirs('tests/.tmp/src', exist_ok=True)
-        q.workspace = 'tests/.tmp'
-        q.extra_dependencies = []
-        q.generate_extensions_load()
-        with open('tests/.tmp/src/extensions_load.txt') as f:
-            self.assertEqual('', f.read())
-
     @mock.patch('quibble.is_in_docker', return_value=False)
     def test_args_defaults(self, _):
         args = cmd.QuibbleCmd().parse_arguments([])

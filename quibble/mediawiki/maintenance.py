@@ -22,6 +22,7 @@ def install(args, mwdir=None):
     cmd = ['php', 'maintenance/install.php']
     cmd.extend(args)
     cmd.extend([
+        '--with-extensions',  # T189567
         '--pass=testpass',
         'TestWiki',
         'WikiAdmin'
