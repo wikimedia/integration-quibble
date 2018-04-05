@@ -21,14 +21,11 @@ def run_qunit(mwdir):
     karma_env.update(os.environ)
     karma_env.update({'CHROMIUM_FLAGS': quibble.chromium_flags()})
 
-    qunit = subprocess.Popen(
+    subprocess.check_call(
         ['./node_modules/.bin/grunt', 'karma:main'],
         cwd=mwdir,
         env=karma_env,
     )
-    qunit.communicate()
-    if qunit.returncode > 0:
-        raise Exception('Qunit failed :(')
 
 
 def run_extskin(directory):
@@ -84,10 +81,7 @@ def run_phpunit(mwdir, group=[], exclude_group=[], testsuite=None,
     if junit_file:
         cmd.extend('--log-junit', junit_file)
     log.info(' '.join(cmd))
-    phpunit = subprocess.Popen(cmd, cwd=mwdir, env={'LANG': 'C.UTF-8'})
-    phpunit.communicate()
-    if phpunit.returncode > 0:
-        raise Exception('phpunit failed :(')
+    subprocess.check_call(cmd, cwd=mwdir, env={'LANG': 'C.UTF-8'})
 
 
 def run_webdriver(mwdir, display):
