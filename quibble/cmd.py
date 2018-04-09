@@ -69,6 +69,12 @@ class QuibbleCmd(object):
                  'else current working directory'
             )
         parser.add_argument(
+            '--log-dir',
+            default='/log' if quibble.is_in_docker() else 'log',
+            help='Where logs and artifacts will be written to. '
+                 'In Docker: "/log", else "log" relatively to workspace'
+            )
+        parser.add_argument(
             'projects', default=[], nargs='*',
             help='MediaWiki extensions and skins to clone'
             )
@@ -264,7 +270,7 @@ class QuibbleCmd(object):
 
         self.workspace = self.args.workspace
         self.mw_install_path = os.path.join(self.workspace, 'src')
-        self.log_dir = os.path.join(self.workspace, 'log')
+        self.log_dir = os.path.join(self.workspace, self.args.log_dir)
         os.makedirs(self.log_dir, exist_ok=True)
 
         self.setup_environment()

@@ -40,6 +40,7 @@ class CmdTest(unittest.TestCase):
 
         self.assertEqual('ref', args.git_cache)
         self.assertEqual(os.getcwd(), args.workspace)
+        self.assertEqual('log', args.log_dir)
 
     @mock.patch('quibble.is_in_docker', return_value=True)
     def test_args_defaults_in_docker(self, _):
@@ -47,6 +48,7 @@ class CmdTest(unittest.TestCase):
 
         self.assertEqual('/srv/git', args.git_cache)
         self.assertEqual('/workspace', args.workspace)
+        self.assertEqual('/log', args.log_dir)
 
     @mock.patch.dict(os.environ, clear=True)
     def test_setup_environment(self):
