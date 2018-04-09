@@ -368,17 +368,21 @@ class QuibbleCmd(object):
                 port=9412):
             quibble.test.run_qunit(self.mw_install_path)
 
-            with ExitStack() as stack:
-                display = os.environ.get('DISPLAY', None)
-                if not display:
-                    display = ':94'  # XXX racy when run concurrently!
-                    self.log.info("No DISPLAY, using Xvfb.")
-                    stack.enter_context(quibble.backend.Xvfb(display=display))
+            # Webdriver.io Selenium tests available since 1.29
+            if os.path.exists(os.path.join(self.mw_install_path,
+                                           'tests/selenium')):
+                with ExitStack() as stack:
+                    display = os.environ.get('DISPLAY', None)
+                    if not display:
+                        display = ':94'  # XXX racy when run concurrently!
+                        self.log.info("No DISPLAY, using Xvfb.")
+                        stack.enter_context(
+                            quibble.backend.Xvfb(display=display))
 
-                with quibble.backend.ChromeWebDriver(display=display):
-                    quibble.test.run_webdriver(
-                        mwdir=self.mw_install_path,
-                        display=display)
+                    with quibble.backend.ChromeWebDriver(display=display):
+                        quibble.test.run_webdriver(
+                            mwdir=self.mw_install_path,
+                            display=display)
 
         if self.isCoreOrVendor(zuul_project):
             self.log.info("PHPUnit Database group")
