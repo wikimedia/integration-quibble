@@ -12,6 +12,7 @@ import subprocess
 import sys
 
 import quibble
+from quibble import php_is_hhvm
 from quibble.gitchangedinhead import GitChangedInHead
 import quibble.mediawiki.maintenance
 import quibble.backend
@@ -169,10 +170,16 @@ class QuibbleCmd(object):
                 '--dbpath=%s' % db.datadir,
             ])
         elif self.args.db == 'mysql':
+            if php_is_hhvm():
+                prefix = ''
+            else:
+                # Zend
+                prefix = 'localhost:'
+
             install_args.extend([
                 '--dbuser=%s' % db.user,
                 '--dbpass=%s' % db.password,
-                '--dbserver=localhost:%s' % db.socket,
+                '--dbserver=%s%s' % (prefix, db.socket),
             ])
         else:
             raise Exception('Unsupported database: %s' % self.args.db)
