@@ -6,7 +6,7 @@ import subprocess
 import quibble
 
 
-def run_qunit(mwdir):
+def run_qunit(mwdir, port=9412):
     localsettings = os.path.join(
         mwdir, 'LocalSettings.php')
     with open(localsettings, 'a') as lf:
@@ -14,7 +14,7 @@ def run_qunit(mwdir):
 
     karma_env = {
          'CHROME_BIN': '/usr/bin/chromium',
-         'MW_SERVER': 'http://127.0.0.1:9412',
+         'MW_SERVER': 'http://127.0.0.1:%s' % port,
          'MW_SCRIPT_PATH': '',
          'FORCE_COLOR': '1',  # for 'supports-color'
          }
@@ -84,12 +84,12 @@ def run_phpunit(mwdir, group=[], exclude_group=[], testsuite=None,
     subprocess.check_call(cmd, cwd=mwdir, env={'LANG': 'C.UTF-8'})
 
 
-def run_webdriver(mwdir, display):
+def run_webdriver(mwdir, display, port=9412):
     subprocess.check_call([
         'node_modules/.bin/grunt', 'webdriver:test'],
         cwd=mwdir,
         env={
-            'MW_SERVER': 'http://127.0.0.1:9412',
+            'MW_SERVER': 'http://127.0.0.1:%s' % port,
             'MW_SCRIPT_PATH': '',
             'FORCE_COLOR': '1',  # for 'supports-color'
             'MEDIAWIKI_USER': 'WikiAdmin',

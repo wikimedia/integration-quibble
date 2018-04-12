@@ -369,10 +369,11 @@ class QuibbleCmd(object):
             self.log.info("Running npm test")
             subprocess.check_call(['npm', 'test'], cwd=self.mw_install_path)
 
+        http_port = 9412
         with quibble.backend.DevWebServer(
                 mwdir=self.mw_install_path,
-                port=9412):
-            quibble.test.run_qunit(self.mw_install_path)
+                port=http_port):
+            quibble.test.run_qunit(self.mw_install_path, port=http_port)
 
             # Webdriver.io Selenium tests available since 1.29
             if os.path.exists(os.path.join(self.mw_install_path,
@@ -388,6 +389,7 @@ class QuibbleCmd(object):
                     with quibble.backend.ChromeWebDriver(display=display):
                         quibble.test.run_webdriver(
                             mwdir=self.mw_install_path,
+                            port=http_port,
                             display=display)
 
         if self.isCoreOrVendor(zuul_project):
