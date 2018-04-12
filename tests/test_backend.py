@@ -7,6 +7,7 @@ from nose.plugins.attrib import attr
 from quibble.backend import getDBClass
 from quibble.backend import ChromeWebDriver
 from quibble.backend import DevWebServer
+from quibble import php_is_hhvm
 
 FIXTURES_DIR = os.path.join(os.path.dirname(__file__), 'fixtures')
 PHPDOCROOT = os.path.join(FIXTURES_DIR, 'phpdocroot')
@@ -96,6 +97,7 @@ class TestDevWebServer(unittest.TestCase):
                 return_value=b'')
     def test_using_php(self, _):
         http_port = '4881'
+        php_is_hhvm.cache_clear()
         with DevWebServer(mwdir=PHPDOCROOT, port=http_port, router=None):
             self.assertServerRespond('zend', 'http://127.0.0.1:%s' % http_port)
 
@@ -104,6 +106,7 @@ class TestDevWebServer(unittest.TestCase):
                 return_value=b'HipHop')
     def test_using_hhvm(self, _):
         http_port = '4882'
+        php_is_hhvm.cache_clear()
         with DevWebServer(mwdir=PHPDOCROOT, port=http_port, router=None):
             self.assertServerRespond('hhvm', 'http://127.0.0.1:%s' % http_port)
 
