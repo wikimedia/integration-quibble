@@ -2,6 +2,7 @@ import logging
 import os
 import os.path
 import pwd
+import socket
 import subprocess
 import sys
 import tempfile
@@ -10,6 +11,28 @@ import time
 
 import quibble
 from quibble import php_is_hhvm
+
+
+def tcp_wait(port, timeout=3):
+    step = 0
+    delay = 0.1  # seconds
+    s = socket.socket()
+    s.settimeout(1)
+    connected = False
+    while step < timeout:
+        try:
+            s.connect(('127.0.0.1', int(port)))
+            connected = True
+            break
+        except (ConnectionAbortedError, ConnectionRefusedError):
+            step = step + delay
+            time.sleep(delay)
+
+    if not connected:
+        raise TimeoutError(
+            'Could not connect to port %s after %s seconds' % (port, timeout))
+
+    s.close()
 
 
 def getDBClass(engine):
@@ -226,6 +249,7 @@ class DevWebServer(BackendServer):
             stderr=subprocess.PIPE,
         )
         stderr_relayer(self.server, self.log.info)
+        tcp_wait(port=self.port, timeout=5)
 
     def __str__(self):
         return 'http://127.0.0.1:%s' % self.port

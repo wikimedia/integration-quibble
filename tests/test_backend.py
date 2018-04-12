@@ -1,5 +1,4 @@
 import os
-from time import sleep
 import unittest
 from unittest import mock
 import urllib.request
@@ -98,7 +97,6 @@ class TestDevWebServer(unittest.TestCase):
     def test_using_php(self, _):
         http_port = '4881'
         with DevWebServer(mwdir=PHPDOCROOT, port=http_port, router=None):
-            sleep(1)
             self.assertServerRespond('zend', 'http://127.0.0.1:%s' % http_port)
 
     @attr('integration')
@@ -107,7 +105,6 @@ class TestDevWebServer(unittest.TestCase):
     def test_using_hhvm(self, _):
         http_port = '4882'
         with DevWebServer(mwdir=PHPDOCROOT, port=http_port, router=None):
-            sleep(1)
             self.assertServerRespond('hhvm', 'http://127.0.0.1:%s' % http_port)
 
 
