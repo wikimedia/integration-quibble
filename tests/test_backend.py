@@ -1,9 +1,16 @@
 import os
+from time import sleep
 import unittest
 from unittest import mock
+import urllib.request
 
+from nose.plugins.attrib import attr
 from quibble.backend import getDBClass
 from quibble.backend import ChromeWebDriver
+from quibble.backend import DevWebServer
+
+FIXTURES_DIR = os.path.join(os.path.dirname(__file__), 'fixtures')
+PHPDOCROOT = os.path.join(FIXTURES_DIR, 'phpdocroot')
 
 
 class TestGetDBClass(unittest.TestCase):
@@ -75,6 +82,33 @@ class TestChromeWebDriver(unittest.TestCase):
         mock_popen.return_value.communicate.return_value = True
         ChromeWebDriver(display=':42').start()
         self.assertEqual(os.environ['DISPLAY'], ':30')
+
+
+class TestDevWebServer(unittest.TestCase):
+
+    def assertServerRespond(self, flavor, url):
+        with urllib.request.urlopen(url) as resp:
+            self.assertEqual("Built-in %s server reached.\n" % flavor,
+                             resp.read().decode())
+
+    @attr('integration')
+    # assumes "php" is Zend. Would fail if it happens to be HHVM
+    @mock.patch('quibble.backend.subprocess.check_output',
+                return_value=b'')
+    def test_using_php(self, _):
+        http_port = '4881'
+        with DevWebServer(mwdir=PHPDOCROOT, port=http_port, router=None):
+            sleep(1)
+            self.assertServerRespond('zend', 'http://127.0.0.1:%s' % http_port)
+
+    @attr('integration')
+    @mock.patch('quibble.backend.subprocess.check_output',
+                return_value=b'HipHop')
+    def test_using_hhvm(self, _):
+        http_port = '4882'
+        with DevWebServer(mwdir=PHPDOCROOT, port=http_port, router=None):
+            sleep(1)
+            self.assertServerRespond('hhvm', 'http://127.0.0.1:%s' % http_port)
 
 
 class TestBackend2(unittest.TestCase):

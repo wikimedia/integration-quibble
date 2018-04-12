@@ -9,6 +9,7 @@ import threading
 import time
 
 import quibble
+from quibble import php_is_hhvm
 
 
 def getDBClass(engine):
@@ -197,23 +198,27 @@ class ChromeWebDriver(BackendServer):
 
 class DevWebServer(BackendServer):
 
-    def __init__(self, port=4881, mwdir=None):
+    def __init__(self, port=4881, mwdir=None,
+                 router='maintenance/dev/includes/router.php'):
         super(DevWebServer, self).__init__()
 
         self.port = port
         self.mwdir = mwdir
+        self.router = router
 
     def start(self):
         self.log.info('Starting MediaWiki built in webserver')
 
-        router = os.path.join(
-            self.mwdir, 'maintenance/dev/includes/router.php')
+        if php_is_hhvm():
+            server_cmd = ['hhvm', '-m', 'server', '-p', str(self.port)]
+        else:
+            server_cmd = ['php', '-S', '127.0.0.1:%s' % self.port]
+            if self.router:
+                server_cmd.append(
+                    os.path.join(self.mwdir, self.router))
 
-        self.server = subprocess.Popen([
-            'php',
-            '-S', '127.0.0.1:%s' % self.port,
-            router,
-            ],
+        self.server = subprocess.Popen(
+            server_cmd,
             cwd=self.mwdir,
             universal_newlines=True,
             bufsize=1,  # line buffered
