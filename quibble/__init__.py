@@ -1,6 +1,8 @@
+from functools import lru_cache
 import logging
 import os
 import os.path
+import subprocess
 
 
 def colored_logging():
@@ -47,3 +49,8 @@ def chromium_flags():
 
 def is_in_docker():
     return os.path.exists('/.dockerenv')
+
+
+@lru_cache(maxsize=1)
+def php_is_hhvm():
+    return b'HipHop' in subprocess.check_output(['php', '--version'])
