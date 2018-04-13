@@ -27,7 +27,7 @@ Or try another set:
 Wikimedia maintains a Docker container intended to be used for its continuous
 integration system:
 
- docker pull docker-registry.discovery.wmnet/releng/quibble-stretch:latest
+ docker pull docker-registry.wikimedia.org/releng/quibble-stretch:latest
 
 
 CACHING
