@@ -44,17 +44,17 @@ def getDBClass(engine):
     raise Exception('Backend database engine not supported: %s' % engine)
 
 
-def stderr_relayer(process, log_function):
+def stream_relay(process, stream, log_function):
     thread = threading.Thread(
-        target=stderr_to_log,
-        args=(process, log_function))
+        target=stream_to_log,
+        args=(process, stream, log_function))
     thread.start()
     return thread
 
 
-def stderr_to_log(process, log_function):
+def stream_to_log(process, stream, log_function):
     while True:
-        line = process.stderr.readline()
+        line = stream.readline()
         if not line:
             break
         log_function(line.rstrip())
@@ -211,8 +211,14 @@ class ChromeWebDriver(BackendServer):
                 '--port=%s' % self.port,
                 '--url-base=%s' % self.url_base,
                 ],
-                env=env
+                env=env,
+                universal_newlines=True,
+                bufsize=1,  # line buffered
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.PIPE,
             )
+            stream_relay(self.server, self.server.stderr, self.log.warning)
+
         finally:
             if prev_display:
                 os.environ.update({'DISPLAY': prev_display})
@@ -249,7 +255,7 @@ class DevWebServer(BackendServer):
             stdout=subprocess.DEVNULL,
             stderr=subprocess.PIPE,
         )
-        stderr_relayer(self.server, self.log.info)
+        stream_relay(self.server, self.server.stderr, self.log.info)
         tcp_wait(port=self.port, timeout=5)
 
     def __str__(self):

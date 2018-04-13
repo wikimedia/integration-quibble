@@ -30,6 +30,11 @@ class TestGetDBClass(unittest.TestCase):
 
 class TestChromeWebDriver(unittest.TestCase):
 
+    def setUp(self):
+        patcher = mock.patch('quibble.backend.stream_relay', return_value=True)
+        self.addCleanup(patcher.stop)
+        patcher.start()
+
     @mock.patch('quibble.is_in_docker', return_value=True)
     @mock.patch('subprocess.Popen')
     def test_on_docker_pass_no_sandbox(self, mock_popen, _):
