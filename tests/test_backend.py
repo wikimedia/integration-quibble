@@ -38,7 +38,6 @@ class TestChromeWebDriver(unittest.TestCase):
     @mock.patch('quibble.is_in_docker', return_value=True)
     @mock.patch('subprocess.Popen')
     def test_on_docker_pass_no_sandbox(self, mock_popen, _):
-        mock_popen.return_value.communicate.return_value = True
         ChromeWebDriver().start()
 
         (args, kwargs) = mock_popen.call_args
@@ -52,7 +51,6 @@ class TestChromeWebDriver(unittest.TestCase):
     @mock.patch.dict(os.environ, clear=True)
     @mock.patch('subprocess.Popen')
     def test_without_display_env_pass_headless(self, mock_popen):
-        mock_popen.return_value.communicate.return_value = True
         ChromeWebDriver().start()
 
         (args, kwargs) = mock_popen.call_args
@@ -66,7 +64,6 @@ class TestChromeWebDriver(unittest.TestCase):
     @mock.patch.dict(os.environ, clear=True)
     @mock.patch('subprocess.Popen')
     def test_explicit_display(self, mock_popen):
-        mock_popen.return_value.communicate.return_value = True
         ChromeWebDriver(display=':42').start()
 
         (args, kwargs) = mock_popen.call_args
@@ -84,7 +81,6 @@ class TestChromeWebDriver(unittest.TestCase):
     @mock.patch.dict(os.environ, {'DISPLAY': ':30'})
     @mock.patch('subprocess.Popen')
     def test_restore_display(self, mock_popen):
-        mock_popen.return_value.communicate.return_value = True
         ChromeWebDriver(display=':42').start()
         self.assertEqual(os.environ['DISPLAY'], ':30')
 
