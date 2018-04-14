@@ -16,23 +16,24 @@ from quibble import php_is_hhvm
 def tcp_wait(port, timeout=3):
     step = 0
     delay = 0.1  # seconds
-    s = socket.socket()
-    s.settimeout(1)
+    socket_timeout = 1  # seconds
     connected = False
     while step < timeout:
         try:
+            s = socket.socket()
+            s.settimeout(socket_timeout)
             s.connect(('127.0.0.1', int(port)))
             connected = True
             break
         except (ConnectionAbortedError, ConnectionRefusedError):
             step = step + delay
             time.sleep(delay)
+        finally:
+            s.close()
 
     if not connected:
         raise TimeoutError(
             'Could not connect to port %s after %s seconds' % (port, timeout))
-
-    s.close()
 
 
 def getDBClass(engine):
