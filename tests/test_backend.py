@@ -1,4 +1,5 @@
 import os
+import shutil
 import unittest
 from unittest import mock
 import urllib.request
@@ -105,6 +106,7 @@ class TestDevWebServer(unittest.TestCase):
     @attr('integration')
     @mock.patch('quibble.backend.subprocess.check_output',
                 return_value=b'HipHop')
+    @unittest.skipUnless(shutil.which('hhvm'), 'requires HHVM')
     def test_using_hhvm(self, _):
         http_port = '4882'
         php_is_hhvm.cache_clear()
