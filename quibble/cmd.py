@@ -79,6 +79,12 @@ class QuibbleCmd(object):
             help='MediaWiki extensions and skins to clone'
             )
 
+        parser.add_argument(
+            '--run', default=['all'], nargs='*',
+            help='Tests to run: phpunit, npm-test, composer-test, '
+                 'qunit, selenium (default: all)'
+        )
+
         return parser.parse_args(args)
 
     def copylog(self, src, dest):
@@ -267,12 +273,18 @@ class QuibbleCmd(object):
             ('mediawiki/extensions/', 'mediawiki/skins/')
         )
 
+    def should_run(self, stage):
+        if 'all' in self.args.run:
+            return True
+        return stage in self.args.run
+
     def execute(self):
         logging.basicConfig(level=logging.INFO)
         logging.getLogger('quibble').setLevel(logging.DEBUG)
         quibble.colored_logging()
 
         self.args = self.parse_arguments()
+        self.log.debug('Running stages: ' + ', '.join(self.args.run))
 
         self.workspace = self.args.workspace
         self.mw_install_path = os.path.join(self.workspace, 'src')
@@ -296,10 +308,14 @@ class QuibbleCmd(object):
             self.log.debug("ZUUL_PROJECT=%s" % zuul_project)
 
         if self.isExtOrSkin(zuul_project):
-            project_dir = os.path.join(
-                self.mw_install_path,
-                quibble.zuul.repo_dir(os.environ['ZUUL_PROJECT']))
-            quibble.test.run_extskin(directory=project_dir)
+            run_composer = self.should_run('composer-test')
+            run_npm = self.should_run('npm-test')
+            if run_composer or run_npm:
+                project_dir = os.path.join(
+                    self.mw_install_path,
+                    quibble.zuul.repo_dir(os.environ['ZUUL_PROJECT']))
+                quibble.test.run_extskin(directory=project_dir,
+                                         composer=run_composer, npm=run_npm)
 
         if not self.args.skip_deps and self.args.packages_source == 'composer':
             self.create_composer_local()
@@ -321,12 +337,12 @@ class QuibbleCmd(object):
             subprocess.check_call(['npm', 'prune'], cwd=self.mw_install_path)
             subprocess.check_call(['npm', 'install'], cwd=self.mw_install_path)
 
-        if self.isCoreOrVendor(zuul_project):
+        if self.isCoreOrVendor(zuul_project) and self.should_run('phpunit'):
             self.log.info("PHPUnit without Database group")
             quibble.test.run_phpunit(
                 mwdir=self.mw_install_path,
                 exclude_group=['Database'])
-        elif self.isExtOrSkin(zuul_project):
+        elif self.isExtOrSkin(zuul_project) and self.should_run('phpunit'):
             testsuite = None
             if zuul_project.startswith('mediawiki/extensions/'):
                 testsuite = 'extensions'
@@ -348,42 +364,47 @@ class QuibbleCmd(object):
             raise Exception('Unrecognized zuul_project: %s' % zuul_project)
 
         if zuul_project == 'mediawiki/core':
-            files = []
-            changed = GitChangedInHead(
-                    [],
-                    cwd=self.mw_install_path).changedFiles()
-            if 'composer.json' in changed or '.phpcs.xml' in changed:
-                self.log.info(
-                    'composer.json or .phpcs.xml changed: linting "."')
-                # '.' is passed to composer lint which then pass it
-                # to parallel-lint and phpcs
-                files = ['.']
-            else:
-                files = GitChangedInHead(
-                    ['php', 'php5', 'inc', 'sample'],
-                    cwd=self.mw_install_path
-                    ).changedFiles()
+            if self.should_run('composer-test'):
+                files = []
+                changed = GitChangedInHead(
+                        [],
+                        cwd=self.mw_install_path).changedFiles()
+                if 'composer.json' in changed or '.phpcs.xml' in changed:
+                    self.log.info(
+                        'composer.json or .phpcs.xml changed: linting "."')
+                    # '.' is passed to composer lint which then pass it
+                    # to parallel-lint and phpcs
+                    files = ['.']
+                else:
+                    files = GitChangedInHead(
+                        ['php', 'php5', 'inc', 'sample'],
+                        cwd=self.mw_install_path
+                        ).changedFiles()
 
-            if not files:
-                self.log.info('Skipping composer test (unneeded)')
-            else:
-                composer_test_cmd = ['composer', 'test']
-                composer_test_cmd.extend(files)
-                subprocess.check_call(composer_test_cmd,
+                if not files:
+                    self.log.info('Skipping composer test (unneeded)')
+                else:
+                    composer_test_cmd = ['composer', 'test']
+                    composer_test_cmd.extend(files)
+                    subprocess.check_call(composer_test_cmd,
+                                          cwd=self.mw_install_path)
+
+            if self.should_run('npm-test'):
+                self.log.info("Running npm test")
+                subprocess.check_call(['npm', 'test'],
                                       cwd=self.mw_install_path)
-
-            self.log.info("Running npm test")
-            subprocess.check_call(['npm', 'test'], cwd=self.mw_install_path)
 
         http_port = 9412
         with quibble.backend.DevWebServer(
                 mwdir=self.mw_install_path,
                 port=http_port):
-            quibble.test.run_qunit(self.mw_install_path, port=http_port)
+            if self.should_run('qunit'):
+                quibble.test.run_qunit(self.mw_install_path, port=http_port)
 
             # Webdriver.io Selenium tests available since 1.29
-            if os.path.exists(os.path.join(self.mw_install_path,
-                                           'tests/selenium')):
+            if self.should_run('selenium') and \
+                    os.path.exists(os.path.join(
+                        self.mw_install_path, 'tests/selenium')):
                 with ExitStack() as stack:
                     display = os.environ.get('DISPLAY', None)
                     if not display:
@@ -398,7 +419,7 @@ class QuibbleCmd(object):
                             port=http_port,
                             display=display)
 
-        if self.isCoreOrVendor(zuul_project):
+        if self.isCoreOrVendor(zuul_project) and self.should_run('phpunit'):
             self.log.info("PHPUnit Database group")
             quibble.test.run_phpunit(
                 mwdir=self.mw_install_path,
