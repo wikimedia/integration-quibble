@@ -1,7 +1,6 @@
 from functools import lru_cache
 import logging
 import os
-import os.path
 import subprocess
 
 

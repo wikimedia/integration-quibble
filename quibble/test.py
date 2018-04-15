@@ -1,6 +1,5 @@
 import logging
 import os
-import os.path
 import subprocess
 
 import quibble
@@ -35,7 +34,7 @@ def run_extskin(directory):
     if not os.path.exists(os.path.join(directory, 'composer.json')):
         log.warning("%s lacks a composer.json" % project_name)
     else:
-        log.info('Running "composer test" for %s' % (project_name))
+        log.info('Running "composer test" for %s' % project_name)
         cmds = [
             ['composer', '--ansi', 'validate', '--no-check-publish'],
             ['composer', '--ansi', 'install', '--no-progress',
@@ -49,7 +48,7 @@ def run_extskin(directory):
     if not os.path.exists(os.path.join(directory, 'package.json')):
         log.warning("%s lacks a package.json" % project_name)
     else:
-        log.info('Running "npm test" for %s' % (project_name))
+        log.info('Running "npm test" for %s' % project_name)
         cmds = [
             ['npm', 'prune'],
             ['npm', 'install', '--no-progress'],

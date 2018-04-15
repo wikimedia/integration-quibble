@@ -1,6 +1,5 @@
 import logging
 import os
-import os.path
 import pwd
 import socket
 import subprocess
@@ -60,7 +59,7 @@ def stream_to_log(process, stream, log_function):
         log_function(line.rstrip())
 
 
-class BackendServer(object):
+class BackendServer:
 
     server = None
 
@@ -72,6 +71,9 @@ class BackendServer(object):
 
     def __exit__(self, *args):
         self.stop()
+
+    def start(self):
+        pass
 
     def stop(self):
         if self.server is not None:
@@ -134,6 +136,7 @@ class MySQL(BackendServer):
                      self.dbname, self.dbname, self.user, self.password))
         p.communicate(input=grant.encode())
         if p.returncode != 0:
+            # FIXME Cannot raise nothing
             raise
 
     def start(self):

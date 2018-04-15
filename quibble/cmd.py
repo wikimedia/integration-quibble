@@ -5,7 +5,6 @@ from contextlib import ExitStack
 import json
 import logging
 import os
-import os.path
 import pkg_resources
 from shutil import copyfile
 import subprocess
@@ -201,7 +200,7 @@ class QuibbleCmd(object):
         self.copylog(localsettings, 'LocalSettings.php')
 
         update_args = []
-        if (self.args.packages_source == 'vendor'):
+        if self.args.packages_source == 'vendor':
             # When trying to update a library in mediawiki/core and
             # mediawiki/vendor, a circular dependency is produced as both
             # patches depend upon each other.
