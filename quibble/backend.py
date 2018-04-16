@@ -113,11 +113,11 @@ class MySQL(BackendServer):
             '--datadir=%s' % self.rootdir,
             '--user=%s' % pwd.getpwuid(os.getuid())[0],
             ],
+            universal_newlines=True,
             stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
         )
         outs, errs = p.communicate()
-        p.wait()
         if p.returncode != 0:
             raise Exception("FAILED (%s): %s" % (p.returncode, outs))
 
@@ -128,16 +128,18 @@ class MySQL(BackendServer):
             '--user=root',
             '--socket=%s' % self.socket,
             ],
+            universal_newlines=True,
             stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
             )
         grant = ("CREATE DATABASE IF NOT EXISTS %s;"
                  "GRANT ALL ON %s.* TO '%s'@'localhost'"
                  "IDENTIFIED BY '%s';\n" % (
                      self.dbname, self.dbname, self.user, self.password))
-        p.communicate(input=grant.encode())
+        outs, errs = p.communicate(input=grant)
         if p.returncode != 0:
-            # FIXME Cannot raise nothing
-            raise
+            raise Exception("FAILED (%s): %s" % (p.returncode, outs))
 
     def start(self):
         self.log.info('Starting MySQL')

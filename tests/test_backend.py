@@ -8,6 +8,7 @@ from nose.plugins.attrib import attr
 from quibble.backend import getDBClass
 from quibble.backend import ChromeWebDriver
 from quibble.backend import DevWebServer
+from quibble.backend import MySQL
 from quibble import php_is_hhvm
 
 FIXTURES_DIR = os.path.join(os.path.dirname(__file__), 'fixtures')
@@ -112,6 +113,26 @@ class TestDevWebServer(unittest.TestCase):
         php_is_hhvm.cache_clear()
         with DevWebServer(mwdir=PHPDOCROOT, port=http_port, router=None):
             self.assertServerRespond('hhvm', 'http://127.0.0.1:%s' % http_port)
+
+
+class TestMySQL(unittest.TestCase):
+
+    @mock.patch('quibble.backend.subprocess.Popen')
+    def test_install_db_exception(self, mock_popen):
+        mock_popen.return_value.communicate.return_value = (
+            'some output')
+        mock_popen.return_value.returncode = 42
+        with self.assertRaises(Exception, msg='FAILED (42): some output'):
+            MySQL()._install_db()
+
+    @mock.patch('quibble.backend.MySQL._install_db')
+    @mock.patch('quibble.backend.subprocess.Popen')
+    def test_createwikidb_exception(self, mock_popen, _):
+        mock_popen.return_value.communicate.return_value = (
+            'some output', None)
+        mock_popen.return_value.returncode = 42
+        with self.assertRaises(Exception, msg='FAILED (42): some output'):
+            MySQL()._createwikidb()
 
 
 class TestBackend2(unittest.TestCase):
