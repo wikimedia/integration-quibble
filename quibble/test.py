@@ -3,6 +3,31 @@ import os
 import subprocess
 
 import quibble
+from quibble.gitchangedinhead import GitChangedInHead
+
+
+def run_composer_test(mwdir):
+    log = logging.getLogger('test.run_composer_test')
+    files = []
+    changed = GitChangedInHead([], cwd=mwdir).changedFiles()
+    if 'composer.json' in changed or '.phpcs.xml' in changed:
+        log.info(
+            'composer.json or .phpcs.xml changed: linting "."')
+        # '.' is passed to composer lint which then pass it
+        # to parallel-lint and phpcs
+        files = ['.']
+    else:
+        files = GitChangedInHead(
+            ['php', 'php5', 'inc', 'sample'],
+            cwd=mwdir
+            ).changedFiles()
+
+    if not files:
+        log.info('Skipping composer test (unneeded)')
+    else:
+        composer_test_cmd = ['composer', 'test']
+        composer_test_cmd.extend(files)
+        subprocess.check_call(composer_test_cmd, cwd=mwdir)
 
 
 def run_qunit(mwdir, port=9412):
