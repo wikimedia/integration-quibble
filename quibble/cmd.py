@@ -338,9 +338,7 @@ class QuibbleCmd(object):
 
         if self.isCoreOrVendor(zuul_project) and self.should_run('phpunit'):
             self.log.info("PHPUnit without Database group")
-            quibble.test.run_phpunit(
-                mwdir=self.mw_install_path,
-                exclude_group=['Database'])
+            quibble.test.run_phpunit_databaseless(mwdir=self.mw_install_path)
         elif self.isExtOrSkin(zuul_project) and self.should_run('phpunit'):
             testsuite = None
             if zuul_project.startswith('mediawiki/extensions/'):
@@ -399,9 +397,7 @@ class QuibbleCmd(object):
 
         if self.isCoreOrVendor(zuul_project) and self.should_run('phpunit'):
             self.log.info("PHPUnit Database group")
-            quibble.test.run_phpunit(
-                mwdir=self.mw_install_path,
-                group=['Database'])
+            quibble.test.run_phpunit_database(mwdir=self.mw_install_path)
 
 
 def main():

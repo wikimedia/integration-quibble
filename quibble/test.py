@@ -110,6 +110,16 @@ def run_phpunit(mwdir, group=[], exclude_group=[], testsuite=None,
     subprocess.check_call(cmd, cwd=mwdir, env={'LANG': 'C.UTF-8'})
 
 
+def run_phpunit_database(*args, **kwargs):
+    kwargs['group'] = ['Database']
+    run_phpunit(*args, **kwargs)
+
+
+def run_phpunit_databaseless(*args, **kwargs):
+    kwargs['exclude_group'] = ['Database']
+    run_phpunit(*args, **kwargs)
+
+
 def run_webdriver(mwdir, display, port=9412):
     subprocess.check_call([
         'node_modules/.bin/grunt', 'webdriver:test'],
