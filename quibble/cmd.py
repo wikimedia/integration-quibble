@@ -362,13 +362,10 @@ class QuibbleCmd(object):
 
         if zuul_project == 'mediawiki/core':
             if self.should_run('composer-test'):
-                self.log.info("Running composer test")
                 quibble.test.run_composer_test(self.mw_install_path)
 
             if self.should_run('npm-test'):
-                self.log.info("Running npm test")
-                subprocess.check_call(['npm', 'test'],
-                                      cwd=self.mw_install_path)
+                quibble.test.run_npm_test(self.mw_install_path)
 
         http_port = 9412
         with quibble.backend.DevWebServer(

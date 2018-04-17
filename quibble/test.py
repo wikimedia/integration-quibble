@@ -25,9 +25,16 @@ def run_composer_test(mwdir):
     if not files:
         log.info('Skipping composer test (unneeded)')
     else:
+        log.info("Running composer test")
         composer_test_cmd = ['composer', 'test']
         composer_test_cmd.extend(files)
         subprocess.check_call(composer_test_cmd, cwd=mwdir)
+
+
+def run_npm_test(mwdir):
+    log = logging.getLogger('test.run_npm_test')
+    log.info("Running npm test")
+    subprocess.check_call(['npm', 'test'], cwd=mwdir)
 
 
 def run_qunit(mwdir, port=9412):
