@@ -26,9 +26,13 @@ def run_composer_test(mwdir):
         log.info('Skipping composer test (unneeded)')
     else:
         log.info("Running composer test")
+
+        env = {'COMPOSER_PROCESS_TIMEOUT': '600'}
+        env.update(os.environ)
+
         composer_test_cmd = ['composer', 'test']
         composer_test_cmd.extend(files)
-        subprocess.check_call(composer_test_cmd, cwd=mwdir)
+        subprocess.check_call(composer_test_cmd, cwd=mwdir, env=env)
 
 
 def run_npm_test(mwdir):
