@@ -133,7 +133,7 @@ def run_phpunit_databaseless(*args, **kwargs):
 
 def run_webdriver(mwdir, display, port=9412):
     subprocess.check_call([
-        'node_modules/.bin/grunt', 'webdriver:test'],
+        'npm', 'run', 'selenium-test'],
         cwd=mwdir,
         env={
             'MW_SERVER': 'http://127.0.0.1:%s' % port,
