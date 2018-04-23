@@ -50,14 +50,14 @@ def run_qunit(mwdir, port=9412):
     karma_env = {
          'CHROME_BIN': '/usr/bin/chromium',
          'MW_SERVER': 'http://127.0.0.1:%s' % port,
-         'MW_SCRIPT_PATH': '',
+         'MW_SCRIPT_PATH': '/',
          'FORCE_COLOR': '1',  # for 'supports-color'
          }
     karma_env.update(os.environ)
     karma_env.update({'CHROMIUM_FLAGS': quibble.chromium_flags()})
 
     subprocess.check_call(
-        ['./node_modules/.bin/grunt', 'karma:main'],
+        ['./node_modules/.bin/grunt', 'qunit'],
         cwd=mwdir,
         env=karma_env,
     )
@@ -137,7 +137,7 @@ def run_webdriver(mwdir, display, port=9412):
         cwd=mwdir,
         env={
             'MW_SERVER': 'http://127.0.0.1:%s' % port,
-            'MW_SCRIPT_PATH': '',
+            'MW_SCRIPT_PATH': '/',
             'FORCE_COLOR': '1',  # for 'supports-color'
             'MEDIAWIKI_USER': 'WikiAdmin',
             'MEDIAWIKI_PASSWORD': 'testpass',
