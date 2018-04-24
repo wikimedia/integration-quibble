@@ -2,6 +2,7 @@
 /quibble.egg-info/
 /cache/
 /cover/
+/doc/build/
 /dist/
 /ref/
 /.tox

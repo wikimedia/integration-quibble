@@ -1,0 +1,3 @@
+# Versions shipped by Debian Stretch
+Sphinx>=1.4.9
+sphinx-argparse>=0.1.15

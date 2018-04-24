@@ -1,0 +1,132 @@
+Quibble: a test runner for MediaWiki
+====================================
+
+Quibble gets MediaWiki, install it and run all MediaWiki tests suites. All
+is included in a single command.
+
+As a requirement one needs python 3 and all software required by MediaWiki
+and its tests systems:
+
+- Chromium
+- composer
+- NodeJS
+- npm
+- php
+- python 3
+- Xvfb
+
+TLDR::
+
+    docker build --tag quibble .
+    docker run -it --rm quibble
+
+Which runs tests with php7.0, MariaDB and using mediawiki/vendor.git to
+provide PHP libraries.
+
+You could instead run tests with dependencies provided by `composer install`
+and use SQLite as a database backend::
+
+    docker run -it quibble  --packages-source composer --db sqlite
+
+Wikimedia maintains a Docker container intended to be used for its
+continuous integration system::
+
+    docker pull docker-registry.wikimedia.org/releng/quibble-stretch:latest
+
+The source is on Gerrit https://gerrit.wikimedia.org/g/integration/config
+under the `dockerfiles` directory. Other containers with slight variation such
+as providing Zend PHP5.5 or HHVM.
+
+
+Setup
+-----
+
+Docker container
+~~~~~~~~~~~~~~~~
+
+Get the latest image being run by Wikimedia CI::
+
+  docker pull docker-registry.wikimedia.org/releng/quibble-stretch:latest
+
+Quibble clones the repositories from Gerrit and then run composer and npm. At
+the end of the run, the container would be dismissed as well as all the
+downloaded content. To make it faster, you should set local copies of the git
+repositories that would be downloaded from and set up a cache directory on the
+host to be mounted in the container.
+
+To avoid cloning MediaWiki over the network, you should initialize local
+bare git repositories to be used as a reference for git to copy them from::
+
+    mkdir -p ref/mediawiki/skins
+    git clone --bare https://gerrit.wikimedia.org/r/mediawiki/core ref/mediawiki/core.git
+    git clone --bare https://gerrit.wikimedia.org/r/mediawiki/vendor ref/mediawiki/vendor.git
+    git clone --bare https://gerrit.wikimedia.org/r/mediawiki/skins/Vector ref/mediawiki/skins/Vector.git
+
+The Docker containers have ``XDG_CACHE_HOME=/cache`` set which is recognized by
+package managers.  Create a cache directory writable by any user::
+
+    mkdir cache
+    chmod 777 cache
+
+Commands write logs into ``/workspace/log``, you can create one on the host and
+mount it in the container::
+
+    mkdir -p log
+    chmod 777 log
+
+You might also want to reuse the installed sources between runs. The container
+has the source repository under ``/workspace/src``::
+
+   mkdir -p src
+   chmod 777 src
+
+The directory tree on the host will looks like::
+
+    .
+    ├── cache/
+    ├── log/
+    ├── src/
+    └── ref/
+        └── mediawiki/
+            ├── core.git/
+            ├── skins/
+            │   └── Vector.git/
+            └── vendor.git/
+
+
+When running the Docker container, mount the directories from the host:
+
+============ ================== ================================
+Host dir     Container dir      Docker run argument
+============ ================== ================================
+``./cache/`` ``/cache``         ``-v "$(pwd)"/cache:/cache``
+``./log/``   ``/workspace/log`` ``-v "$(pwd)"/log:/workspace/log``
+``./ref/``   ``/srv/git``       ``-v "$(pwd)"/ref:/srv/git:ro``
+``./src/``   ``/workspace/src`` ``-v "$(pwd)"/src:/workspace/src``
+============ ================== ================================
+
+The final command::
+
+    docker run -it --rm \
+      -v "$(pwd)"/cache:/cache \
+      -v "$(pwd)"/log:/workspace/log \
+      -v "$(pwd)"/ref:/srv/git:ro \
+      -v "$(pwd)"/src:/workspace/src \
+      docker-registry.wikimedia.org/releng/quibble-stretch:latest
+
+Quibble will then do the initial cloning of repositories reusing bare
+repositories from ``ref``, being local it is arguably faster than transferring
+everything from Gerrit. The ``composer install`` and ``npm install`` will save
+the downloaded packages to ``cache`` which speed up the next run.
+
+Finally, having ``/src`` mounted from the host, lets one reuse the installed
+wiki. One can later skip cloning/checking out the repositories by passing
+``--skip-zuul`` and skip installing composer and npm dependencies with
+``--skip-deps``. For other options see: :doc:`usage`.
+
+TESTING
+-------
+
+Coverage report::
+
+    tox -e cover && open cover/index.html

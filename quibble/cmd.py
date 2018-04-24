@@ -27,8 +27,16 @@ class QuibbleCmd(object):
         # Hold backend objects so they do not get garbage collected until end
         # of script.
         self.backends = {}
+        self.default_git_cache = ('/srv/git' if quibble.is_in_docker()
+                                  else 'ref')
+        self.default_workspace = ('/workspace' if quibble.is_in_docker()
+                                  else os.getcwd())
+        self.default_logdir = ('/log' if quibble.is_in_docker() else 'log')
 
     def parse_arguments(self, args=sys.argv[1:]):
+        return self.get_arg_parser().parse_args(args)
+
+    def get_arg_parser(self):
         """
         Parse arguments
         """
@@ -56,19 +64,19 @@ class QuibbleCmd(object):
             help='Database backed to use. Default: mysql')
         parser.add_argument(
             '--git-cache',
-            default='/srv/git' if quibble.is_in_docker() else 'ref',
+            default=self.default_git_cache,
             help='Path to bare git repositories to speed up git clone'
                  'operation. Passed to zuul-cloner as --cache-dir. '
                  'In Docker: "/srv/git", else "ref"')
         parser.add_argument(
             '--workspace',
-            default='/workspace' if quibble.is_in_docker() else os.getcwd(),
+            default=self.default_workspace,
             help='Base path to work from. In Docker: "/workspace", '
                  'else current working directory'
             )
         parser.add_argument(
             '--log-dir',
-            default='/log' if quibble.is_in_docker() else 'log',
+            default=self.default_logdir,
             help='Where logs and artifacts will be written to. '
                  'In Docker: "/log", else "log" relatively to workspace'
             )
@@ -85,7 +93,7 @@ class QuibbleCmd(object):
                  'qunit, selenium (default: all)'
         )
 
-        return parser.parse_args(args)
+        return parser
 
     def copylog(self, src, dest):
         dest = os.path.join(self.log_dir, dest)
@@ -405,6 +413,20 @@ class QuibbleCmd(object):
         if self.isCoreOrVendor(zuul_project) and self.should_run('phpunit'):
             self.log.info("PHPUnit Database group")
             quibble.test.run_phpunit_database(mwdir=self.mw_install_path)
+
+
+def get_arg_parser():
+    """
+    Build an argparser with sane default values.
+
+    Intended for documentation generation with sphinx-argparse.
+    """
+    cmd = QuibbleCmd()
+    cmd.default_git_cache = 'ref'
+    cmd.default_workspace = '.'
+    cmd.default_logdir = './log'
+
+    return cmd.get_arg_parser()
 
 
 def main():
