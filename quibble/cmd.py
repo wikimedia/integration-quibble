@@ -24,7 +24,6 @@ class QuibbleCmd(object):
 
     def __init__(self):
         self.dependencies = []
-        self.extra_dependencies = []
         # Hold backend objects so they do not get garbage collected until end
         # of script.
         self.backends = {}
@@ -95,15 +94,6 @@ class QuibbleCmd(object):
         """
         Set and get needed environment variables.
         """
-        if 'SKIN_DEPENDENCIES' in os.environ:
-            self.dependencies.extend(
-                os.environ.get('SKIN_DEPENDENCIES').split('\\n'))
-
-        if 'EXT_DEPENDENCIES' in os.environ:
-            self.extra_dependencies = os.environ.get(
-                'EXT_DEPENDENCIES').split('\\n')
-            self.dependencies.extend(self.extra_dependencies)
-
         if 'EXECUTOR_NUMBER' not in os.environ:
             os.environ['EXECUTOR_NUMBER'] = '1'
 
@@ -122,7 +112,18 @@ class QuibbleCmd(object):
         """
         Find repos to clone basedon passed arguments and environment
         """
-        self.dependencies.append('mediawiki/core')
+        # mediawiki/core should be first else git clone will fail because the
+        # destination directory already exists.
+        self.dependencies.insert(0, 'mediawiki/core')
+
+        if 'SKIN_DEPENDENCIES' in os.environ:
+            self.dependencies.extend(
+                os.environ.get('SKIN_DEPENDENCIES').split('\\n'))
+
+        if 'EXT_DEPENDENCIES' in os.environ:
+            self.dependencies.extend(
+                os.environ.get('EXT_DEPENDENCIES').split('\\n'))
+
         self.dependencies.append('mediawiki/skins/Vector')
         if clone_vendor:
             self.log.info('Adding mediawiki/vendor')

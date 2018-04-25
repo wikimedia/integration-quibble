@@ -34,6 +34,22 @@ class CmdTest(unittest.TestCase):
              'mediawiki/extensions/BoilerPlate',
              'mediawiki/extensions/Example'])
 
+    def test_set_repos_to_clone_with_env(self):
+        env = {
+            'SKIN_DEPENDENCIES': 'mediawiki/skins/Monobook',
+            'EXT_DEPENDENCIES':
+                'mediawiki/extensions/One\\nmediawiki/extensions/Two',
+        }
+        with mock.patch.dict('os.environ', env, clear=True):
+            q = cmd.QuibbleCmd()
+            self.assertEqual([
+                'mediawiki/core',  # must be first
+                'mediawiki/skins/Monobook',
+                'mediawiki/extensions/One',
+                'mediawiki/extensions/Two',
+                'mediawiki/skins/Vector',
+                ], q.set_repos_to_clone())
+
     @mock.patch('quibble.is_in_docker', return_value=False)
     def test_args_defaults(self, _):
         args = cmd.QuibbleCmd().parse_arguments([])
