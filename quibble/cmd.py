@@ -115,6 +115,10 @@ class QuibbleCmd(object):
         # mediawiki/core should be first else git clone will fail because the
         # destination directory already exists.
         self.dependencies.insert(0, 'mediawiki/core')
+        self.dependencies.append('mediawiki/skins/Vector')
+        if clone_vendor:
+            self.log.info('Adding mediawiki/vendor')
+            self.dependencies.append('mediawiki/vendor')
 
         if 'SKIN_DEPENDENCIES' in os.environ:
             self.dependencies.extend(
@@ -123,11 +127,6 @@ class QuibbleCmd(object):
         if 'EXT_DEPENDENCIES' in os.environ:
             self.dependencies.extend(
                 os.environ.get('EXT_DEPENDENCIES').split('\\n'))
-
-        self.dependencies.append('mediawiki/skins/Vector')
-        if clone_vendor:
-            self.log.info('Adding mediawiki/vendor')
-            self.dependencies.append('mediawiki/vendor')
 
         self.dependencies.extend(projects)
 

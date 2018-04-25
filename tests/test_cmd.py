@@ -44,10 +44,10 @@ class CmdTest(unittest.TestCase):
             q = cmd.QuibbleCmd()
             self.assertEqual([
                 'mediawiki/core',  # must be first
+                'mediawiki/skins/Vector',
                 'mediawiki/skins/Monobook',
                 'mediawiki/extensions/One',
                 'mediawiki/extensions/Two',
-                'mediawiki/skins/Vector',
                 ], q.set_repos_to_clone())
 
     @mock.patch('quibble.is_in_docker', return_value=False)
