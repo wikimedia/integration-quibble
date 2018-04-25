@@ -9,6 +9,7 @@ from quibble import cmd
 
 class CmdTest(unittest.TestCase):
 
+    @mock.patch.dict('os.environ', clear=True)
     def test_projects_to_clone(self):
         q = cmd.QuibbleCmd()
         self.assertEqual(
@@ -16,6 +17,7 @@ class CmdTest(unittest.TestCase):
             ['mediawiki/core', 'mediawiki/skins/Vector'],
             'Incorrect repos to clone')
 
+    @mock.patch.dict('os.environ', clear=True)
     def test_projects_to_clone_with_vendor(self):
         q = cmd.QuibbleCmd()
         self.assertEqual(
@@ -23,6 +25,7 @@ class CmdTest(unittest.TestCase):
             ['mediawiki/core', 'mediawiki/skins/Vector', 'mediawiki/vendor'],
             'Incorrect repos to clone')
 
+    @mock.patch.dict('os.environ', clear=True)
     def test_projects_to_clone_appends_projects(self):
         q = cmd.QuibbleCmd()
         self.assertEqual(
@@ -49,6 +52,31 @@ class CmdTest(unittest.TestCase):
                 'mediawiki/extensions/One',
                 'mediawiki/extensions/Two',
                 ], q.set_repos_to_clone())
+
+    def test_set_repos_to_clone_adds_ZUUL_PROJECT(self):
+        env = {'ZUUL_PROJECT': 'mediawiki/extensions/ZuulProjectEnvVar'}
+        with mock.patch.dict('os.environ', env, clear=True):
+            q = cmd.QuibbleCmd()
+            self.assertEqual([
+                'mediawiki/core',  # must be first
+                'mediawiki/skins/Vector',
+                'mediawiki/extensions/ZuulProjectEnvVar',
+                ], q.set_repos_to_clone())
+
+    def test_set_repos_to_clone_does_not_duplicate_hardcoded_repos(self):
+        hardcoded_repos = [
+            'mediawiki/core',
+            'mediawiki/skins/Vector',
+            ]
+
+        for repo in hardcoded_repos:
+            with mock.patch.dict('os.environ', {'ZUUL_PROJECT': repo},
+                                 clear=True):
+                q = cmd.QuibbleCmd()
+                self.assertEqual([
+                    'mediawiki/core',  # must be first
+                    'mediawiki/skins/Vector',
+                    ], q.set_repos_to_clone())
 
     @mock.patch('quibble.is_in_docker', return_value=False)
     def test_args_defaults(self, _):

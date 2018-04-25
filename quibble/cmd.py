@@ -74,7 +74,9 @@ class QuibbleCmd(object):
             )
         parser.add_argument(
             'projects', default=[], nargs='*',
-            help='MediaWiki extensions and skins to clone'
+            help='MediaWiki extensions and skins to clone. Always clone '
+                 'mediawiki/core and mediawiki/skins/Vector. '
+                 'If $ZUUL_PROJECT is set, it will be cloned as well.'
             )
 
         parser.add_argument(
@@ -119,6 +121,11 @@ class QuibbleCmd(object):
         if clone_vendor:
             self.log.info('Adding mediawiki/vendor')
             self.dependencies.append('mediawiki/vendor')
+
+        if 'ZUUL_PROJECT' in os.environ:
+            zuul_project = os.environ.get('ZUUL_PROJECT')
+            if zuul_project not in self.dependencies:
+                self.dependencies.append(zuul_project)
 
         if 'SKIN_DEPENDENCIES' in os.environ:
             self.dependencies.extend(
@@ -292,19 +299,19 @@ class QuibbleCmd(object):
 
         self.setup_environment()
 
-        projects_to_clone = self.set_repos_to_clone(
-            projects=self.args.projects,
-            clone_vendor=(self.args.packages_source == 'vendor'))
-
-        if not self.args.skip_zuul:
-            self.clone(projects_to_clone)
-
         zuul_project = os.environ.get('ZUUL_PROJECT', None)
         if zuul_project is None:
             self.log.warning('ZUUL_PROJECT not set. Assuming mediawiki/core')
             zuul_project = 'mediawiki/core'
         else:
             self.log.debug("ZUUL_PROJECT=%s" % zuul_project)
+
+        projects_to_clone = self.set_repos_to_clone(
+            projects=self.args.projects,
+            clone_vendor=(self.args.packages_source == 'vendor'))
+
+        if not self.args.skip_zuul:
+            self.clone(projects_to_clone)
 
         if self.isExtOrSkin(zuul_project):
             run_composer = self.should_run('composer-test')
