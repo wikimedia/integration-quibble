@@ -205,7 +205,10 @@ class ChromeWebDriver(BackendServer):
             if self.display:
                 # We need DISPLAY in the env for chromium_flags()
                 os.environ.update({'DISPLAY': self.display})
-            env = {'CHROMIUM_FLAGS': quibble.chromium_flags()}
+            env = {
+                'CHROMIUM_FLAGS': quibble.chromium_flags(),
+                'PATH': os.environ.get('PATH'),
+                }
 
             if self.display is not None:
                 # Pass it to chromedriver
