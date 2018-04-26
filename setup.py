@@ -15,7 +15,9 @@ setup(
         #
         # zuul dcafeb6038b96a0095976963814cc29f98520995
         # https://github.com/gitpython-developers/GitPython/issues/605
-        'GitPython<2.1.2'
+        #
+        # So we want either <2.1.2 or >2.1.7
+        'GitPython<2.2.0,!=2.1.2,!=2.1.3,!=2.1.4,!=2.1.5,!=2.1.6,!=2.1.7'
         ],
 
     include_package_data=True,  # See MANIFEST.in
