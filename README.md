@@ -37,9 +37,9 @@ To avoid cloning MediaWiki over the network, you should initialize local bare
 repositories to be used as a reference for git to copy them from:
 
     mkdir -p ref/mediawiki/skins
-    git clone --bare mediawiki/core ref/mediawiki/core.git
-    git clone --bare mediawiki/vendor ref/mediawiki/vendor.git
-    git clone --bare mediawiki/skins/Vector ref/mediawiki/skins/Vector.git
+    git clone --bare https://gerrit.wikimedia.org/r/mediawiki/core ref/mediawiki/core.git
+    git clone --bare https://gerrit.wikimedia.org/r/mediawiki/vendor ref/mediawiki/vendor.git
+    git clone --bare https://gerrit.wikimedia.org/r/mediawiki/skins/Vector ref/mediawiki/skins/Vector.git
 
 We have `XDG_CACHE_HOME=/cache` set which is recognized by package managers.
 Create a cache directory writable by any user:
