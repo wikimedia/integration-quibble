@@ -136,6 +136,7 @@ def run_webdriver(mwdir, display, port=9412):
         'npm', 'run', 'selenium-test'],
         cwd=mwdir,
         env={
+            'PATH': os.environ.get('PATH'),
             'MW_SERVER': 'http://127.0.0.1:%s' % port,
             'MW_SCRIPT_PATH': '/',
             'FORCE_COLOR': '1',  # for 'supports-color'
