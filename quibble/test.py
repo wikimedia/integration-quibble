@@ -27,7 +27,7 @@ def run_composer_test(mwdir):
     else:
         log.info("Running composer test")
 
-        env = {'COMPOSER_PROCESS_TIMEOUT': '600'}
+        env = {'COMPOSER_PROCESS_TIMEOUT': '900'}
         env.update(os.environ)
 
         composer_test_cmd = ['composer', 'test']
