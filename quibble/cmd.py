@@ -11,7 +11,6 @@ import subprocess
 import sys
 
 import quibble
-from quibble import php_is_hhvm
 import quibble.mediawiki.maintenance
 import quibble.backend
 import quibble.test
@@ -59,7 +58,7 @@ class QuibbleCmd(object):
             help='Do not run composer/npm')
         parser.add_argument(
             '--db',
-            choices=['sqlite', 'mysql'],
+            choices=['sqlite', 'mysql', 'postgres'],
             default='mysql',
             help='Database backed to use. Default: mysql')
         parser.add_argument(
@@ -208,17 +207,11 @@ class QuibbleCmd(object):
             install_args.extend([
                 '--dbpath=%s' % db.datadir,
             ])
-        elif self.args.db == 'mysql':
-            if php_is_hhvm():
-                prefix = ''
-            else:
-                # Zend
-                prefix = 'localhost:'
-
+        elif self.args.db in ('mysql', 'postgres'):
             install_args.extend([
                 '--dbuser=%s' % db.user,
                 '--dbpass=%s' % db.password,
-                '--dbserver=%s%s' % (prefix, db.socket),
+                '--dbserver=%s' % db.dbserver,
             ])
         else:
             raise Exception('Unsupported database: %s' % self.args.db)

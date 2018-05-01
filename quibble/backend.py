@@ -1,6 +1,8 @@
+import json
 import logging
 import os
 import pwd
+import signal
 import socket
 import subprocess
 import sys
@@ -87,6 +89,52 @@ class BackendServer:
                 self.server = None
 
 
+class Postgres(BackendServer):
+
+    def __init__(self):
+        super(Postgres, self).__init__()
+        self.tmpdir = tempfile.TemporaryDirectory(prefix='quibble-postgres-')
+        self.rootdir = self.tmpdir.name
+        self.log.debug('Root dir: %s' % self.rootdir)
+
+        self.conffile = os.path.join(self.rootdir, 'conf')
+        self.socket = os.path.join(self.rootdir, 'socket')
+
+    def start(self):
+        # Start pg_virtualenv and save configuration settings
+        self.server = subprocess.Popen([
+            'pg_virtualenv',
+            '-c -s %s' % self.socket,
+            'python3', '-m', 'quibble.pg_virtualenv_hook'
+        ], env={'QUIBBLE_TMPFILE': self.conffile})
+
+        while not os.path.exists(self.conffile):
+            if self.server.poll() is not None:
+                raise Exception(
+                    'Postgres failed during startup (%s)'
+                    % self.server.returncode)
+            time.sleep(1)
+
+        with open(self.conffile) as f:
+            conf = json.load(f)
+
+        self.user = conf['PGUSER']
+        self.password = conf['PGPASSWORD']
+        self.dbname = conf['PGDATABASE']
+        self.dbserver = self.socket
+        self.hook_pid = conf['PID']
+        self.log.info('Postgres is ready')
+
+    def stop(self):
+        # Send a signal to the hook since it's waiting on one
+        os.kill(self.hook_pid, signal.SIGUSR1)
+        super(Postgres, self).stop()
+
+    def __del__(self):
+        self.stop()
+        self.tmpdir.cleanup()
+
+
 class MySQL(BackendServer):
 
     def __init__(self, user='wikiuser', password='secret', dbname='wikidb'):
@@ -103,6 +151,11 @@ class MySQL(BackendServer):
         self.errorlog = os.path.join(self.rootdir, 'error.log')
         self.pidfile = os.path.join(self.rootdir, 'mysqld.pid')
         self.socket = os.path.join(self.rootdir, 'socket')
+
+        if php_is_hhvm():
+            self.dbserver = self.socket
+        else:
+            self.dbserver = 'localhost:' + self.socket
 
         self._install_db()
 
