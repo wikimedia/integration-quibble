@@ -9,7 +9,11 @@ def update(args, mwdir=None):
     cmd.extend(args)
     log.info(' '.join(cmd))
 
-    p = subprocess.Popen(cmd, cwd=mwdir, env={})
+    update_env = {}
+    if mwdir is not None:
+        update_env['MW_INSTALL_PATH'] = mwdir
+
+    p = subprocess.Popen(cmd, cwd=mwdir, env=update_env)
     p.communicate()
     if p.returncode > 0:
         raise Exception(
