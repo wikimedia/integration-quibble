@@ -156,6 +156,26 @@ class QuibbleCmd(object):
             workspace=os.path.join(self.workspace, 'src'),
             cache_dir=self.args.git_cache)
 
+    def ext_skin_submodule_update(self):
+        self.log.info('Updating git submodules of extensions and skins')
+        # From JJB macro ext-skins-submodules-update
+        # jjb/mediawiki-extensions.yaml
+        subprocess.check_call([
+            # Do not add ., or that will process mediawiki/core submodules in
+            # wmf branches which is a mess.
+            'find', 'extensions', 'skins',
+            '-maxdepth', '2',
+            '-name', '.gitmodules',
+            '-print',
+            '-execdir', 'bash', '-xe', '-c',
+            '\n'.join([
+                 'git submodule foreach git clean -xdff -q',
+                 'git submodule update --init --recursive',
+                 'git submodule status',
+                 ]),
+            ';',  # end of -execdir
+             ], cwd=self.mw_install_path)
+
     # Used to be bin/mw-create-composer-local.py
     def create_composer_local(self):
         self.log.info('composer.local.json for merge plugin')
@@ -320,6 +340,7 @@ class QuibbleCmd(object):
 
         if not self.args.skip_zuul:
             self.clone(projects_to_clone)
+            self.ext_skin_submodule_update()
 
         if self.isExtOrSkin(zuul_project):
             run_composer = self.should_run('composer-test')
