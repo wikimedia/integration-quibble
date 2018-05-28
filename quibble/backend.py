@@ -249,6 +249,10 @@ class DevWebServer(BackendServer):
 
         if php_is_hhvm():
             server_cmd = ['hhvm', '-m', 'server', '-p', str(self.port)]
+            server_cmd.extend([
+                # HHVM does not set Content-Type for svg files T195634
+                '-d', 'hhvm.static_file.extensions[svg]=image/svg+xml',
+                ])
         else:
             server_cmd = ['php', '-S', '127.0.0.1:%s' % self.port]
             if self.router:

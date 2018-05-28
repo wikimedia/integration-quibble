@@ -114,6 +114,34 @@ class TestDevWebServer(unittest.TestCase):
         with DevWebServer(mwdir=PHPDOCROOT, port=http_port, router=None):
             self.assertServerRespond('hhvm', 'http://127.0.0.1:%s' % http_port)
 
+    @attr('integration')
+    # assumes "php" is Zend. Would fail if it happens to be HHVM
+    @mock.patch('quibble.backend.subprocess.check_output',
+                return_value=b'')
+    def test_php_sets_svg_content_type(self, _):
+        http_port = '4883'
+        php_is_hhvm.cache_clear()
+        with DevWebServer(mwdir=PHPDOCROOT, port=http_port, router=None):
+            svg_url = 'http://127.0.0.1:%s/image.svg' % http_port
+            with urllib.request.urlopen(svg_url) as resp:
+                headers = resp.info()
+                self.assertIn('Content-Type', headers)
+                self.assertEquals(headers['Content-Type'], 'image/svg+xml')
+
+    @attr('integration')
+    @mock.patch('quibble.backend.subprocess.check_output',
+                return_value=b'HipHop')
+    @unittest.skipUnless(shutil.which('hhvm'), 'requires HHVM')
+    def test_hhvm_sets_svg_content_type(self, _):
+        http_port = '4884'
+        php_is_hhvm.cache_clear()
+        with DevWebServer(mwdir=PHPDOCROOT, port=http_port, router=None):
+            svg_url = 'http://127.0.0.1:%s/image.svg' % http_port
+            with urllib.request.urlopen(svg_url) as resp:
+                headers = resp.info()
+                self.assertIn('Content-Type', headers)
+                self.assertEquals(headers['Content-Type'], 'image/svg+xml')
+
 
 class TestMySQL(unittest.TestCase):
 
