@@ -20,6 +20,7 @@ import quibble.zuul
 class QuibbleCmd(object):
 
     log = logging.getLogger('quibble.cmd')
+    stages = ['phpunit', 'npm-test', 'composer-test', 'qunit', 'selenium']
 
     def __init__(self):
         self.dependencies = []
@@ -86,10 +87,15 @@ class QuibbleCmd(object):
                  'If $ZUUL_PROJECT is set, it will be cloned as well.'
             )
 
+        stages = ', '.join(self.stages)
         parser.add_argument(
             '--run', default=['all'], nargs='*',
-            help='Tests to run: phpunit, npm-test, composer-test, '
-                 'qunit, selenium (default: all)'
+            help='Tests to run: %s (default: all)' % stages
+        )
+
+        parser.add_argument(
+            '--skip', default=[], nargs='*',
+            help='Stages to skip: %s (default: none)' % stages
         )
 
         return parser
@@ -301,6 +307,8 @@ class QuibbleCmd(object):
         )
 
     def should_run(self, stage):
+        if stage in self.args.skip:
+            return False
         if 'all' in self.args.run:
             return True
         return stage in self.args.run
@@ -311,7 +319,9 @@ class QuibbleCmd(object):
         quibble.colored_logging()
 
         self.args = self.parse_arguments()
-        self.log.debug('Running stages: ' + ', '.join(self.args.run))
+        self.log.debug('Running stages: '
+                       + ', '.join(stage for stage in self.stages
+                                   if self.should_run(stage)))
 
         self.workspace = self.args.workspace
         self.mw_install_path = os.path.join(self.workspace, 'src')
