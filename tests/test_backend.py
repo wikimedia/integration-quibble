@@ -148,9 +148,12 @@ class TestDevWebServer(unittest.TestCase):
         http_port = '4885'
         php_is_hhvm.cache_clear()
 
-        with mock.patch.dict('quibble.backend.os.environ', {
-                             'MW_INSTALL_PATH': '/tmp/mw',
-                             'MW_LOG_DIR': '/tmp/log'},
+        with mock.patch.dict('quibble.backend.os.environ',
+                             {
+                                 'MW_INSTALL_PATH': '/tmp/mw',
+                                 'MW_LOG_DIR': '/tmp/log',
+                                 'LOG_DIR': '/tmp/log',
+                             },
                              clear=True):
             with DevWebServer(mwdir=PHPDOCROOT, port=http_port, router=None):
                 env_url = 'http://127.0.0.1:%s/env.php' % http_port
@@ -160,6 +163,7 @@ class TestDevWebServer(unittest.TestCase):
 
         self.assertIn('MW_INSTALL_PATH', server_env)
         self.assertIn('MW_LOG_DIR', server_env)
+        self.assertIn('LOG_DIR', server_env)
 
 
 class TestMySQL(unittest.TestCase):

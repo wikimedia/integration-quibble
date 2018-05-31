@@ -121,6 +121,7 @@ class QuibbleCmd(object):
 
         os.environ['MW_INSTALL_PATH'] = self.mw_install_path
         os.environ['MW_LOG_DIR'] = self.log_dir
+        os.environ['LOG_DIR'] = self.log_dir
         os.environ['TMPDIR'] = '/tmp'
 
     def set_repos_to_clone(self, projects=[], clone_vendor=False):

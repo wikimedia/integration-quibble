@@ -121,6 +121,20 @@ class CmdTest(unittest.TestCase):
                 q.setup_environment()
                 self.assertEqual(os.environ['WORKSPACE'], '/fromenv')
 
+    @mock.patch.dict(os.environ, clear=True)
+    def test_setup_environment_has_log_directories(self):
+        q = cmd.QuibbleCmd()
+        q.workspace = '/workspace'
+        q.mw_install_path = ''
+        q.log_dir = '/mylog'
+
+        q.setup_environment()
+
+        self.assertIn('LOG_DIR', os.environ)
+        self.assertIn('MW_LOG_DIR', os.environ)
+        self.assertEqual(os.environ['LOG_DIR'], '/mylog')
+        self.assertEqual(os.environ['MW_LOG_DIR'], '/mylog')
+
     def test_isCoreOrVendor(self):
         q = cmd.QuibbleCmd()
         self.assertTrue(q.isCoreOrVendor('mediawiki/core'))
