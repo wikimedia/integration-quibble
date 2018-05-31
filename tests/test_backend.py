@@ -161,9 +161,3 @@ class TestMySQL(unittest.TestCase):
         mock_popen.return_value.returncode = 42
         with self.assertRaises(Exception, msg='FAILED (42): some output'):
             MySQL()._createwikidb()
-
-
-class TestBackend2(unittest.TestCase):
-
-    def test_foo(self):
-        self.assertTrue(True)
