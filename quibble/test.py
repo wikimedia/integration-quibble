@@ -38,7 +38,7 @@ def run_composer_test(mwdir):
 def run_npm_test(mwdir):
     log = logging.getLogger('test.run_npm_test')
     log.info("Running npm test")
-    subprocess.check_call(['npm', 'test'], cwd=mwdir)
+    subprocess.check_call(['npm', 'test'], cwd=mwdir, env=os.environ)
 
 
 def run_qunit(mwdir, port=9412):
@@ -79,7 +79,7 @@ def run_extskin(directory, composer=True, npm=True):
                 ['composer', '--ansi', 'test'],
             ]
             for cmd in cmds:
-                subprocess.check_call(cmd, cwd=directory)
+                subprocess.check_call(cmd, cwd=directory, env=os.environ)
 
     if npm:
         # XXX copy paste is terrible
@@ -93,7 +93,7 @@ def run_extskin(directory, composer=True, npm=True):
                 ['npm', 'test'],
             ]
             for cmd in cmds:
-                subprocess.check_call(cmd, cwd=directory)
+                subprocess.check_call(cmd, cwd=directory, env=os.environ)
 
     log.info('%s: git clean -xqdf' % project_name)
     subprocess.check_call(['git', 'clean', '-xqdf'], cwd=directory)
@@ -118,7 +118,12 @@ def run_phpunit(mwdir, group=[], exclude_group=[], testsuite=None,
     if junit_file:
         cmd.extend('--log-junit', junit_file)
     log.info(' '.join(cmd))
-    subprocess.check_call(cmd, cwd=mwdir, env={'LANG': 'C.UTF-8'})
+
+    phpunit_env = {}
+    phpunit_env.update(os.environ)
+    phpunit_env.update({'LANG': 'C.UTF-8'})
+
+    subprocess.check_call(cmd, cwd=mwdir, env=phpunit_env)
 
 
 def run_phpunit_database(*args, **kwargs):
@@ -132,15 +137,18 @@ def run_phpunit_databaseless(*args, **kwargs):
 
 
 def run_webdriver(mwdir, display, port=9412):
+    webdriver_env = {}
+    webdriver_env.update(os.environ)
+    webdriver_env.update({
+        'MW_SERVER': 'http://127.0.0.1:%s' % port,
+        'MW_SCRIPT_PATH': '/',
+        'FORCE_COLOR': '1',  # for 'supports-color'
+        'MEDIAWIKI_USER': 'WikiAdmin',
+        'MEDIAWIKI_PASSWORD': 'testpass',
+        'DISPLAY': display,
+    })
+
     subprocess.check_call([
         'npm', 'run', 'selenium-test'],
         cwd=mwdir,
-        env={
-            'PATH': os.environ.get('PATH'),
-            'MW_SERVER': 'http://127.0.0.1:%s' % port,
-            'MW_SCRIPT_PATH': '/',
-            'FORCE_COLOR': '1',  # for 'supports-color'
-            'MEDIAWIKI_USER': 'WikiAdmin',
-            'MEDIAWIKI_PASSWORD': 'testpass',
-            'DISPLAY': display,
-            })
+        env=webdriver_env)
