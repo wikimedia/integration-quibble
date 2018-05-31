@@ -1,3 +1,4 @@
+import json
 import os
 import shutil
 import unittest
@@ -141,6 +142,24 @@ class TestDevWebServer(unittest.TestCase):
                 headers = resp.info()
                 self.assertIn('Content-Type', headers)
                 self.assertEquals(headers['Content-Type'], 'image/svg+xml')
+
+    @attr('integration')
+    def test_has_os_environment_variables(self):
+        http_port = '4885'
+        php_is_hhvm.cache_clear()
+
+        with mock.patch.dict('quibble.backend.os.environ', {
+                             'MW_INSTALL_PATH': '/tmp/mw',
+                             'MW_LOG_DIR': '/tmp/log'},
+                             clear=True):
+            with DevWebServer(mwdir=PHPDOCROOT, port=http_port, router=None):
+                env_url = 'http://127.0.0.1:%s/env.php' % http_port
+                with urllib.request.urlopen(env_url) as resp:
+                    env_resp = resp.read().decode()
+                    server_env = json.loads(env_resp)
+
+        self.assertIn('MW_INSTALL_PATH', server_env)
+        self.assertIn('MW_LOG_DIR', server_env)
 
 
 class TestMySQL(unittest.TestCase):

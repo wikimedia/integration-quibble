@@ -319,6 +319,7 @@ class DevWebServer(BackendServer):
             bufsize=1,  # line buffered
             stdout=subprocess.DEVNULL,
             stderr=subprocess.PIPE,
+            env=os.environ,
         )
         stream_relay(self.server, self.server.stderr, self.log.info)
         tcp_wait(port=self.port, timeout=5)
