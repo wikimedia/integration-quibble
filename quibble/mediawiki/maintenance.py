@@ -1,4 +1,5 @@
 import logging
+import os
 import subprocess
 
 
@@ -10,6 +11,7 @@ def update(args, mwdir=None):
     log.info(' '.join(cmd))
 
     update_env = {}
+    update_env.update(os.environ)
     if mwdir is not None:
         update_env['MW_INSTALL_PATH'] = mwdir
 
@@ -31,11 +33,15 @@ def install(args, mwdir=None):
         'TestWiki',
         'WikiAdmin'
     ])
-
     log.info(' '.join(cmd))
 
+    install_env = {}
+    install_env.update(os.environ)
+
     # LANG is passed to $wgShellLocale
-    p = subprocess.Popen(cmd, cwd=mwdir, env={'LANG': 'C.UTF-8'})
+    install_env.update({'LANG': 'C.UTF-8'})
+
+    p = subprocess.Popen(cmd, cwd=mwdir, env=install_env)
     p.communicate()
     if p.returncode > 0:
         raise Exception(
