@@ -3,25 +3,13 @@
 # Snippet coming from integration/jenkins.git:/mediawiki/conf.d/
 #
 
-/**
- * Determine $wmgJobWorkspace and $wmgMwLogDir
- */
-
-// Under Apache, there is no Jenkins environement variable. We have to detect
-// the workspace using MediaWiki's include path.
-//
-// Old Jenkins jobs fetch MediaWiki core directly in the workspace hence
-// $IP is the workspace. The new way is $WORKSPACE/src/mediawiki/core
-if ( $wgCommandLineMode ) {
-	$wmgJobWorkspace = getenv( 'WORKSPACE' );
-} elseif ( preg_match( '%(.*)/src/mediawiki/core%', $IP ) ) {
-	$wmgJobWorkspace = $IP . '/../../..';
-} elseif ( preg_match( '%(.*)/src%', $IP ) ) {
-	$wmgJobWorkspace = $IP . '/..';
+if ( getenv( 'MW_LOG_DIR' ) ) {
+	$wmgMwLogDir = getenv( 'MW_LOG_DIR' );
+} elseif ( getenv( 'WORKSPACE' ) ) {
+	$wmgMwLogDir = getenv( 'WORKSPACE' ) . '/log';
 } else {
-	$wmgJobWorkspace = $IP;
+	$wmgMwLogDir = __DIR__ . '/../log';
 }
-$wmgMwLogDir = "$wmgJobWorkspace/log";
 
 /**
  * Development settings
