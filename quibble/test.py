@@ -42,11 +42,6 @@ def run_npm_test(mwdir):
 
 
 def run_qunit(mwdir, port=9412):
-    localsettings = os.path.join(
-        mwdir, 'LocalSettings.php')
-    with open(localsettings, 'a') as lf:
-        lf.write('<?php $wgEnableJavaScriptTest = true; ?>')
-
     karma_env = {
          'CHROME_BIN': '/usr/bin/chromium',
          'MW_SERVER': 'http://127.0.0.1:%s' % port,
