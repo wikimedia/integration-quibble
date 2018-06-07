@@ -229,13 +229,16 @@ class QuibbleCmd(object):
         )
 
         localsettings = os.path.join(self.mw_install_path, 'LocalSettings.php')
-        with open(localsettings, 'a') as lf:
+        # Prepend our custom configuration snippets
+        with open(localsettings, 'r+') as lf:
             extra_conf = subprocess.check_output([
                 'php',
                 pkg_resources.resource_filename(
                     __name__, 'mediawiki.d/_join.php')
                 ])
-            lf.write(extra_conf.decode())
+            installed_conf = lf.read()
+            lf.seek(0, 0)
+            lf.write(extra_conf.decode() + installed_conf)
         subprocess.check_call(['php', '-l', localsettings])
         self.copylog(localsettings, 'LocalSettings.php')
 

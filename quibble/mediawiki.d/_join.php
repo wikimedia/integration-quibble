@@ -9,8 +9,8 @@
 
 $settingFiles = new GlobIterator( __DIR__ .  '/[0-9][0-9]*.php' );
 
-// Make sure we start by closing LocalSettings.php tag
-$content = '?>';
+// Content to be inserted at start of LocalSettings.php
+$content = '';
 
 foreach ( $settingFiles as $settingFile ) {
 

@@ -7,5 +7,5 @@ and MUST NOT use a PHP closing tag '?>'. If any of the two conditions is not
 met, the file will be ignored.
 
 Quibble would run /mediawiki.d/_join.php which reads and concatenate the files
-per their alphabetical order and injects the result at the end of
+per their alphabetical order and insert the result at the beginning of
 LocalSettings.php.
