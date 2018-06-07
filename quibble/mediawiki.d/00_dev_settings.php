@@ -1,7 +1,6 @@
 <?php
-#
-# Snippet coming from integration/jenkins.git:/mediawiki/conf.d/
-#
+# Quibble MediaWiki configuration
+# Snippet originally coming from integration/jenkins.git:/mediawiki/conf.d/
 
 if ( getenv( 'MW_LOG_DIR' ) ) {
 	$wmgMwLogDir = getenv( 'MW_LOG_DIR' );

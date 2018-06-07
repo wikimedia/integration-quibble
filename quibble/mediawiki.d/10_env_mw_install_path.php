@@ -1,7 +1,6 @@
 <?php
-#
-# Snippet coming from integration/jenkins.git:/mediawiki/conf.d/
-#
+# Quibble MediaWiki configuration
+# Snippet originally coming from integration/jenkins.git:/mediawiki/conf.d/
 
 // Set MW_INSTALL_PATH to appropriate MediaWiki core directory under WORKSPACE
 // Legacy usage was to clone core directly in the WORKSPACE

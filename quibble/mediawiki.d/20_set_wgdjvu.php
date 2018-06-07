@@ -1,7 +1,6 @@
 <?php
-#
-# Snippet coming from integration/jenkins.git:/mediawiki/conf.d/
-#
+# Quibble MediaWiki configuration
+# Snippet originally coming from integration/jenkins.git:/mediawiki/conf.d/
 
 // Configure $wgDjvu for the MediaWiki core DJVU unit tests
 $wgDjvuDump = '/usr/bin/djvudump';
