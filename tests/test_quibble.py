@@ -40,3 +40,9 @@ class QuibbleTest(unittest.TestCase):
     @mock.patch('quibble.use_headless', return_value=False)
     def test_chrome_no_headless_arg(self, mock):
         self.assertNotIn('--headless', quibble.chromium_flags())
+
+    # https://developers.google.com/web/updates/2017/09/autoplay-policy-changes
+    # T197687
+    def test_chrome_autoplay_does_not_require_user_gesture(self):
+        self.assertIn('--autoplay-policy=no-user-gesture-required',
+                      quibble.chromium_flags())

@@ -32,6 +32,12 @@ def use_headless():
 
 def chromium_flags():
     args = [os.environ.get('CHROMIUM_FLAGS', '')]
+
+    # play() would fail if the user didn't interact with the document
+    # first. The autoplay policy got changed with v66
+    # https://goo.gl/xX8pDD and T197687
+    args.append('--autoplay-policy=no-user-gesture-required')
+
     if is_in_docker():
         args.append('--no-sandbox')
     if use_headless():
