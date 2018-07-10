@@ -38,6 +38,10 @@ def chromium_flags():
     # https://goo.gl/xX8pDD and T197687
     args.append('--autoplay-policy=no-user-gesture-required')
 
+    # Chrome throttles calls to history.pushState() which causes the history
+    # update to be ignored. T198171
+    args.append('--disable-pushstate-throttle')
+
     if is_in_docker():
         args.append('--no-sandbox')
     if use_headless():

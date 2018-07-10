@@ -46,3 +46,9 @@ class QuibbleTest(unittest.TestCase):
     def test_chrome_autoplay_does_not_require_user_gesture(self):
         self.assertIn('--autoplay-policy=no-user-gesture-required',
                       quibble.chromium_flags())
+
+    # https://bugs.chromium.org/p/chromium/issues/detail?id=769592
+    # T198171
+    def test_chrome_does_not_throttle_history_state_changes(self):
+        self.assertIn('--disable-pushstate-throttle',
+                      quibble.chromium_flags())
