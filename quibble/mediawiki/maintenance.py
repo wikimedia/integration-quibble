@@ -46,3 +46,17 @@ def install(args, mwdir=None):
     if p.returncode > 0:
         raise Exception(
             'Install failed with exit code: %s' % p.returncode)
+
+
+def rebuildLocalisationCache(lang=['en'], mwdir=None):
+    log = logging.getLogger('mw.maintenance.rebuildLocalisationCache')
+    cmd = ['php', 'maintenance/rebuildLocalisationCache.php']
+    cmd.extend(['--lang', ','.join(lang)])
+    log.info(' '.join(cmd))
+
+    p = subprocess.Popen(cmd, cwd=mwdir)
+    p.communicate()
+    if p.returncode > 0:
+        raise Exception(
+            'rebuildLocalisationCache failed with exit code: %s' % (
+                p.returncode))

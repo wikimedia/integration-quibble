@@ -69,3 +69,35 @@ class TestMediawikiMaintenance(unittest.TestCase):
         with self.assertRaisesRegexp(Exception,
                                      'Update failed with exit code: 42'):
             quibble.mediawiki.maintenance.update([], mwdir='test/sources')
+
+    @mock.patch('subprocess.Popen')
+    def test_rebuildlocalisationcache_default_lang_parameter(self, mock_popen):
+        mock_popen.return_value.returncode = 0
+        quibble.mediawiki.maintenance.rebuildLocalisationCache()
+
+        (args, kwargs) = mock_popen.call_args
+        params = args[0][2:]
+
+        self.assertEqual(['--lang', 'en'], params)
+
+    @mock.patch('subprocess.Popen')
+    def test_rebuildlocalisationcache_lang_parameter(self, mock_popen):
+        mock_popen.return_value.returncode = 0
+        quibble.mediawiki.maintenance.rebuildLocalisationCache(
+            lang=['fr', 'zh'])
+
+        (args, kwargs) = mock_popen.call_args
+        params = args[0][2:]
+
+        self.assertEqual(['--lang', 'fr,zh'], params)
+
+    @mock.patch('subprocess.Popen')
+    def test_rebuildlocalisationcache_raises_exception_on_bad_exit_code(
+        self, mock_popen
+    ):
+        mock_popen.return_value.returncode = 43
+        with self.assertRaisesRegexp(
+                Exception,
+                'rebuildLocalisationCache failed with exit code: 43'
+        ):
+            quibble.mediawiki.maintenance.rebuildLocalisationCache()

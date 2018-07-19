@@ -274,6 +274,8 @@ class QuibbleCmd(object):
             args=update_args,
             mwdir=self.mw_install_path
         )
+        quibble.mediawiki.maintenance.rebuildLocalisationCache(
+            lang=['en'], mwdir=self.mw_install_path)
 
     def fetch_composer_dev(self):
         mw_composer_json = os.path.join(self.mw_install_path, 'composer.json')
