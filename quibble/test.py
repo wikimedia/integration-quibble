@@ -131,6 +131,17 @@ def run_phpunit_databaseless(*args, **kwargs):
     run_phpunit(*args, **kwargs)
 
 
+def commands(cmds, cwd):
+    log = logging.getLogger('test.commands')
+    log.info('working directory: %s' % cwd)
+
+    for cmd in cmds:
+        log.info(cmd)
+        subprocess.check_call(cmd, shell=True, cwd=cwd)
+
+    return True
+
+
 def run_webdriver(mwdir, display, port=9412):
     webdriver_env = {}
     webdriver_env.update(os.environ)

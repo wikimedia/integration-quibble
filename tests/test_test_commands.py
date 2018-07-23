@@ -1,5 +1,6 @@
 import unittest
 from unittest import mock
+from subprocess import CalledProcessError
 
 import quibble.test
 
@@ -51,3 +52,14 @@ class TestTestCommand(unittest.TestCase):
                 self.assertIn(
                     'somevar', env,
                     '%s must pass os.environ' % func.__name__)
+
+    def test_commands(self):
+        self.assertTrue(quibble.test.commands(['true'], cwd='/tmp'))
+        self.assertTrue(quibble.test.commands(['true', 'true'], cwd='/tmp'))
+
+    def test_commands_raises_exception_on_error(self):
+        with self.assertRaises(CalledProcessError, msg=''):
+            quibble.test.commands(['false'], cwd='/tmp')
+
+        with self.assertRaises(CalledProcessError, msg=''):
+            quibble.test.commands(['true', 'false'], cwd='/tmp')

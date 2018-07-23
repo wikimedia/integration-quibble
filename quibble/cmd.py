@@ -103,6 +103,12 @@ class QuibbleCmd(object):
             help='Stages to skip (default: none). '
                  'Set to "all" to skip all stages.'
         )
+        stages_args.add_argument(
+            '--commands', default=[], nargs='*', metavar='command',
+            help=(
+                'Run given commands instead of built-in stages. '
+                'Each command is executed relatively to '
+                'MediaWiki installation path.'))
 
         return parser
 
@@ -317,6 +323,8 @@ class QuibbleCmd(object):
         )
 
     def should_run(self, stage):
+        if self.args.commands:
+            return False
         if 'all' in self.args.skip:
             return False
         if stage in self.args.skip:
@@ -449,6 +457,12 @@ class QuibbleCmd(object):
         if self.isCoreOrVendor(zuul_project) and self.should_run('phpunit'):
             self.log.info("PHPUnit Database group")
             quibble.test.run_phpunit_database(mwdir=self.mw_install_path)
+
+        if self.args.commands:
+            self.log.info('User commands')
+            quibble.test.commands(
+                self.args.commands,
+                cwd=self.mw_install_path)
 
 
 def get_arg_parser():
