@@ -110,6 +110,10 @@ class QuibbleCmd(object):
                 'Each command is executed relatively to '
                 'MediaWiki installation path.'))
 
+        parser.add_argument(
+            '--phpunit-testsuite', default=None, metavar='pattern',
+            help='PHPUnit: filter which testsuite to run')
+
         return parser
 
     def copylog(self, src, dest):
@@ -397,32 +401,24 @@ class QuibbleCmd(object):
             subprocess.check_call(['npm', 'prune'], cwd=self.mw_install_path)
             subprocess.check_call(['npm', 'install'], cwd=self.mw_install_path)
 
-        if self.should_run('phpunit'):
-            if self.isCoreOrVendor(zuul_project):
-                self.log.info("PHPUnit without Database group")
-                quibble.test.run_phpunit_databaseless(
-                    mwdir=self.mw_install_path)
-            elif self.isExtOrSkin(zuul_project):
-                testsuite = None
-                if zuul_project.startswith('mediawiki/extensions/'):
-                    testsuite = 'extensions'
-                elif zuul_project.startswith('mediawiki/skins/'):
-                    testsuite = 'skins'
-                if testsuite is None:
-                    raise Exception('Could not find a PHPUnit testsuite '
-                                    'for %s' % zuul_project)
+        phpunit_testsuite = None
+        if self.args.phpunit_testsuite:
+            phpunit_testsuite = self.args.phpunit_testsuite
+        elif zuul_project.startswith('mediawiki/extensions/'):
+            phpunit_testsuite = 'extensions'
+        elif zuul_project.startswith('mediawiki/skins/'):
+            phpunit_testsuite = 'skins'
 
-                self.log.info('PHPUnit %s testsuite' % testsuite)
-                # XXX might want to run the triggered extension first then the
-                # other tests.
-                # XXX some mediawiki/core smoke PHPunit tests should probably
-                # be run as well.
-                quibble.test.run_phpunit(
-                    mwdir=self.mw_install_path,
-                    testsuite=testsuite)
-            else:
-                raise Exception('Unrecognized zuul_project: %s.' %
-                                zuul_project)
+        if self.should_run('phpunit'):
+            self.log.info("PHPUnit%swithout Database group" % (
+                ' %s suite ' % (phpunit_testsuite or ' ')))
+            # XXX might want to run the triggered extension first then the
+            # other tests.
+            # XXX some mediawiki/core smoke PHPunit tests should probably
+            # be run as well.
+            quibble.test.run_phpunit_databaseless(
+                mwdir=self.mw_install_path,
+                testsuite=phpunit_testsuite)
 
         if zuul_project == 'mediawiki/core':
             if self.should_run('composer-test'):
@@ -456,9 +452,12 @@ class QuibbleCmd(object):
                             port=http_port,
                             display=display)
 
-        if self.isCoreOrVendor(zuul_project) and self.should_run('phpunit'):
-            self.log.info("PHPUnit Database group")
-            quibble.test.run_phpunit_database(mwdir=self.mw_install_path)
+        if self.should_run('phpunit'):
+            self.log.info("PHPUnit%sDatabase group" % (
+                ' %s suite ' % (phpunit_testsuite or ' ')))
+            quibble.test.run_phpunit_database(
+                mwdir=self.mw_install_path,
+                testsuite=phpunit_testsuite)
 
         if self.args.commands:
             self.log.info('User commands')
