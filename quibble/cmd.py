@@ -100,7 +100,8 @@ class QuibbleCmd(object):
         )
         stages_args.add_argument(
             '--skip', default=[], nargs='*',
-            help='Stages to skip (default: none).'
+            help='Stages to skip (default: none). '
+                 'Set to "all" to skip all stages.'
         )
 
         return parser
@@ -316,6 +317,8 @@ class QuibbleCmd(object):
         )
 
     def should_run(self, stage):
+        if 'all' in self.args.skip:
+            return False
         if stage in self.args.skip:
             return False
         if 'all' in self.args.run:

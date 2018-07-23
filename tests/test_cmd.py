@@ -157,12 +157,19 @@ class CmdTest(unittest.TestCase):
             all(map(q.should_run, q.stages)),
             'must runs all stages by default')
 
-    def test_should_run_all_accepts_all_stages(self):
+    def test_should_run_runall_accepts_all_stages(self):
         q = cmd.QuibbleCmd()
         q.args = q.parse_arguments(args=['--run=all'])
         self.assertTrue(
             all(map(q.should_run, q.stages)),
             '--run=all runs all stages')
+
+    def test_should_run_skippall_runs_no_stage(self):
+        q = cmd.QuibbleCmd()
+        q.args = q.parse_arguments(args=['--skip=all'])
+        self.assertFalse(
+            any(map(q.should_run, q.stages)),
+            '--skip=all skips all stages')
 
     def test_should_run_skips_a_stage(self):
         q = cmd.QuibbleCmd()
