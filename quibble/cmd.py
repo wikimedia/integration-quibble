@@ -88,14 +88,19 @@ class QuibbleCmd(object):
             )
 
         stages = ', '.join(self.stages)
-        parser.add_argument(
-            '--run', default=['all'], nargs='*',
-            help='Tests to run: %s (default: all)' % stages
-        )
 
-        parser.add_argument(
+        stages_args = parser.add_argument_group('stages', description=(
+            'Quibble runs all test commands (stages) by default. '
+            'Use the --run or --skip options to further refine which commands '
+            'will be run. '
+            'Available stages are: %s' % stages))
+        stages_args.add_argument(
+            '--run', default=['all'], nargs='*',
+            help='Tests to run (default: all).'
+        )
+        stages_args.add_argument(
             '--skip', default=[], nargs='*',
-            help='Stages to skip: %s (default: none)' % stages
+            help='Stages to skip (default: none).'
         )
 
         return parser
