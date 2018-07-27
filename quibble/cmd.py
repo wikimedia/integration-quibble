@@ -428,29 +428,31 @@ class QuibbleCmd(object):
                 quibble.test.run_npm_test(self.mw_install_path)
 
         http_port = 9412
-        with quibble.backend.DevWebServer(
-                mwdir=self.mw_install_path,
-                port=http_port):
-            if self.should_run('qunit'):
-                quibble.test.run_qunit(self.mw_install_path, port=http_port)
+        if self.should_run('qunit') or self.should_run('selenium'):
+            with quibble.backend.DevWebServer(
+                    mwdir=self.mw_install_path,
+                    port=http_port):
+                if self.should_run('qunit'):
+                    quibble.test.run_qunit(self.mw_install_path,
+                                           port=http_port)
 
-            # Webdriver.io Selenium tests available since 1.29
-            if self.should_run('selenium') and \
-                    os.path.exists(os.path.join(
-                        self.mw_install_path, 'tests/selenium')):
-                with ExitStack() as stack:
-                    display = os.environ.get('DISPLAY', None)
-                    if not display:
-                        display = ':94'  # XXX racy when run concurrently!
-                        self.log.info("No DISPLAY, using Xvfb.")
-                        stack.enter_context(
-                            quibble.backend.Xvfb(display=display))
+                # Webdriver.io Selenium tests available since 1.29
+                if self.should_run('selenium') and \
+                        os.path.exists(os.path.join(
+                            self.mw_install_path, 'tests/selenium')):
+                    with ExitStack() as stack:
+                        display = os.environ.get('DISPLAY', None)
+                        if not display:
+                            display = ':94'  # XXX racy when run concurrently!
+                            self.log.info("No DISPLAY, using Xvfb.")
+                            stack.enter_context(
+                                quibble.backend.Xvfb(display=display))
 
-                    with quibble.backend.ChromeWebDriver(display=display):
-                        quibble.test.run_webdriver(
-                            mwdir=self.mw_install_path,
-                            port=http_port,
-                            display=display)
+                        with quibble.backend.ChromeWebDriver(display=display):
+                            quibble.test.run_webdriver(
+                                mwdir=self.mw_install_path,
+                                port=http_port,
+                                display=display)
 
         if self.should_run('phpunit'):
             self.log.info("PHPUnit%sDatabase group" % (
