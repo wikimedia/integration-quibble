@@ -149,3 +149,41 @@ class CmdTest(unittest.TestCase):
         self.assertTrue(q.isExtOrSkin('mediawiki/skins/Bar'))
         self.assertFalse(q.isExtOrSkin('mediawiki/core'))
         self.assertFalse(q.isExtOrSkin('mediawiki/vendor'))
+
+    def test_should_run_accepts_all_stages_by_default(self):
+        q = cmd.QuibbleCmd()
+        q.args = q.parse_arguments(args=[])
+        self.assertTrue(
+            all(map(q.should_run, q.stages)),
+            'must runs all stages by default')
+
+    def test_should_run_all_accepts_all_stages(self):
+        q = cmd.QuibbleCmd()
+        q.args = q.parse_arguments(args=['--run=all'])
+        self.assertTrue(
+            all(map(q.should_run, q.stages)),
+            '--run=all runs all stages')
+
+    def test_should_run_skips_a_stage(self):
+        q = cmd.QuibbleCmd()
+        q.args = q.parse_arguments(args=['--skip=phpunit'])
+        self.assertFalse(
+            q.should_run('phpunit'),
+            '--skip skips the stage')
+        stages_to_run = [s for s in q.stages
+                         if s != 'phpunit']
+        self.assertTrue(
+            all(map(q.should_run, stages_to_run)),
+            'Must runs all non skipped stages')
+
+    def test_should_run_running_a_single_stage(self):
+        q = cmd.QuibbleCmd()
+        q.args = q.parse_arguments(args=['--run=phpunit'])
+        self.assertTrue(
+            q.should_run('phpunit'),
+            '--run runs the stage')
+        stages_to_skip = [s for s in q.stages
+                          if s != 'phpunit']
+        self.assertFalse(
+            any(map(q.should_run, stages_to_skip)),
+            'Must not run any other stages')
