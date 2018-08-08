@@ -70,7 +70,7 @@ package managers.  Create a cache directory writable by any user::
     mkdir cache
     chmod 777 cache
 
-Commands write logs into ``/workspace/log``, you can create one on the host and
+Commands write logs into ``/log``, you can create one on the host and
 mount it in the container::
 
     mkdir -p log
@@ -102,7 +102,7 @@ When running the Docker container, mount the directories from the host:
 Host dir     Container dir      Docker run argument
 ============ ================== ================================
 ``./cache/`` ``/cache``         ``-v "$(pwd)"/cache:/cache``
-``./log/``   ``/workspace/log`` ``-v "$(pwd)"/log:/workspace/log``
+``./log/``   ``/log``           ``-v "$(pwd)"/log:/log``
 ``./ref/``   ``/srv/git``       ``-v "$(pwd)"/ref:/srv/git:ro``
 ``./src/``   ``/workspace/src`` ``-v "$(pwd)"/src:/workspace/src``
 ============ ================== ================================
@@ -111,7 +111,7 @@ The final command::
 
     docker run -it --rm \
       -v "$(pwd)"/cache:/cache \
-      -v "$(pwd)"/log:/workspace/log \
+      -v "$(pwd)"/log:/log \
       -v "$(pwd)"/ref:/srv/git:ro \
       -v "$(pwd)"/src:/workspace/src \
       docker-registry.wikimedia.org/releng/quibble-stretch:latest
