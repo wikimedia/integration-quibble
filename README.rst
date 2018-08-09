@@ -37,6 +37,8 @@ The source is on Gerrit https://gerrit.wikimedia.org/g/integration/config
 under the `dockerfiles` directory. Other containers with slight variation such
 as providing Zend PHP5.5 or HHVM.
 
+Further documentation can be found on https://doc.wikimedia.org/quibble/ .
+
 
 Setup
 -----
