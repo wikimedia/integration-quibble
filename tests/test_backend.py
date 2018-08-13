@@ -22,8 +22,15 @@ class TestGetDBClass(unittest.TestCase):
         getDBClass('mysql')
         getDBClass('MySQL')
 
-    def test_recongizes_sqlite(self):
+    def test_recognizes_sqlite(self):
         getDBClass('sqlite')
+
+    def test_raises_an_exception_on_non_db_backendb(self):
+        with self.assertRaisesRegex(
+            Exception, '^Requested database engine "BackendServer" '
+            'is not a database server'
+        ):
+            getDBClass('BackendServer')
 
     def test_raises_an_exception_on_unknown_db(self):
         with self.assertRaisesRegex(Exception,

@@ -56,7 +56,12 @@ def getDBClass(engine):
     this_module = sys.modules[__name__]
     for attr in dir(this_module):
         if engine.lower() == attr.lower():
-            return getattr(this_module, attr)
+            engine_class = getattr(this_module, attr)
+            if not issubclass(engine_class, DatabaseServer):
+                raise Exception(
+                    'Requested database engine "%s" '
+                    'is not a database server' % engine)
+            return engine_class
     raise Exception('Backend database engine not supported: %s' % engine)
 
 
@@ -104,10 +109,28 @@ class BackendServer:
                 self.server = None
 
 
-class Postgres(BackendServer):
+class DatabaseServer(BackendServer):
 
-    def __init__(self):
-        super(Postgres, self).__init__()
+    dump_dir = None
+
+    def __init__(self, dump_dir=None):
+        super(DatabaseServer, self).__init__()
+        self.dump_dir = dump_dir
+
+    def stop(self):
+        if self.dump_dir:
+            self.dump()
+        super(DatabaseServer, self).stop()
+
+    def dump(self):
+        self.log.warning('%s does not support dumping database' % (
+            self.__class__.__name))
+
+
+class Postgres(DatabaseServer):
+
+    def __init__(self, dump_dir=None):
+        super(Postgres, self).__init__(dump_dir)
         self.tmpdir = tempfile.TemporaryDirectory(prefix='quibble-postgres-')
         self.rootdir = self.tmpdir.name
         self.log.debug('Root dir: %s' % self.rootdir)
@@ -150,10 +173,16 @@ class Postgres(BackendServer):
         self.tmpdir.cleanup()
 
 
-class MySQL(BackendServer):
+class MySQL(DatabaseServer):
 
-    def __init__(self, user='wikiuser', password='secret', dbname='wikidb'):
-        super(MySQL, self).__init__()
+    def __init__(
+        self,
+        dump_dir=None,
+        user='wikiuser',
+        password='secret',
+        dbname='wikidb'
+    ):
+        super(MySQL, self).__init__(dump_dir)
 
         self.user = user
         self.password = password
@@ -234,6 +263,22 @@ class MySQL(BackendServer):
         self._createwikidb()
         self.log.info('MySQL is ready')
 
+    def dump(self):
+        dumpfile = os.path.join(self.dump_dir, 'mysqldump.sql')
+        self.log.info('Dumping database to %s' % dumpfile)
+
+        mysqldump = open(dumpfile, 'wb')
+        subprocess.Popen([
+                'mysqldump',
+                '--socket=%s' % self.socket,
+                '--user=root',
+                '--all-databases'
+            ],
+            stdin=subprocess.PIPE,
+            stdout=mysqldump,
+            stderr=subprocess.STDOUT,
+        ).wait()
+
     def __str__(self):
         return self.socket
 
@@ -241,9 +286,9 @@ class MySQL(BackendServer):
         self.stop()
 
 
-class SQLite(object):
+class SQLite(DatabaseServer):
 
-    def __init__(self, dbname='wikidb'):
+    def __init__(self, dump_dir=None, dbname='wikidb'):
         self.log = logging.getLogger('backend.SQLite')
 
         self.dbname = dbname

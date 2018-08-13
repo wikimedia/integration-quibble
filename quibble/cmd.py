@@ -37,6 +37,7 @@ class QuibbleCmd(object):
 
     log = logging.getLogger('quibble.cmd')
     stages = ['phpunit', 'npm-test', 'composer-test', 'qunit', 'selenium']
+    dump_dir = None
 
     def __init__(self):
         self.dependencies = []
@@ -78,6 +79,10 @@ class QuibbleCmd(object):
             choices=['sqlite', 'mysql', 'postgres'],
             default='mysql',
             help='Database backed to use. Default: mysql')
+        parser.add_argument(
+            '--dump-db-postrun',
+            action='store_true',
+            help='Dump the db before shutting down the server (mysql only)')
         parser.add_argument(
             '--git-cache',
             default=self.default_git_cache,
@@ -233,7 +238,7 @@ class QuibbleCmd(object):
 
     def mw_install(self):
         dbclass = quibble.backend.getDBClass(engine=self.args.db)
-        db = dbclass()
+        db = dbclass(dump_dir=self.dump_dir)
         self.backends['db'] = db  # hold a reference to prevent gc
         db.start()
 
@@ -361,14 +366,18 @@ class QuibbleCmd(object):
         quibble.colored_logging()
 
         self.args = self.parse_arguments()
-        self.log.debug('Running stages: '
-                       + ', '.join(stage for stage in self.stages
-                                   if self.should_run(stage)))
 
         self.workspace = self.args.workspace
         self.mw_install_path = os.path.join(self.workspace, 'src')
         self.log_dir = os.path.join(self.workspace, self.args.log_dir)
         os.makedirs(self.log_dir, exist_ok=True)
+
+        if self.args.dump_db_postrun:
+            self.dump_dir = self.log_dir
+
+        self.log.debug('Running stages: '
+                       + ', '.join(stage for stage in self.stages
+                                   if self.should_run(stage)))
 
         self.setup_environment()
 
