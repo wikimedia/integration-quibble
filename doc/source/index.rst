@@ -5,6 +5,7 @@
    usage
 
 .. include:: ../../README.rst
+.. include:: build-reproduction.rst
 
 
 
