@@ -361,5 +361,6 @@ class Xvfb(BackendServer):
             'Xvfb', self.display,
             '-screen', '0', '1280x1024x24'
             '-ac',
-            '-nolisten', 'tcp'
+            '-nolisten', 'tcp',
+            '-nolisten', 'unix',
             ])
