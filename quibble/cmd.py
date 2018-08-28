@@ -90,6 +90,20 @@ class QuibbleCmd(object):
                  'operation. Passed to zuul-cloner as --cache-dir. '
                  'In Docker: "/srv/git", else "ref"')
         parser.add_argument(
+            '--branch',
+            default=None,
+            help=('Branch to checkout instead of Zuul selected branch, '
+                  'for example to specify an alternate branch to test '
+                  'client library compatibility.')
+            )
+        parser.add_argument(
+            '--project-branch', nargs=1, action='append',
+            metavar='PROJECT=BRANCH',
+            help=('project-specific branch to checkout which takes precedence '
+                  'over --branch if it is provided; may be specified multiple '
+                  'times.')
+            )
+        parser.add_argument(
             '--workspace',
             default=self.default_workspace,
             help='Base path to work from. In Docker: "/workspace", '
@@ -196,6 +210,8 @@ class QuibbleCmd(object):
     def clone(self, projects):
         quibble.zuul.clone(
             projects,
+            branch=self.args.branch,
+            project_branch=self.args.project_branch,
             workspace=os.path.join(self.workspace, 'src'),
             cache_dir=self.args.git_cache)
 

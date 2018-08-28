@@ -34,6 +34,41 @@ class TestClone(unittest.TestCase):
         self.assertIn('projects', kwargs)
         self.assertIsInstance(kwargs['projects'], list)
 
+    @mock.patch('quibble.zuul.Cloner')
+    def test_branch(self, mock_cloner):
+        quibble.zuul.clone('project', '/workspace', '/cache', branch='REL1_42')
+
+        (args, kwargs) = mock_cloner.call_args
+        self.assertIn('branch', kwargs)
+        self.assertEquals(kwargs['branch'], 'REL1_42')
+
+    @mock.patch('quibble.zuul.Cloner')
+    def test_project_branch(self, mock_cloner):
+        quibble.zuul.clone(
+            'project', '/workspace', '/cache',
+            project_branch=[['mediawiki/core=REL1_42']])
+
+        (args, kwargs) = mock_cloner.call_args
+        self.assertIn('mediawiki/core', kwargs['project_branches'])
+        self.assertEquals('REL1_42',
+                          kwargs['project_branches']['mediawiki/core'])
+
+    @mock.patch('quibble.zuul.Cloner')
+    def test_multiple_project_branch(self, mock_cloner):
+        quibble.zuul.clone(
+            'project', '/workspace', '/cache',
+            project_branch=[
+                ['mediawiki/core=REL1_42'],
+                ['mediawiki/vendor=REL1_42']])
+
+        (args, kwargs) = mock_cloner.call_args
+        self.assertIn('mediawiki/core', kwargs['project_branches'])
+        self.assertIn('mediawiki/vendor', kwargs['project_branches'])
+        self.assertEquals('REL1_42',
+                          kwargs['project_branches']['mediawiki/core'])
+        self.assertEquals('REL1_42',
+                          kwargs['project_branches']['mediawiki/vendor'])
+
 
 class TestRepoDir(unittest.TestCase):
 
