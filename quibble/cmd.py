@@ -98,6 +98,7 @@ class QuibbleCmd(object):
             )
         parser.add_argument(
             '--project-branch', nargs=1, action='append',
+            default=[],
             metavar='PROJECT=BRANCH',
             help=('project-specific branch to checkout which takes precedence '
                   'over --branch if it is provided; may be specified multiple '

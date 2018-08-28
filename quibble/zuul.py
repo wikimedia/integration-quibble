@@ -27,7 +27,7 @@ CLONE_MAP = [
 ]
 
 
-def clone(repos, workspace, cache_dir, branch=None, project_branch={}):
+def clone(repos, workspace, cache_dir, branch=None, project_branch=[]):
     logging.getLogger('zuul').setLevel(logging.DEBUG)
 
     if isinstance(repos, str):
@@ -44,9 +44,10 @@ def clone(repos, workspace, cache_dir, branch=None, project_branch={}):
         raise Exception('Zuul newrev requires a Zuul project')
 
     project_branches = {}
-    for x in project_branch:
-        p, p_branch = x[0].split('=')
-        project_branches[p] = p_branch
+    if project_branch:
+        for x in project_branch:
+            p, p_branch = x[0].split('=')
+            project_branches[p] = p_branch
 
     zuul_cloner = Cloner(
         git_base_url='https://gerrit.wikimedia.org/r/p',

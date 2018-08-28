@@ -201,3 +201,8 @@ class CmdTest(unittest.TestCase):
         self.assertFalse(
             any(map(q.should_run, q.stages)),
             'User commands must skip all stages')
+
+    def test_project_branch_arg(self):
+        q = cmd.QuibbleCmd()
+        q.args = q.parse_arguments(args=[])
+        self.assertEquals([], q.args.project_branch)
