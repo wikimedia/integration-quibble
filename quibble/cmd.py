@@ -505,9 +505,12 @@ class QuibbleCmd(object):
 
         if self.args.commands:
             self.log.info('User commands')
-            quibble.test.commands(
-                self.args.commands,
-                cwd=self.mw_install_path)
+            with quibble.backend.DevWebServer(
+                    mwdir=self.mw_install_path,
+                    port=http_port):
+                quibble.test.commands(
+                    self.args.commands,
+                    cwd=self.mw_install_path)
 
 
 def get_arg_parser():
