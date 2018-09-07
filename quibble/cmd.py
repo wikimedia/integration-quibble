@@ -78,7 +78,18 @@ class QuibbleCmd(object):
             '--db',
             choices=['sqlite', 'mysql', 'postgres'],
             default='mysql',
-            help='Database backed to use. Default: mysql')
+            help='Database backend to use. Default: mysql')
+        parser.add_argument(
+            '--db-dir',
+            default=None,
+            help=(
+                'Base directory holding database files. A sub directory '
+                'prefixed with "quibble-" will be created and deleted '
+                'on completion. '
+                'If set and relative, relatively to workspace. '
+                'Default: %s' % tempfile.gettempdir()
+            )
+        )
         parser.add_argument(
             '--dump-db-postrun',
             action='store_true',
@@ -255,7 +266,7 @@ class QuibbleCmd(object):
 
     def mw_install(self):
         dbclass = quibble.backend.getDBClass(engine=self.args.db)
-        db = dbclass(dump_dir=self.dump_dir)
+        db = dbclass(base_dir=self.db_dir, dump_dir=self.dump_dir)
         self.backends['db'] = db  # hold a reference to prevent gc
         db.start()
 
@@ -266,7 +277,7 @@ class QuibbleCmd(object):
         ]
         if self.args.db == 'sqlite':
             install_args.extend([
-                '--dbpath=%s' % db.datadir,
+                '--dbpath=%s' % db.rootdir,
             ])
         elif self.args.db in ('mysql', 'postgres'):
             install_args.extend([
@@ -387,6 +398,9 @@ class QuibbleCmd(object):
         self.workspace = self.args.workspace
         self.mw_install_path = os.path.join(self.workspace, 'src')
         self.log_dir = os.path.join(self.workspace, self.args.log_dir)
+        if self.args.db_dir is not None:
+            self.db_dir = os.path.join(self.workspace, self.args.db_dir)
+
         os.makedirs(self.log_dir, exist_ok=True)
 
         if self.args.dump_db_postrun:

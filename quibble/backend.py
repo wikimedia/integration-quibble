@@ -113,9 +113,24 @@ class DatabaseServer(BackendServer):
 
     dump_dir = None
 
-    def __init__(self, dump_dir=None):
+    def __init__(self, base_dir=None, dump_dir=None):
         super(DatabaseServer, self).__init__()
         self.dump_dir = dump_dir
+        self._init_rootdir(base_dir)
+
+    def _init_rootdir(self, base_dir):
+        # Create a temporary data directory
+        prefix = 'quibble-%s-' % self.__class__.__name__.lower()
+
+        if base_dir is not None:
+            base_dir = os.path.abspath(base_dir)
+            os.makedirs(base_dir, exist_ok=True)
+
+        # Create and hold a reference
+        self._tmpdir = tempfile.TemporaryDirectory(
+            dir=base_dir, prefix=prefix)
+        self.rootdir = self._tmpdir.name
+        self.log.debug('Root dir: %s' % self.rootdir)
 
     def stop(self):
         if self.dump_dir:
@@ -129,11 +144,8 @@ class DatabaseServer(BackendServer):
 
 class Postgres(DatabaseServer):
 
-    def __init__(self, dump_dir=None):
-        super(Postgres, self).__init__(dump_dir)
-        self.tmpdir = tempfile.TemporaryDirectory(prefix='quibble-postgres-')
-        self.rootdir = self.tmpdir.name
-        self.log.debug('Root dir: %s' % self.rootdir)
+    def __init__(self, base_dir=None, dump_dir=None):
+        super(Postgres, self).__init__(base_dir, dump_dir)
 
         self.conffile = os.path.join(self.rootdir, 'conf')
         self.socket = os.path.join(self.rootdir, 'socket')
@@ -176,20 +188,17 @@ class MySQL(DatabaseServer):
 
     def __init__(
         self,
+        base_dir=None,
         dump_dir=None,
         user='wikiuser',
         password='secret',
         dbname='wikidb'
     ):
-        super(MySQL, self).__init__(dump_dir)
+        super(MySQL, self).__init__(base_dir, dump_dir)
 
         self.user = user
         self.password = password
         self.dbname = dbname
-
-        self.tmpdir = tempfile.TemporaryDirectory(prefix='quibble-mysql-')
-        self.rootdir = self.tmpdir.name
-        self.log.debug('Root dir: %s' % self.rootdir)
 
         self.errorlog = os.path.join(self.rootdir, 'error.log')
         self.pidfile = os.path.join(self.rootdir, 'mysqld.pid')
@@ -287,14 +296,10 @@ class MySQL(DatabaseServer):
 
 class SQLite(DatabaseServer):
 
-    def __init__(self, dump_dir=None, dbname='wikidb'):
-        super(SQLite, self).__init__(dump_dir)
+    def __init__(self, base_dir=None, dump_dir=None, dbname='wikidb'):
+        super(SQLite, self).__init__(base_dir, dump_dir)
 
         self.dbname = dbname
-
-        self.tmpdir = tempfile.TemporaryDirectory(prefix='quibble-sqlite-')
-        self.datadir = self.tmpdir.name
-        self.log.debug('Data dir: %s' % self.datadir)
 
     def start(self):
         # Created by MediaWiki
