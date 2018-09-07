@@ -170,7 +170,6 @@ class Postgres(DatabaseServer):
 
     def __del__(self):
         self.stop()
-        self.tmpdir.cleanup()
 
 
 class MySQL(DatabaseServer):
