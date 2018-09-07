@@ -25,6 +25,7 @@ import pkg_resources
 from shutil import copyfile
 import subprocess
 import sys
+import tempfile
 
 import quibble
 import quibble.mediawiki.maintenance
@@ -174,7 +175,7 @@ class QuibbleCmd(object):
         os.environ['MW_INSTALL_PATH'] = self.mw_install_path
         os.environ['MW_LOG_DIR'] = self.log_dir
         os.environ['LOG_DIR'] = self.log_dir
-        os.environ['TMPDIR'] = '/tmp'
+        os.environ['TMPDIR'] = tempfile.gettempdir()
 
     def set_repos_to_clone(self, projects=[], clone_vendor=False):
         """
