@@ -289,7 +289,7 @@ class MySQL(DatabaseServer):
 class SQLite(DatabaseServer):
 
     def __init__(self, dump_dir=None, dbname='wikidb'):
-        self.log = logging.getLogger('backend.SQLite')
+        super(SQLite, self).__init__(dump_dir)
 
         self.dbname = dbname
 
