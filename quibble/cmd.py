@@ -49,7 +49,6 @@ class QuibbleCmd(object):
                                   else 'ref')
         self.default_workspace = ('/workspace' if quibble.is_in_docker()
                                   else os.getcwd())
-        self.default_logdir = ('/log' if quibble.is_in_docker() else 'log')
 
     def parse_arguments(self, args=sys.argv[1:]):
         return self.get_arg_parser().parse_args(args)
@@ -113,9 +112,9 @@ class QuibbleCmd(object):
             )
         parser.add_argument(
             '--log-dir',
-            default=self.default_logdir,
+            default=os.path.join(self.default_workspace, 'log'),
             help='Where logs and artifacts will be written to. '
-                 'In Docker: "/log", else "log" relatively to workspace'
+            'Default: "log" relatively to workspace'
             )
         parser.add_argument(
             'projects', default=[], nargs='*',
