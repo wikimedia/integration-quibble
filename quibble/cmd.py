@@ -39,6 +39,7 @@ class QuibbleCmd(object):
     log = logging.getLogger('quibble.cmd')
     stages = ['phpunit', 'npm-test', 'composer-test', 'qunit', 'selenium']
     dump_dir = None
+    db_dir = None
 
     def __init__(self):
         self.dependencies = []
