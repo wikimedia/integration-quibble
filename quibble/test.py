@@ -177,7 +177,7 @@ def run_webdriver(mwdir, display, port=9412):
         'MW_SCRIPT_PATH': '/',
         'FORCE_COLOR': '1',  # for 'supports-color'
         'MEDIAWIKI_USER': 'WikiAdmin',
-        'MEDIAWIKI_PASSWORD': 'testpass',
+        'MEDIAWIKI_PASSWORD': 'testwikijenkinspass',
         'DISPLAY': display,
     })
 

@@ -44,7 +44,7 @@ def install(args, mwdir=None):
     cmd.extend(args)
     cmd.extend([
         '--with-extensions',  # T189567
-        '--pass=testpass',
+        '--pass=testwikijenkinspass',
         'TestWiki',
         'WikiAdmin'
     ])
