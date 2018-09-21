@@ -435,8 +435,13 @@ class QuibbleCmd(object):
                 project_dir = os.path.join(
                     self.mw_install_path,
                     quibble.zuul.repo_dir(os.environ['ZUUL_PROJECT']))
+
                 quibble.test.run_extskin(directory=project_dir,
                                          composer=run_composer, npm=run_npm)
+
+                self.log.info('%s: git clean -xqdf' % project_dir)
+                subprocess.check_call(['git', 'clean', '-xqdf'],
+                                      cwd=project_dir)
 
         if not self.args.skip_deps and self.args.packages_source == 'composer':
             self.create_composer_local()

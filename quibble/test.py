@@ -77,39 +77,46 @@ def run_qunit(mwdir, port=9412):
 
 
 def run_extskin(directory, composer=True, npm=True):
-    log = logging.getLogger('test.run_extskin')
+    if composer:
+        run_extskin_composer(directory)
+    if npm:
+        run_extskin_npm(directory)
+
+
+def run_extskin_composer(directory):
+    log = logging.getLogger('test.run_extskin_composer')
     project_name = os.path.basename(directory)
 
-    if composer:
-        if not os.path.exists(os.path.join(directory, 'composer.json')):
-            log.warning("%s lacks a composer.json" % project_name)
-        else:
-            log.info('Running "composer test" for %s' % project_name)
-            cmds = [
-                ['composer', '--ansi', 'validate', '--no-check-publish'],
-                ['composer', '--ansi', 'install', '--no-progress',
-                 '--prefer-dist', '--profile', '-v'],
-                ['composer', '--ansi', 'test'],
-            ]
-            for cmd in cmds:
-                subprocess.check_call(cmd, cwd=directory, env=os.environ)
+    if not os.path.exists(os.path.join(directory, 'composer.json')):
+        log.warning("%s lacks a composer.json" % project_name)
+    else:
+        log.info('Running "composer test" for %s' % project_name)
+        cmds = [
+            ['composer', '--ansi', 'validate', '--no-check-publish'],
+            ['composer', '--ansi', 'install', '--no-progress',
+             '--prefer-dist', '--profile', '-v'],
+            ['composer', '--ansi', 'test'],
+        ]
+        for cmd in cmds:
+            subprocess.check_call(cmd, cwd=directory, env=os.environ)
 
-    if npm:
-        # XXX copy paste is terrible
-        if not os.path.exists(os.path.join(directory, 'package.json')):
-            log.warning("%s lacks a package.json" % project_name)
-        else:
-            log.info('Running "npm test" for %s' % project_name)
-            cmds = [
-                ['npm', 'prune'],
-                ['npm', 'install', '--no-progress'],
-                ['npm', 'test'],
-            ]
-            for cmd in cmds:
-                subprocess.check_call(cmd, cwd=directory, env=os.environ)
 
-    log.info('%s: git clean -xqdf' % project_name)
-    subprocess.check_call(['git', 'clean', '-xqdf'], cwd=directory)
+def run_extskin_npm(directory):
+    log = logging.getLogger('test.run_extskin_npm')
+    project_name = os.path.basename(directory)
+
+    # XXX copy paste is terrible
+    if not os.path.exists(os.path.join(directory, 'package.json')):
+        log.warning("%s lacks a package.json" % project_name)
+    else:
+        log.info('Running "npm test" for %s' % project_name)
+        cmds = [
+            ['npm', 'prune'],
+            ['npm', 'install', '--no-progress'],
+            ['npm', 'test'],
+        ]
+        for cmd in cmds:
+            subprocess.check_call(cmd, cwd=directory, env=os.environ)
 
 
 def run_phpunit(mwdir, group=[], exclude_group=[], testsuite=None,

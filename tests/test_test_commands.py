@@ -29,6 +29,8 @@ class TestTestCommand(unittest.TestCase):
         required_args = {
             'run_composer_test': {'mwdir': '/tmp'},
             'run_extskin': {'directory': '/tmp'},
+            'run_extskin_composer': {'directory': '/tmp'},
+            'run_extskin_npm': {'directory': '/tmp'},
             'run_npm_test': {'mwdir': '/tmp'},
             'run_phpunit': {'mwdir': '/tmp'},
             'run_phpunit_database': {'mwdir': '/tmp'},
