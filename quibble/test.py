@@ -89,16 +89,17 @@ def run_extskin_composer(directory):
 
     if not os.path.exists(os.path.join(directory, 'composer.json')):
         log.warning("%s lacks a composer.json" % project_name)
-    else:
-        log.info('Running "composer test" for %s' % project_name)
-        cmds = [
-            ['composer', '--ansi', 'validate', '--no-check-publish'],
-            ['composer', '--ansi', 'install', '--no-progress',
-             '--prefer-dist', '--profile', '-v'],
-            ['composer', '--ansi', 'test'],
-        ]
-        for cmd in cmds:
-            subprocess.check_call(cmd, cwd=directory, env=os.environ)
+        return
+
+    log.info('Running "composer test" for %s' % project_name)
+    cmds = [
+        ['composer', '--ansi', 'validate', '--no-check-publish'],
+        ['composer', '--ansi', 'install', '--no-progress',
+         '--prefer-dist', '--profile', '-v'],
+        ['composer', '--ansi', 'test'],
+    ]
+    for cmd in cmds:
+        subprocess.check_call(cmd, cwd=directory, env=os.environ)
 
 
 def run_extskin_npm(directory):
@@ -108,15 +109,16 @@ def run_extskin_npm(directory):
     # XXX copy paste is terrible
     if not os.path.exists(os.path.join(directory, 'package.json')):
         log.warning("%s lacks a package.json" % project_name)
-    else:
-        log.info('Running "npm test" for %s' % project_name)
-        cmds = [
-            ['npm', 'prune'],
-            ['npm', 'install', '--no-progress'],
-            ['npm', 'test'],
-        ]
-        for cmd in cmds:
-            subprocess.check_call(cmd, cwd=directory, env=os.environ)
+        return
+
+    log.info('Running "npm test" for %s' % project_name)
+    cmds = [
+        ['npm', 'prune'],
+        ['npm', 'install', '--no-progress'],
+        ['npm', 'test'],
+    ]
+    for cmd in cmds:
+        subprocess.check_call(cmd, cwd=directory, env=os.environ)
 
 
 def run_phpunit(mwdir, group=[], exclude_group=[], testsuite=None,
