@@ -27,6 +27,7 @@ class TestTestCommand(unittest.TestCase):
 
         ignored_check_call = ['git']
         required_args = {
+            'run_core': {'mwdir': '/tmp'},
             'run_composer_test': {'mwdir': '/tmp'},
             'run_extskin': {'directory': '/tmp'},
             'run_extskin_composer': {'directory': '/tmp'},

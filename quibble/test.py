@@ -54,6 +54,16 @@ def parallel_run(tasks):
         return all(pool.imap_unordered(task_wrapper, tasks))
 
 
+def run_core(mwdir, composer=True, npm=True):
+    tasks = []
+    if composer:
+        tasks.append((run_composer_test, mwdir))
+    if npm:
+        tasks.append((run_npm_test, mwdir))
+
+    return parallel_run(tasks)
+
+
 def run_composer_test(mwdir):
     log = logging.getLogger('test.run_composer_test')
     files = []
@@ -108,7 +118,6 @@ def run_qunit(mwdir, port=9412):
 
 def run_extskin(directory, composer=True, npm=True):
     tasks = []
-
     if composer:
         tasks.append((run_extskin_composer, directory))
     if npm:

@@ -483,11 +483,11 @@ class QuibbleCmd(object):
                 testsuite=phpunit_testsuite)
 
         if zuul_project == 'mediawiki/core':
-            if self.should_run('composer-test'):
-                quibble.test.run_composer_test(self.mw_install_path)
-
-            if self.should_run('npm-test'):
-                quibble.test.run_npm_test(self.mw_install_path)
+            quibble.test.run_core(
+                self.mw_install_path,
+                composer=self.should_run('composer-test'),
+                npm=self.should_run('npm-test')
+            )
 
         http_port = 9412
         if self.should_run('qunit') or self.should_run('selenium'):
