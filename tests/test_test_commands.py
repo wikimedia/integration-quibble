@@ -65,3 +65,6 @@ class TestTestCommand(unittest.TestCase):
 
         with self.assertRaises(CalledProcessError, msg=''):
             quibble.test.commands(['true', 'false'], cwd='/tmp')
+
+    def test_parallel_run_accepts_an_empty_list_of_tasks(self):
+        self.assertEqual(True, quibble.test.parallel_run([]))

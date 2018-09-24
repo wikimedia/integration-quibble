@@ -19,9 +19,39 @@
 import logging
 import os
 import subprocess
+from multiprocessing import Pool
 
 import quibble
 from quibble.gitchangedinhead import GitChangedInHead
+
+
+def task_wrapper(args):
+    """
+    Helper for multiprocessing.Pool.imap_unordered.
+
+    The first argument is a function to call.  Rest of the arguments are passed
+    to the function.
+    """
+
+    func = args[0]
+    func_args = args[1:]
+    ret = func(*func_args)
+
+    if ret is None:
+        return True
+    else:
+        return ret
+
+
+def parallel_run(tasks):
+    """
+    Tasks is an iteratable of (function, args...).
+
+    They should ALL return None.
+    """
+    workers = max(1, len(tasks))
+    with Pool(processes=workers) as pool:
+        return all(pool.imap_unordered(task_wrapper, tasks))
 
 
 def run_composer_test(mwdir):
@@ -77,10 +107,14 @@ def run_qunit(mwdir, port=9412):
 
 
 def run_extskin(directory, composer=True, npm=True):
+    tasks = []
+
     if composer:
-        run_extskin_composer(directory)
+        tasks.append((run_extskin_composer, directory))
     if npm:
-        run_extskin_npm(directory)
+        tasks.append((run_extskin_npm, directory))
+
+    return parallel_run(tasks)
 
 
 def run_extskin_composer(directory):
