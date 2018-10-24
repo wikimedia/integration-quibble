@@ -181,7 +181,7 @@ def run_phpunit(mwdir, group=[], exclude_group=[], testsuite=None,
                 ','.join(always_excluded + exclude_group)])
 
     if junit_file:
-        cmd.extend('--log-junit', junit_file)
+        cmd.extend(['--log-junit', junit_file])
     log.info(' '.join(cmd))
 
     phpunit_env = {}

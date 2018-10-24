@@ -478,9 +478,12 @@ class QuibbleCmd(object):
             # other tests.
             # XXX some mediawiki/core smoke PHPunit tests should probably
             # be run as well.
+            junit_dbless_file = os.path.join(
+                self.log_dir, 'junit-dbless.xml')
             quibble.test.run_phpunit_databaseless(
                 mwdir=self.mw_install_path,
-                testsuite=phpunit_testsuite)
+                testsuite=phpunit_testsuite,
+                junit_file=junit_dbless_file)
 
         if zuul_project == 'mediawiki/core':
             quibble.test.run_core(
@@ -519,9 +522,12 @@ class QuibbleCmd(object):
         if self.should_run('phpunit'):
             self.log.info("PHPUnit%sDatabase group" % (
                 ' %s suite ' % (phpunit_testsuite or ' ')))
+            junit_db_file = os.path.join(
+                self.log_dir, 'junit-db.xml')
             quibble.test.run_phpunit_database(
                 mwdir=self.mw_install_path,
-                testsuite=phpunit_testsuite)
+                testsuite=phpunit_testsuite,
+                junit_file=junit_db_file)
 
         if self.args.commands:
             self.log.info('User commands')
