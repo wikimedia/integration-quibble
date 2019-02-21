@@ -20,10 +20,10 @@ class QuibbleTest(unittest.TestCase):
 
     @mock.patch.dict(os.environ, clear=True)
     def test_use_headless__unset_display(self):
-            self.assertNotIn('DISPLAY', os.environ)
-            self.assertEqual(
-                True, quibble.use_headless(),
-                'Use headless mode when DISPLAY is not set')
+        self.assertNotIn('DISPLAY', os.environ)
+        self.assertEqual(
+            True, quibble.use_headless(),
+            'Use headless mode when DISPLAY is not set')
 
     @mock.patch('quibble.is_in_docker', return_value=True)
     def test_chrome_in_docker_does_not_use_sandbox(self, mock):
