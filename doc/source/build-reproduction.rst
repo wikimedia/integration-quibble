@@ -54,7 +54,7 @@ Run::
       -v "$(pwd)"/log:/log \
       -v "$(pwd)"/ref:/srv/git:ro \
       -v "$(pwd)"/src:/workspace/src \
-      docker-registry.wikimedia.org/releng/quibble-stretch:latest
+      docker-registry.wikimedia.org/releng/quibble-stretch-hhvm:latest
 
 Optionally skip (slow) installation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -67,7 +67,7 @@ For repeated runs of the same change, assuming you have once successfully execut
       -v "$(pwd)"/log:/log \
       -v "$(pwd)"/ref:/srv/git:ro \
       -v "$(pwd)"/src:/workspace/src \
-      docker-registry.wikimedia.org/releng/quibble-stretch:latest \
+      docker-registry.wikimedia.org/releng/quibble-stretch-hhvm:latest \
       --skip-zuul \
       --skip-deps
 

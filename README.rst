@@ -28,10 +28,10 @@ and use SQLite as a database backend::
 
     docker run -it quibble  --packages-source composer --db sqlite
 
-Wikimedia maintains a Docker container intended to be used for its
-continuous integration system::
+Wikimedia maintains Docker containers intended to be used for its continuous
+integration system::
 
-    docker pull docker-registry.wikimedia.org/releng/quibble-stretch:latest
+    docker pull docker-registry.wikimedia.org/releng/quibble-stretch-php72:latest
 
 The source is on Gerrit https://gerrit.wikimedia.org/g/integration/config
 under the `dockerfiles` directory. Other containers with slight variation such
@@ -48,7 +48,7 @@ Docker container
 
 Get the latest image being run by Wikimedia CI::
 
-  docker pull docker-registry.wikimedia.org/releng/quibble-stretch:latest
+  docker pull docker-registry.wikimedia.org/releng/quibble-stretch-php72:latest
 
 Quibble clones the repositories from Gerrit and then run composer and npm. At
 the end of the run, the container would be dismissed as well as all the
@@ -114,7 +114,7 @@ The final command::
       -v "$(pwd)"/log:/workspace/log \
       -v "$(pwd)"/ref:/srv/git:ro \
       -v "$(pwd)"/src:/workspace/src \
-      docker-registry.wikimedia.org/releng/quibble-stretch:latest
+      docker-registry.wikimedia.org/releng/quibble-stretch-php72:latest
 
 Quibble will then do the initial cloning of repositories reusing bare
 repositories from ``ref``, being local it is arguably faster than transferring
