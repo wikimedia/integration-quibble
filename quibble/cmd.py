@@ -102,6 +102,11 @@ class QuibbleCmd(object):
                  'operation. Passed to zuul-cloner as --cache-dir. '
                  'In Docker: "/srv/git", else "ref"')
         parser.add_argument(
+            '--git-parallel',
+            default=1,
+            type=int,
+            help='Number of workers to clone repositories.')
+        parser.add_argument(
             '--branch',
             default=None,
             help=('Branch to checkout instead of Zuul selected branch, '
@@ -226,7 +231,8 @@ class QuibbleCmd(object):
             branch=self.args.branch,
             project_branch=self.args.project_branch,
             workspace=os.path.join(self.workspace, 'src'),
-            cache_dir=self.args.git_cache)
+            cache_dir=self.args.git_cache,
+            workers=self.args.git_parallel)
 
     def ext_skin_submodule_update(self):
         self.log.info('Updating git submodules of extensions and skins')

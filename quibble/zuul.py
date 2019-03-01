@@ -13,8 +13,11 @@
 #     See the License for the specific language governing permissions and
 #     limitations under the License.
 
+import copy
 import logging
 import os
+
+from concurrent.futures import ThreadPoolExecutor
 
 from zuul.lib.cloner import Cloner
 from zuul.lib.clonemapper import CloneMapper
@@ -27,8 +30,9 @@ CLONE_MAP = [
 ]
 
 
-def clone(repos, workspace, cache_dir, branch=None, project_branch=[]):
-    logging.getLogger('zuul').setLevel(logging.DEBUG)
+def clone(repos, workspace, cache_dir, branch=None, project_branch=[],
+          workers=1):
+    log = logging.getLogger('quibble.zuul.clone')
 
     if isinstance(repos, str):
         repos = [repos]
@@ -66,7 +70,34 @@ def clone(repos, workspace, cache_dir, branch=None, project_branch=[]):
     # The constructor expects a file, set the value directly
     zuul_cloner.clone_map = CLONE_MAP
 
-    return zuul_cloner.execute()
+    # Reimplement Cloner.execute() to make sure mediawiki/core is cloned first
+    # and clone the rest in parallel.
+    mapper = CloneMapper(CLONE_MAP, repos)
+    dests = mapper.expand(workspace=workspace)
+
+    if workers == 1:
+        return zuul_cloner.execute()
+
+    # Reimplement the cloner execute method with parallelism and logging
+    # suitable for multiplexed output.
+    log.info("Preparing %s repositories with %s workers" % (
+             len(dests), workers))
+
+    mw_git_dir = os.path.join(dests['mediawiki/core'], '.git')
+    if not os.path.exists(mw_git_dir):
+        log.info("Cloning mediawiki/core first")
+        zuul_cloner.prepareRepo('mediawiki/core', dests['mediawiki/core'])
+        del(dests['mediawiki/core'])
+
+    with ThreadPoolExecutor(max_workers=workers) as executor:
+        for project, dest in dests.items():
+            # Copy and hijack the logger
+            project_cloner = copy.copy(zuul_cloner)
+            project_cloner.log = project_cloner.log.getChild(project)
+
+            executor.submit(project_cloner.prepareRepo, project, dest)
+
+    log.info("Prepared all repositories")
 
 
 def repo_dir(repo):
