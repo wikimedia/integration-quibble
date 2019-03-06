@@ -66,3 +66,22 @@ if ( is_file( "$IP/includes/DevelopmentSettings.php" ) ) {
 
 // Be strict about class name letter-case.
 $wgAutoloadAttemptLowercase = false;
+
+/**
+ * Settings specifically for testing purposes.
+ */
+
+// Enables [[Special:JavaScriptTest]] for QUnit tests.
+$wgEnableJavaScriptTest = true;
+
+// This is a horrrrible hack to let extensions (such as Wikibase) behave
+// differently when being run on Wikimedia Jenkins CI.  That is more or less
+// needed when running Wikibase under Apache for QUnit, since the Jenkins
+// environnement variables are not available to the Apache process.
+$wgWikimediaJenkinsCI = true;
+
+// Configure $wgDjvu for the MediaWiki core DJVU unit tests
+$wgDjvuDump = '/usr/bin/djvudump';
+$wgDjvuRenderer = '/usr/bin/ddjvu';
+$wgDjvuToXML = '/usr/bin/djvutoxml';
+$wgDjvuTxt = '/usr/bin/djvutxt';

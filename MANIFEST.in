@@ -1,1 +1,1 @@
-recursive-include quibble/mediawiki.d *
+include quibble/mediawiki *.php
