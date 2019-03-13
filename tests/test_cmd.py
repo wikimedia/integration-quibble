@@ -5,6 +5,38 @@ import unittest
 from unittest import mock
 
 from quibble import cmd
+from quibble.cmd import MultipleChoices
+
+
+class MultipleChoicesTest(unittest.TestCase):
+
+    def test_init(self):
+        # It is really just like a list
+        self.assertEquals([], MultipleChoices())
+        self.assertEquals(['a'], MultipleChoices(['a']))
+        self.assertEquals(['a'], MultipleChoices('a'))
+
+    def test_contains_for_a_single_item(self):
+        subject = MultipleChoices(['a', 'b'])
+        self.assertIn('a', subject)
+        self.assertNotIn('c', subject)
+
+    def test_contains_for_matching_list(self):
+        subject = MultipleChoices(['a', 'b'])
+
+        # should probably be false but it is a subset
+        self.assertIn([], subject)
+
+        self.assertIn(['a'], subject)
+        self.assertIn(['b'], subject)
+        self.assertIn(['a', 'b'], subject)
+        self.assertIn(['b', 'a'], subject)
+
+    def test_contains_for_mismatching_lists(self):
+        subject = MultipleChoices(['a', 'b'])
+        self.assertNotIn(['c'], subject)
+        self.assertNotIn(['a', 'c'], subject)
+        self.assertNotIn(['a', 'b', 'c'], subject)
 
 
 class CmdTest(unittest.TestCase):
@@ -220,12 +252,45 @@ class CmdTest(unittest.TestCase):
             any(map(q.should_run, stages_to_skip)),
             'Must not run any other stages')
 
-    def test_commands_skip_all_stages(self):
+    def test_run_option_is_comma_separated(self):
         q = cmd.QuibbleCmd()
-        q.args = q.parse_arguments(args=['--commands=/bin/true'])
+        q.args = q.parse_arguments(args=['--run=phpunit,qunit'])
+        self.assertEquals(['phpunit', 'qunit'], q.args.run)
+
+    def test_run_option_does_not_shallow_next_arg(self):
+        q = cmd.QuibbleCmd()
+        q.args = q.parse_arguments(args=['--run', 'phpunit', 'repo'])
+        self.assertEquals(['phpunit'], q.args.run)
+        self.assertEquals(['repo'], q.args.projects)
+
+    def test_skip_option_is_comma_separated(self):
+        q = cmd.QuibbleCmd()
+        q.args = q.parse_arguments(args=['--skip=phpunit,qunit'])
+        self.assertEquals(['phpunit', 'qunit'], q.args.skip)
+
+    def test_skip_option_does_not_shallow_next_arg(self):
+        q = cmd.QuibbleCmd()
+        q.args = q.parse_arguments(args=['--skip', 'phpunit', 'repo'])
+        self.assertEquals(['phpunit'], q.args.skip)
+        self.assertEquals(['repo'], q.args.projects)
+
+    def test_command_skip_all_stages(self):
+        q = cmd.QuibbleCmd()
+        q.args = q.parse_arguments(args=['--command=/bin/true'])
         self.assertFalse(
             any(map(q.should_run, q.stages)),
-            'User commands must skip all stages')
+            'User command must skip all stages')
+
+    def test_command_does_not_shallow_next_arg(self):
+        q = cmd.QuibbleCmd()
+        q.args = q.parse_arguments(args=['--command', '/bin/true', 'repo'])
+        self.assertEquals(['/bin/true'], q.args.commands)
+        self.assertEquals(['repo'], q.args.projects)
+
+    def test_command_used_multiple_times(self):
+        q = cmd.QuibbleCmd()
+        q.args = q.parse_arguments(args=['-c', 'true', '-c', 'false'])
+        self.assertEquals(['true', 'false'], q.args.commands)
 
     def test_project_branch_arg(self):
         q = cmd.QuibbleCmd()

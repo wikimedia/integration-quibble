@@ -34,6 +34,16 @@ import quibble.test
 import quibble.zuul
 
 
+# Used for add_argument(choices=) let us validate multiple choices at once.
+# >>> 'a' in MultipleChoices(['a', 'b', 'c'])
+# True
+# >>> ['a', 'b'] in MultipleChoices(['a', 'b', 'c'])
+# True
+class MultipleChoices(list):
+    def __contains__(self, item):
+        return set(item).issubset(set(self))
+
+
 class QuibbleCmd(object):
 
     log = logging.getLogger('quibble.cmd')
@@ -141,27 +151,44 @@ class QuibbleCmd(object):
             )
 
         stages = ', '.join(self.stages)
-
         stages_args = parser.add_argument_group('stages', description=(
             'Quibble runs all test commands (stages) by default. '
             'Use the --run or --skip options to further refine which commands '
             'will be run. '
             'Available stages are: %s' % stages))
+
+        # Magic type for add_argument so that --foo=a,b,c is magically stored
+        # as: foo=['a', 'b', 'c']
+        def comma_separated_list(string):
+            return string.split(',')
+
+        stages_choices = MultipleChoices(self.stages + ['all'])
         stages_args.add_argument(
-            '--run', default=['all'], nargs='*',
-            help='Tests to run (default: all).'
+            '--run', default=['all'],
+            type=comma_separated_list,
+            choices=stages_choices, metavar='STAGE[,STAGE ...]',
+            help='Tests to run. Comma separated. (default: all).'
         )
         stages_args.add_argument(
-            '--skip', default=[], nargs='*',
-            help='Stages to skip (default: none). '
-                 'Set to "all" to skip all stages.'
+            '--skip', default=[],
+            type=comma_separated_list,
+            choices=stages_choices, metavar='STAGE[,STAGE ...]',
+            help='Stages to skip. Comma separated. '
+                 'Set to "all" to skip all stages. '
+                 '(default: none). '
         )
-        stages_args.add_argument(
-            '--commands', default=[], nargs='*', metavar='command',
+
+        command_args = stages_args.add_mutually_exclusive_group()
+        command_args.add_argument(
+            '-c', '--command', action='append',
+            dest='commands', metavar='COMMAND',
             help=(
-                'Run given commands instead of built-in stages. '
+                'Run given command instead of built-in stages. '
                 'Each command is executed relatively to '
                 'MediaWiki installation path.'))
+        command_args.add_argument(
+            '--commands', default=[], nargs='*', metavar='COMMAND',
+            help=('DEPRECATED: use -c COMMAND -c COMMAND'))
 
         parser.add_argument(
             '--phpunit-testsuite', default=None, metavar='pattern',
