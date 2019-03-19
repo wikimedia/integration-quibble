@@ -78,6 +78,31 @@ class CmdTest(unittest.TestCase):
                     'mediawiki/skins/Vector',
                     ], q.set_repos_to_clone())
 
+    def test_ext_skin_submodule_update(self):
+        q = cmd.QuibbleCmd()
+        q.mw_install_path = '/tmp'
+
+        with mock.patch('os.walk') as mock_walk:
+            somesubdir = ['includes']
+            # XXX the mock is also used for skins :(
+            mock_walk.return_value = [
+                ('/tmp/extensions', ['VisualEditor'], []),
+                ('/tmp/extensions/VisualEditor', somesubdir, ['.gitmodules']),
+            ]
+            with mock.patch('subprocess.check_call') as mock_check_call:
+                # A git command failling aborts.
+                mock_check_call.side_effect = Exception('mock a failure')
+                with self.assertRaisesRegex(Exception, '^mock a failure$'):
+                    q.ext_skin_submodule_update()
+
+                self.assertEquals(
+                    [], somesubdir,
+                    'Must skip sub directories in extensions and skins')
+                mock_check_call.assert_any_call(
+                    ['git', 'submodule', 'foreach',
+                        'git', 'clean', '-xdff', '-q'],
+                    cwd='/tmp/extensions/VisualEditor')
+
     @mock.patch('quibble.is_in_docker', return_value=False)
     def test_args_defaults(self, _):
         args = cmd.QuibbleCmd().parse_arguments([])

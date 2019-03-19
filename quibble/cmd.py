@@ -236,23 +236,32 @@ class QuibbleCmd(object):
 
     def ext_skin_submodule_update(self):
         self.log.info('Updating git submodules of extensions and skins')
-        # From JJB macro ext-skins-submodules-update
-        # jjb/mediawiki-extensions.yaml
-        subprocess.check_call([
-            # Do not add ., or that will process mediawiki/core submodules in
-            # wmf branches which is a mess.
-            'find', 'extensions', 'skins',
-            '-maxdepth', '2',
-            '-name', '.gitmodules',
-            '-print',
-            '-execdir', 'bash', '-xe', '-c',
-            '\n'.join([
-                 'git submodule foreach git clean -xdff -q',
-                 'git submodule update --init --recursive',
-                 'git submodule status',
-                 ]),
-            ';',  # end of -execdir
-             ], cwd=self.mw_install_path)
+
+        cmds = [
+            ['git', 'submodule', 'foreach', 'git', 'clean', '-xdff', '-q'],
+            ['git', 'submodule', 'update', '--init', '--recursive'],
+            ['git', 'submodule', 'status'],
+        ]
+
+        tops = [os.path.join(self.mw_install_path, top)
+                for top in ['extensions', 'skins']]
+
+        for top in tops:
+            for dirpath, dirnames, filenames in os.walk(top):
+                if dirpath not in tops:
+                    # Only look at the first level
+                    dirnames[:] = []
+                if '.gitmodules' not in filenames:
+                    continue
+
+                for cmd in cmds:
+                    try:
+                        subprocess.check_call(cmd, cwd=dirpath)
+                    except subprocess.CalledProcessError as e:
+                        self.log.error(
+                            "Failed to process git submodules for %s" %
+                            dirpath)
+                        raise e
 
     # Used to be bin/mw-create-composer-local.py
     def create_composer_local(self):
