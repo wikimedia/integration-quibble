@@ -50,7 +50,7 @@ def clone(repos, workspace, cache_dir, branch=None, project_branch=[]):
             project_branches[p] = p_branch
 
     zuul_cloner = Cloner(
-        git_base_url='https://gerrit.wikimedia.org/r/p',
+        git_base_url='https://gerrit.wikimedia.org/r',
         projects=repos,
         workspace=workspace,
         zuul_branch=zuul_env.get('ZUUL_BRANCH'),
