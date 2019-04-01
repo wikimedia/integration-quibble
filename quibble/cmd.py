@@ -319,7 +319,7 @@ class QuibbleCmd(object):
 
             installed_conf = lf.read()
             lf.seek(0, 0)
-            lf.write(quibble_conf + installed_conf)
+            lf.write(quibble_conf + '\n?>' + installed_conf)
         self.copylog(localsettings, 'LocalSettings.php')
         subprocess.check_call(['php', '-l', localsettings])
 
