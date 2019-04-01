@@ -19,9 +19,9 @@ setup(
         # So we want either <2.1.2 or >2.1.7
         'GitPython<2.2.0,!=2.1.2,!=2.1.3,!=2.1.4,!=2.1.5,!=2.1.6,!=2.1.7'
         ],
-
-    include_package_data=True,  # See MANIFEST.in
-
+    package_data={
+        'quibble.mediawiki': ['*.php'],
+    },
     entry_points={
         'console_scripts': [
             'quibble = quibble.cmd:main'
