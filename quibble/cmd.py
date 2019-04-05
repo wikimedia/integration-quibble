@@ -220,6 +220,11 @@ class QuibbleCmd(object):
         os.environ['LOG_DIR'] = self.log_dir
         os.environ['TMPDIR'] = tempfile.gettempdir()
 
+    def _warn_obsolete_env_deps(self, var):
+        self.log.warning(
+            '%s env variable is deprecated. '
+            'Instead pass projects as arguments.' % var)
+
     def set_repos_to_clone(self, projects=[], clone_vendor=False):
         """
         Find repos to clone basedon passed arguments and environment
@@ -238,10 +243,12 @@ class QuibbleCmd(object):
                 self.dependencies.append(zuul_project)
 
         if 'SKIN_DEPENDENCIES' in os.environ:
+            self._warn_obsolete_env_deps('SKIN_DEPENDENCIES')
             self.dependencies.extend(
                 os.environ.get('SKIN_DEPENDENCIES').split('\\n'))
 
         if 'EXT_DEPENDENCIES' in os.environ:
+            self._warn_obsolete_env_deps('EXT_DEPENDENCIES')
             self.dependencies.extend(
                 os.environ.get('EXT_DEPENDENCIES').split('\\n'))
 

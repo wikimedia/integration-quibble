@@ -26,9 +26,14 @@ In this example we are testing the integration of many mediawiki extensions, in 
 Not all of the variables visible in the Jenkins jobs parameters are needed. The important ones are::
 
       EXT_DEPENDENCIES
+      SKIN_DEPENDENCIES
       ZUUL_PROJECT
       ZUUL_REF
       ZUUL_BRANCH
+
+`EXT_DEPENDENCIES` and `SKIN_DEPENDENCIES` are deprecated and will emit a warning. Instead the list of repositories should be passed to Quibble as arguments::
+
+    quibble mediawiki/extensions/BetaFeatures mediawiki/skins/MinervaNeue [...]
 
 At the moment only builds with one change set can be reproduced locally because git://contint2001.wikimedia.org is not accessible remotely.
 

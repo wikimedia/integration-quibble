@@ -85,6 +85,23 @@ class CmdTest(unittest.TestCase):
                 'mediawiki/extensions/Two',
                 ], q.set_repos_to_clone())
 
+    def test_env_dependencies_log_a_warning(self):
+        env = {
+            'EXT_DEPENDENCIES': '',
+            'SKIN_DEPENDENCIES': '',
+        }
+        with mock.patch.dict('os.environ', env, clear=True):
+            with self.assertLogs('quibble.cmd', level='WARNING') as log:
+                q = cmd.QuibbleCmd()
+                q.set_repos_to_clone()
+
+        self.assertRegex(
+            log.output[0],
+            '^WARNING:quibble.cmd:SKIN_DEPENDENCIES')
+        self.assertRegex(
+            log.output[1],
+            '^WARNING:quibble.cmd:EXT_DEPENDENCIES')
+
     def test_set_repos_to_clone_adds_ZUUL_PROJECT(self):
         env = {'ZUUL_PROJECT': 'mediawiki/extensions/ZuulProjectEnvVar'}
         with mock.patch.dict('os.environ', env, clear=True):
