@@ -1,3 +1,4 @@
+import logging
 import os
 import quibble
 import unittest
@@ -5,6 +6,24 @@ from unittest import mock
 
 
 class QuibbleTest(unittest.TestCase):
+
+    def test_logginglevel(self):
+        logger_name = 'SomeTestingLogger'
+        initial_level = logging.DEBUG
+        transient_level = logging.ERROR
+
+        logger = logging.getLogger(logger_name)
+        logger.setLevel(initial_level)
+
+        with quibble.logginglevel(logger_name, transient_level):
+            self.assertEquals(
+                transient_level,
+                logger.getEffectiveLevel(),
+                'logginglevel must set a transient logging level')
+        self.assertEquals(
+            initial_level,
+            logger.getEffectiveLevel(),
+            'logginglevel must restore the initial logging level')
 
     @mock.patch.dict(os.environ, {'DISPLAY': ':0'})
     def test_use_headless__display_set(self):

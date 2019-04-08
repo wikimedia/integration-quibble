@@ -13,6 +13,7 @@
 #     See the License for the specific language governing permissions and
 #     limitations under the License.
 
+from contextlib import contextmanager
 from functools import lru_cache
 import logging
 import os
@@ -36,6 +37,21 @@ def colored_logging():
     logging.addLevelName(  # red background
         logging.CRITICAL, "\033[41m%s\033[0m" %
         logging.getLevelName(logging.CRITICAL))
+
+# Can be used to temporarily alter a logging level.
+#
+# with logginglevel('root', logging.ERROR):
+#     do something silently
+#
+@contextmanager
+def logginglevel(name, new_level):
+    logger = logging.getLogger(name)
+    prev_level = logger.getEffectiveLevel()
+    logger.setLevel(new_level)
+    try:
+        yield
+    finally:
+        logger.setLevel(prev_level)
 
 
 def use_headless():

@@ -7,7 +7,8 @@ import os
 import os.path
 import pkg_resources
 from quibble.gitchangedinhead import GitChangedInHead
-from quibble.util import copylog, parallel_run
+from quibble.util import copylog, parallel_run, isExtOrSkin
+import quibble.mediawiki.registry
 import quibble.zuul
 import subprocess
 
@@ -42,6 +43,76 @@ class ZuulCloneCommand:
                          if v is not None and v != []}
         return "Zuul clone with parameters {}".format(
             json.dumps(pruned_params))
+
+
+class ResolveRequiresCommand:
+
+    def __init__(
+        self, mw_install_path, projects, zuul_params,
+        fail_on_extra_requires=False
+    ):
+        """
+        mw_install_path: root dir of MediaWiki
+        projects: list of Gerrit projects to initially clone
+        zuul_params: other parameters for ZuulCloneCommand
+        fail_on_extra_requires: if any repositories has been cloned and has
+        not been given in the initial list of projects, raise an exception.
+        """
+        self.mw_install_path = mw_install_path
+        self.projects = projects
+        self.zuul_params = zuul_params
+        if 'projects' in self.zuul_params:
+            del(self.zuul_params['projects'])
+        self.fail_on_extra_requires = fail_on_extra_requires
+
+    def execute(self):
+        log.info('Recursively processing registration dependencies')
+
+        ext_cloned = set(filter(isExtOrSkin, self.projects))
+        with quibble.logginglevel('zuul.CloneMapper', logging.WARNING):
+            required = self.clone_requires(ext_cloned, ext_cloned)
+        extras = set(required) - set(self.projects)
+
+        msg = 'Found extra requirements: %s' % ', '.join(extras)
+        if extras and self.fail_on_extra_requires:
+            raise Exception(msg)
+        else:
+            log.warning(msg)
+
+        log.info('Done preparing registration dependencies')
+
+    def clone_requires(self, new_projects, cloned):
+        to_be_cloned = new_projects - cloned
+        if to_be_cloned:
+            log.info('Cloning: %s' % ', '.join(to_be_cloned))
+            ZuulCloneCommand(
+                projects=to_be_cloned,
+                **self.zuul_params
+            ).execute()
+
+        found = set()
+        for project in sorted(new_projects):
+            log.info('Looking for requirements of %s' % project)
+
+            project_dir = os.path.join(
+                self.mw_install_path,
+                quibble.zuul.repo_dir(project))
+            deps = quibble.mediawiki.registry.from_path(project_dir)
+            found.update(deps.getRequiredRepos())
+
+        if not found:
+            log.debug('No additional requirements from %s' % (
+                ', '.join(new_projects)))
+            return set()
+
+        if found:
+            log.info('Found requirement(s): %s' % ', '.join(found))
+            return found.union(self.clone_requires(found, cloned))
+
+    def __str__(self):
+        return (
+            'Recursively process registration dependencies. '
+            'Fails on extra requires: %s' % self.fail_on_extra_requires)
 
 
 class ExtSkinSubmoduleUpdateCommand:

@@ -1,0 +1,12 @@
+{
+	"requires": {
+		"MediaWiki": ">= 1.25.0",
+		"extensions": {
+			"FakeExtension": "*",
+			"FakeExtension2": "*"
+		},
+		"skins": {
+			"FakeSkin": "*"
+		}
+	}
+}

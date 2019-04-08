@@ -79,6 +79,19 @@ class QuibbleCmd(object):
             action='store_true',
             help='Do not clone/checkout in workspace')
         parser.add_argument(
+            '--resolve-requires',
+            action='store_true',
+            help='Whether to process extension.json/skin.json and clone extra '
+                 'extensions/skins mentioned in the "requires" statement. '
+                 'This is done recursively.')
+        parser.add_argument(
+            '--fail-on-extra-requires',
+            action='store_true',
+            help='When --resolve-requires caused Quibble to clone extra '
+                 'requirements not in the list of projects: fail.'
+                 'Can be used to enforce extensions and skins to declare '
+                 'their requirements via the extension registry.')
+        parser.add_argument(
             '--skip-deps',
             action='store_true',
             help='Do not run composer/npm')
@@ -304,19 +317,31 @@ class QuibbleCmd(object):
             clone_vendor=(self.args.packages_source == 'vendor'))
 
         if not self.args.skip_zuul:
+            zuul_params = {
+                'branch': self.args.branch,
+                'cache_dir': self.args.git_cache,
+                'project_branch': self.args.project_branch,
+                'workers': self.args.git_parallel,
+                'workspace': os.path.join(self.workspace, 'src'),
+                'zuul_branch': os.getenv('ZUUL_BRANCH'),
+                'zuul_newrev': os.getenv('ZUUL_NEWREV'),
+                'zuul_project': os.getenv('ZUUL_PROJECT'),
+                'zuul_ref': os.getenv('ZUUL_REF'),
+                'zuul_url': os.getenv('ZUUL_URL'),
+            }
             plan.append(quibble.commands.ZuulCloneCommand(
-                branch=self.args.branch,
-                cache_dir=self.args.git_cache,
-                project_branch=self.args.project_branch,
                 projects=projects_to_clone,
-                workers=self.args.git_parallel,
-                workspace=os.path.join(self.workspace, 'src'),
-                zuul_branch=os.getenv('ZUUL_BRANCH'),
-                zuul_newrev=os.getenv('ZUUL_NEWREV'),
-                zuul_project=os.getenv('ZUUL_PROJECT'),
-                zuul_ref=os.getenv('ZUUL_REF'),
-                zuul_url=os.getenv('ZUUL_URL')
+                **zuul_params
             ))
+
+            if self.args.resolve_requires:
+                plan.append(quibble.commands.ResolveRequiresCommand(
+                    mw_install_path=self.mw_install_path,
+                    projects=projects_to_clone,
+                    zuul_params=zuul_params,
+                    fail_on_extra_requires=self.args.fail_on_extra_requires,
+                ))
+
             plan.append(quibble.commands.ExtSkinSubmoduleUpdateCommand(
                 self.mw_install_path))
 
