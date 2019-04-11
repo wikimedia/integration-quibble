@@ -71,3 +71,11 @@ class QuibbleTest(unittest.TestCase):
     def test_chrome_does_not_throttle_history_state_changes(self):
         self.assertIn('--disable-pushstate-throttle',
                       quibble.chromium_flags())
+
+    @mock.patch('time.time')
+    def test_chronometer(self, mock_time):
+        mock_time.side_effect = [1.5, 2.5]
+        mock_log = mock.MagicMock()
+        with quibble.Chronometer('method', mock_log):
+            pass
+        mock_log.assert_called_with('method finished in 1.000 s')

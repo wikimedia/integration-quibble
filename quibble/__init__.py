@@ -18,6 +18,7 @@ from functools import lru_cache
 import logging
 import os
 import subprocess
+import time
 
 
 def colored_logging():
@@ -94,3 +95,15 @@ def is_in_docker():
 @lru_cache(maxsize=1)
 def php_is_hhvm():
     return b'HipHop' in subprocess.check_output(['php', '--version'])
+
+
+@contextmanager
+def Chronometer(name, logger):
+
+    start = time.time()
+    try:
+        yield
+    finally:
+        duration = time.time() - start
+        if logger:
+            logger('%s finished in %.03f s' % (name, duration))
