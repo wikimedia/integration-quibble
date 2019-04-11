@@ -103,9 +103,9 @@ class QuibbleCmd(object):
                  'In Docker: "/srv/git", else "ref"')
         parser.add_argument(
             '--git-parallel',
-            default=1,
+            default=4,
             type=int,
-            help='Number of workers to clone repositories.')
+            help='Number of workers to clone repositories. Default: 4')
         parser.add_argument(
             '--branch',
             default=None,
