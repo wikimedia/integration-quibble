@@ -1,21 +1,27 @@
 Quibble: a test runner for MediaWiki
 ====================================
 
-Quibble gets MediaWiki, install it and run all MediaWiki tests suites. All
-is included in a single command.
+Quibble will clone the specific repository being tested, MediaWiki, and any
+dependencies. Then all available tests are run, beginning with basic lint
+checks and culminating in browser tests for each MediaWiki extension. Specific
+tests can be included or excluded as needed.
 
-As a requirement one needs python 3 and all software required by MediaWiki
-and its tests systems:
+Everything is performed by a single command, `quibble`.
+
+Running quibble requires python 3 and the following tools, or you can run in
+the provided docker image.
 
 - Chromium
 - composer
 - NodeJS
 - npm
 - php
-- python 3
 - Xvfb
 
-TLDR::
+Quick Start
+---
+
+Full build and run, with no caching::
 
     docker build --tag quibble .
     docker run -it --rm quibble
@@ -29,13 +35,13 @@ and use SQLite as a database backend::
     docker run -it quibble  --packages-source composer --db sqlite
 
 Wikimedia maintains Docker containers intended to be used for its continuous
-integration system::
+integration system, for example::
 
     docker pull docker-registry.wikimedia.org/releng/quibble-stretch-php72:latest
 
 The source is on Gerrit https://gerrit.wikimedia.org/g/integration/config
-under the `dockerfiles` directory. Other containers with slight variation such
-as providing Zend PHP5.5 or HHVM.
+under the `dockerfiles` directory, where you'll also find other images with
+slight variations such as other PHP versions.
 
 Further documentation can be found on https://doc.wikimedia.org/quibble/ .
 
@@ -50,11 +56,11 @@ Get the latest image being run by Wikimedia CI::
 
   docker pull docker-registry.wikimedia.org/releng/quibble-stretch-php72:latest
 
-Quibble clones the repositories from Gerrit and then run composer and npm. At
-the end of the run, the container would be dismissed as well as all the
-downloaded content. To make it faster, you should set local copies of the git
-repositories that would be downloaded from and set up a cache directory on the
-host to be mounted in the container.
+Quibble clones the repositories from Gerrit, and may load additional
+dependencies using composer and npm. At the end of the run, the container will
+be removed as well as all of the downloaded content. To make it faster, you
+should provide local copies of the git repositories as a volume attached to the
+container.
 
 To avoid cloning MediaWiki over the network, you should initialize local
 bare git repositories to be used as a reference for git to copy them from::
