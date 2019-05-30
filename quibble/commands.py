@@ -4,6 +4,7 @@ import json
 import logging
 import os.path
 import pkg_resources
+from quibble.test import parallel_run
 from quibble.util import copylog
 import quibble.zuul
 import subprocess
@@ -104,6 +105,70 @@ class CreateComposerLocal:
     def __str__(self):
         return "Create composer.local.json with dependencies {}".format(
             self.dependencies)
+
+
+class ExtSkinComposerNpmTest:
+    def __init__(self, directory, composer, npm):
+        self.directory = directory
+        self.composer = composer
+        self.npm = npm
+
+    def execute(self):
+        tasks = []
+        if self.composer:
+            tasks.append((self.run_extskin_composer, ))
+        if self.npm:
+            tasks.append((self.run_extskin_npm, ))
+
+        # TODO: Split these tasks and move parallelism into calling logic.
+        parallel_run(tasks)
+
+        log.info('%s: git clean -xqdf' % self.directory)
+        subprocess.check_call(['git', 'clean', '-xqdf'],
+                              cwd=self.directory)
+
+    def run_extskin_composer(self):
+        project_name = os.path.basename(self.directory)
+
+        if not os.path.exists(os.path.join(self.directory, 'composer.json')):
+            log.warning("%s lacks a composer.json" % project_name)
+            return
+
+        log.info('Running "composer test" for %s' % project_name)
+        cmds = [
+            ['composer', '--ansi', 'validate', '--no-check-publish'],
+            ['composer', '--ansi', 'install', '--no-progress',
+             '--prefer-dist', '--profile', '-v'],
+            ['composer', '--ansi', 'test'],
+        ]
+        for cmd in cmds:
+            subprocess.check_call(cmd, cwd=self.directory)
+
+    def run_extskin_npm(self):
+        project_name = os.path.basename(self.directory)
+
+        # FIXME: copy paste is terrible
+        # TODO: Detect test existence in an earlier phase.
+        if not os.path.exists(os.path.join(self.directory, 'package.json')):
+            log.warning("%s lacks a package.json" % project_name)
+            return
+
+        log.info('Running "npm test" for %s' % project_name)
+        cmds = [
+            ['npm', 'prune'],
+            ['npm', 'install', '--no-progress'],
+            ['npm', 'test'],
+        ]
+        for cmd in cmds:
+            subprocess.check_call(cmd, cwd=self.directory)
+
+    def __str__(self):
+        tests = []
+        if self.composer:
+            tests.append("composer")
+        if self.npm:
+            tests.append("npm")
+        return "Extension and skin tests: {}".format(tests)
 
 
 class ComposerComposerDependencies:

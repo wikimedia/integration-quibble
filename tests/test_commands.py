@@ -77,6 +77,45 @@ class CreateComposerLocalTest(unittest.TestCase):
             mock_dump.assert_called_with(expected, mock.ANY)
 
 
+class ExtSkinComposerNpmTestTest(unittest.TestCase):
+
+    @staticmethod
+    def no_spawn_map(wrapper, tasks):
+        '''Replace imap_unordered with sequential execution'''
+        for task_def in tasks:
+            yield wrapper(task_def)
+
+    @mock.patch('multiprocessing.pool.Pool')
+    @mock.patch('subprocess.check_call')
+    @mock.patch('os.path.exists')
+    def test_execute_all(self, mock_exists, mock_call, mock_pool):
+
+        mock_exists.return_value = True
+        mock_pool.return_value.__enter__.return_value\
+            .imap_unordered.side_effect = self.no_spawn_map
+
+        c = quibble.commands.ExtSkinComposerNpmTest('/tmp', True, True)
+        c.execute()
+
+        mock_call.assert_any_call(['composer', '--ansi', 'test'], cwd='/tmp')
+        mock_call.assert_any_call(['npm', 'test'], cwd='/tmp')
+
+    @mock.patch('multiprocessing.pool.Pool')
+    @mock.patch('subprocess.check_call')
+    @mock.patch('os.path.exists')
+    def test_execute_none(self, mock_exists, mock_call, mock_pool):
+
+        mock_exists.return_value = False
+        mock_pool.return_value.__enter__.return_value\
+            .imap_unordered.side_effect = self.no_spawn_map
+
+        c = quibble.commands.ExtSkinComposerNpmTest('/tmp', True, True)
+        c.execute()
+
+        mock_call.assert_called_once_with(
+            ['git', 'clean', '-xqdf'], cwd='/tmp')
+
+
 class VendorComposerDependenciesTest(unittest.TestCase):
 
     @mock.patch('builtins.open', mock.mock_open())

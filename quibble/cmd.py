@@ -20,7 +20,6 @@ import argparse
 from contextlib import ExitStack
 import logging
 import os
-import subprocess
 import sys
 import tempfile
 
@@ -343,12 +342,8 @@ class QuibbleCmd(object):
                     self.mw_install_path,
                     quibble.zuul.repo_dir(os.environ['ZUUL_PROJECT']))
 
-                quibble.test.run_extskin(directory=project_dir,
-                                         composer=run_composer, npm=run_npm)
-
-                self.log.info('%s: git clean -xqdf' % project_dir)
-                subprocess.check_call(['git', 'clean', '-xqdf'],
-                                      cwd=project_dir)
+                quibble.commands.ExtSkinComposerNpmTest(
+                    project_dir, run_composer, run_npm).execute()
 
         if not self.args.skip_deps and self.args.packages_source == 'composer':
             quibble.commands.CreateComposerLocal(
