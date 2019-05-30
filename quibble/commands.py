@@ -169,3 +169,15 @@ class VendorComposerDependencies:
 
     def __str__(self):
         return "Install composer dev-requires"
+
+
+class NpmInstall:
+    def __init__(self, directory):
+        self.directory = directory
+
+    def execute(self):
+        subprocess.check_call(['npm', 'prune'], cwd=self.directory)
+        subprocess.check_call(['npm', 'install'], cwd=self.directory)
+
+    def __str__(self):
+        return "npm install in {}".format(self.directory)

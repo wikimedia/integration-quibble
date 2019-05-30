@@ -427,8 +427,8 @@ class QuibbleCmd(object):
                 quibble.commands.VendorComposerDependencies(
                     self.mw_install_path, self.log_dir).execute()
 
-            subprocess.check_call(['npm', 'prune'], cwd=self.mw_install_path)
-            subprocess.check_call(['npm', 'install'], cwd=self.mw_install_path)
+            quibble.commands.NpmInstall(
+                self.mw_install_path).execute()
 
         phpunit_testsuite = None
         if self.args.phpunit_testsuite:
