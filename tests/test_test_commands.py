@@ -20,7 +20,7 @@ class TestTestCommand(unittest.TestCase):
             '--no-sandbox', env.get('CHROMIUM_FLAGS', ''),
             'In a Docker container we must pass --no-sandbox')
 
-    @mock.patch('quibble.test.GitChangedInHead')
+    @mock.patch('quibble.gitchangedinhead.GitChangedInHead')
     @mock.patch('subprocess.check_call')
     def test_all_run_commands_pass_os_environment(
             self, mock_check_call, mock_git_changed):

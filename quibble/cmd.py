@@ -376,11 +376,10 @@ class QuibbleCmd(object):
                 self.log_dir).execute()
 
         if zuul_project == 'mediawiki/core':
-            quibble.test.run_core(
+            quibble.commands.CoreNpmComposerTest(
                 self.mw_install_path,
                 composer=self.should_run('composer-test'),
-                npm=self.should_run('npm-test')
-            )
+                npm=self.should_run('npm-test')).execute()
 
         http_port = 9412
         if self.should_run('qunit') or self.should_run('selenium'):

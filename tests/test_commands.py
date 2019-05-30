@@ -79,20 +79,13 @@ class CreateComposerLocalTest(unittest.TestCase):
 
 class ExtSkinComposerNpmTestTest(unittest.TestCase):
 
-    @staticmethod
-    def no_spawn_map(wrapper, tasks):
-        '''Replace imap_unordered with sequential execution'''
-        for task_def in tasks:
-            yield wrapper(task_def)
-
-    @mock.patch('multiprocessing.pool.Pool')
+    @mock.patch('quibble.commands.parallel_run')
     @mock.patch('subprocess.check_call')
     @mock.patch('os.path.exists')
-    def test_execute_all(self, mock_exists, mock_call, mock_pool):
+    def test_execute_all(self, mock_exists, mock_call, mock_parallel):
 
         mock_exists.return_value = True
-        mock_pool.return_value.__enter__.return_value\
-            .imap_unordered.side_effect = self.no_spawn_map
+        mock_parallel.side_effect = run_sequentially
 
         c = quibble.commands.ExtSkinComposerNpmTest('/tmp', True, True)
         c.execute()
@@ -100,20 +93,38 @@ class ExtSkinComposerNpmTestTest(unittest.TestCase):
         mock_call.assert_any_call(['composer', '--ansi', 'test'], cwd='/tmp')
         mock_call.assert_any_call(['npm', 'test'], cwd='/tmp')
 
-    @mock.patch('multiprocessing.pool.Pool')
+    @mock.patch('quibble.commands.parallel_run')
     @mock.patch('subprocess.check_call')
     @mock.patch('os.path.exists')
-    def test_execute_none(self, mock_exists, mock_call, mock_pool):
+    def test_execute_none(self, mock_exists, mock_call, mock_parallel):
 
         mock_exists.return_value = False
-        mock_pool.return_value.__enter__.return_value\
-            .imap_unordered.side_effect = self.no_spawn_map
+        mock_parallel.side_effect = run_sequentially
 
         c = quibble.commands.ExtSkinComposerNpmTest('/tmp', True, True)
         c.execute()
 
         mock_call.assert_called_once_with(
             ['git', 'clean', '-xqdf'], cwd='/tmp')
+
+
+class CoreNpmComposerTestTest(unittest.TestCase):
+
+    @mock.patch('quibble.commands.parallel_run')
+    @mock.patch('quibble.gitchangedinhead.GitChangedInHead.changedFiles')
+    @mock.patch('subprocess.check_call')
+    def test_execute_composer(self, mock_check_call,
+                              mock_git_changed, mock_parallel):
+        mock_git_changed.return_value = ['foo.php', 'bar.php']
+        mock_parallel.side_effect = run_sequentially
+
+        c = quibble.commands.CoreNpmComposerTest('/tmp', True, False)
+
+        c.execute()
+
+        mock_check_call.assert_called_once_with(
+            ['composer', 'test', 'foo.php', 'bar.php'], cwd='/tmp',
+            env=mock.ANY)
 
 
 class VendorComposerDependenciesTest(unittest.TestCase):
@@ -209,3 +220,11 @@ class PhpUnitDatabaselessTest(unittest.TestCase):
              '/log/junit-dbless.xml'],
             cwd='/tmp',
             env=mock.ANY)
+
+
+def run_sequentially(tasks):
+    '''Replace imap_unordered with sequential execution'''
+    for func_spec in tasks:
+        func = func_spec[0]
+        args = func_spec[1:]
+        func(*args)

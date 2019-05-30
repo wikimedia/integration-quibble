@@ -5,6 +5,7 @@ import logging
 import os
 import os.path
 import pkg_resources
+from quibble.gitchangedinhead import GitChangedInHead
 from quibble.test import parallel_run
 from quibble.util import copylog
 import quibble.zuul
@@ -170,6 +171,63 @@ class ExtSkinComposerNpmTest:
         if self.npm:
             tests.append("npm")
         return "Extension and skin tests: {}".format(tests)
+
+
+class CoreNpmComposerTest:
+    def __init__(self, mw_install_path, composer, npm):
+        self.mw_install_path = mw_install_path
+        self.composer = composer
+        self.npm = npm
+
+    def execute(self):
+        tasks = []
+        if self.composer:
+            tasks.append((self.run_composer_test, ))
+        if self.npm:
+            tasks.append((self.run_npm_test, ))
+
+        # TODO: Split these tasks and move parallelism into calling logic.
+        parallel_run(tasks)
+
+    def run_composer_test(self):
+        files = []
+        changed = GitChangedInHead([], cwd=self.mw_install_path).changedFiles()
+        if 'composer.json' in changed or '.phpcs.xml' in changed:
+            log.info(
+                'composer.json or .phpcs.xml changed: linting "."')
+            # '.' is passed to composer lint which then pass it
+            # to parallel-lint and phpcs
+            files = ['.']
+        else:
+            files = GitChangedInHead(
+                ['php', 'php5', 'inc', 'sample'],
+                cwd=self.mw_install_path
+            ).changedFiles()
+
+        if not files:
+            log.info('Skipping composer test (unneeded)')
+        else:
+            log.info("Running composer test")
+
+            env = {'COMPOSER_PROCESS_TIMEOUT': '900'}
+            env.update(os.environ)
+
+            composer_test_cmd = ['composer', 'test']
+            composer_test_cmd.extend(files)
+            subprocess.check_call(
+                composer_test_cmd, cwd=self.mw_install_path, env=env)
+
+    def run_npm_test(self):
+        log.info("Running npm test")
+        subprocess.check_call(['npm', 'test'], cwd=self.mw_install_path)
+
+    def __str__(self):
+        tests = []
+        if self.composer:
+            tests.append("composer")
+        if self.npm:
+            tests.append("npm")
+        return "Run tests in mediawiki/core: {}".format(tests)
 
 
 class ComposerComposerDependencies:

@@ -22,7 +22,6 @@ import subprocess
 from multiprocessing import Pool
 
 import quibble
-from quibble.gitchangedinhead import GitChangedInHead
 
 
 def task_wrapper(args):
@@ -46,58 +45,15 @@ def task_wrapper(args):
 # TODO: Move to util?
 def parallel_run(tasks):
     """
-    Tasks is an iteratable of (function, args...).
-
-    They should ALL return None.
+    Tasks is an iterable of bound functions.  The wrapper makes it easy for us
+    to run a list of different functions, rather than one function over a list
+    of inputs.
     """
     workers = max(1, len(tasks))
     with Pool(processes=workers) as pool:
+        # As soon as any one task fails, the `all()` drops us out of the Pool's
+        # context manager, and any remaining threads are terminated.
         return all(pool.imap_unordered(task_wrapper, tasks))
-
-
-def run_core(mwdir, composer=True, npm=True):
-    tasks = []
-    if composer:
-        tasks.append((run_composer_test, mwdir))
-    if npm:
-        tasks.append((run_npm_test, mwdir))
-
-    return parallel_run(tasks)
-
-
-def run_composer_test(mwdir):
-    log = logging.getLogger('test.run_composer_test')
-    files = []
-    changed = GitChangedInHead([], cwd=mwdir).changedFiles()
-    if 'composer.json' in changed or '.phpcs.xml' in changed:
-        log.info(
-            'composer.json or .phpcs.xml changed: linting "."')
-        # '.' is passed to composer lint which then pass it
-        # to parallel-lint and phpcs
-        files = ['.']
-    else:
-        files = GitChangedInHead(
-            ['php', 'php5', 'inc', 'sample'],
-            cwd=mwdir
-            ).changedFiles()
-
-    if not files:
-        log.info('Skipping composer test (unneeded)')
-    else:
-        log.info("Running composer test")
-
-        env = {'COMPOSER_PROCESS_TIMEOUT': '900'}
-        env.update(os.environ)
-
-        composer_test_cmd = ['composer', 'test']
-        composer_test_cmd.extend(files)
-        subprocess.check_call(composer_test_cmd, cwd=mwdir, env=env)
-
-
-def run_npm_test(mwdir):
-    log = logging.getLogger('test.run_npm_test')
-    log.info("Running npm test")
-    subprocess.check_call(['npm', 'test'], cwd=mwdir, env=os.environ)
 
 
 def run_qunit(mwdir, port=9412):
