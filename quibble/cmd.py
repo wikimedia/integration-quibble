@@ -146,6 +146,11 @@ class QuibbleCmd(object):
                  'If $ZUUL_PROJECT is set, it will be cloned as well.'
             )
 
+        parser.add_argument(
+            '-n', '--dry-run',
+            action='store_true',
+            help='Stop before executing any commands.')
+
         stages = ', '.join(self.stages)
         stages_args = parser.add_argument_group('stages', description=(
             'Quibble runs all test commands (stages) by default. '
@@ -251,7 +256,7 @@ class QuibbleCmd(object):
         return self.dependencies
 
     def clone(self, projects):
-        quibble.commands.ZuulCloneCommand(
+        return quibble.commands.ZuulCloneCommand(
             branch=self.args.branch,
             cache_dir=self.args.git_cache,
             project_branch=self.args.project_branch,
@@ -263,16 +268,16 @@ class QuibbleCmd(object):
             zuul_project=os.getenv('ZUUL_PROJECT'),
             zuul_ref=os.getenv('ZUUL_REF'),
             zuul_url=os.getenv('ZUUL_URL')
-        ).execute()
+        )
 
     def mw_install(self):
-        quibble.commands.InstallMediaWiki(
+        return quibble.commands.InstallMediaWiki(
             mw_install_path=self.mw_install_path,
             db_engine=self.args.db,
             db_dir=self.db_dir,
             dump_dir=self.dump_dir,
             log_dir=self.log_dir,
-            use_vendor=(self.args.packages_source == 'vendor')).execute()
+            use_vendor=(self.args.packages_source == 'vendor'))
 
     def isCoreOrVendor(self, project):
         return project == 'mediawiki/core' or project == 'mediawiki/vendor'
@@ -293,13 +298,10 @@ class QuibbleCmd(object):
             return True
         return stage in self.args.run
 
-    def execute(self):
-        logging.basicConfig(level=logging.INFO)
-        logging.getLogger('quibble').setLevel(logging.DEBUG)
-        quibble.colored_logging()
+    def build_execution_plan(self, args):
+        plan = []
 
-        self.args = self.parse_arguments()
-
+        self.args = args
         self.workspace = self.args.workspace
         self.mw_install_path = os.path.join(self.workspace, 'src')
         self.log_dir = os.path.join(self.workspace, self.args.log_dir)
@@ -329,9 +331,9 @@ class QuibbleCmd(object):
             clone_vendor=(self.args.packages_source == 'vendor'))
 
         if not self.args.skip_zuul:
-            self.clone(projects_to_clone)
-            quibble.commands.ExtSkinSubmoduleUpdateCommand(
-                self.mw_install_path).execute()
+            plan.append(self.clone(projects_to_clone))
+            plan.append(quibble.commands.ExtSkinSubmoduleUpdateCommand(
+                self.mw_install_path))
 
         if self.isExtOrSkin(zuul_project):
             run_composer = self.should_run('composer-test')
@@ -341,24 +343,24 @@ class QuibbleCmd(object):
                     self.mw_install_path,
                     quibble.zuul.repo_dir(os.environ['ZUUL_PROJECT']))
 
-                quibble.commands.ExtSkinComposerNpmTest(
-                    project_dir, run_composer, run_npm).execute()
+                plan.append(quibble.commands.ExtSkinComposerNpmTest(
+                    project_dir, run_composer, run_npm))
 
         if not self.args.skip_deps and self.args.packages_source == 'composer':
-            quibble.commands.CreateComposerLocal(
-                self.mw_install_path, self.dependencies).execute()
-            quibble.commands.ComposerComposerDependencies(
-                self.mw_install_path).execute()
+            plan.append(quibble.commands.CreateComposerLocal(
+                self.mw_install_path, self.dependencies))
+            plan.append(quibble.commands.ComposerComposerDependencies(
+                self.mw_install_path))
 
-        self.mw_install()
+        plan.append(self.mw_install())
 
         if not self.args.skip_deps:
             if self.args.packages_source == 'vendor':
-                quibble.commands.VendorComposerDependencies(
-                    self.mw_install_path, self.log_dir).execute()
+                plan.append(quibble.commands.VendorComposerDependencies(
+                    self.mw_install_path, self.log_dir))
 
-            quibble.commands.NpmInstall(
-                self.mw_install_path).execute()
+            plan.append(quibble.commands.NpmInstall(
+                self.mw_install_path))
 
         phpunit_testsuite = None
         if self.args.phpunit_testsuite:
@@ -369,34 +371,45 @@ class QuibbleCmd(object):
             phpunit_testsuite = 'skins'
 
         if self.should_run('phpunit'):
-            quibble.commands.PhpUnitDatabaseless(
+            plan.append(quibble.commands.PhpUnitDatabaseless(
                 self.mw_install_path,
                 phpunit_testsuite,
-                self.log_dir).execute()
+                self.log_dir))
 
         if zuul_project == 'mediawiki/core':
-            quibble.commands.CoreNpmComposerTest(
+            plan.append(quibble.commands.CoreNpmComposerTest(
                 self.mw_install_path,
                 composer=self.should_run('composer-test'),
-                npm=self.should_run('npm-test')).execute()
+                npm=self.should_run('npm-test')))
 
         if self.should_run('qunit') or self.should_run('selenium'):
             display = os.environ.get('DISPLAY', None)
-            quibble.commands.BrowserTests(
+            plan.append(quibble.commands.BrowserTests(
                 self.mw_install_path,
                 self.should_run('qunit'),
                 self.should_run('selenium'),
-                display).execute()
+                display))
 
         if self.should_run('phpunit'):
-            quibble.commands.PhpUnitDatabase(
+            plan.append(quibble.commands.PhpUnitDatabase(
                 self.mw_install_path,
                 phpunit_testsuite,
-                self.log_dir).execute()
+                self.log_dir))
 
         if self.args.commands:
-            quibble.commands.UserCommands(
-                self.mw_install_path, self.args.commands).execute()
+            plan.append(quibble.commands.UserCommands(
+                self.mw_install_path, self.args.commands))
+
+        return plan
+
+    def execute(self, plan):
+        self.log.debug("Execution plan:")
+        for cmd in plan:
+            self.log.debug(cmd)
+        if self.args.dry_run:
+            return
+        for command in plan:
+            command.execute()
 
 
 def get_arg_parser():
@@ -414,8 +427,14 @@ def get_arg_parser():
 
 
 def main():
+    logging.basicConfig(level=logging.INFO)
+    logging.getLogger('quibble').setLevel(logging.DEBUG)
+    quibble.colored_logging()
+
     cmd = QuibbleCmd()
-    cmd.execute()
+    args = cmd.parse_arguments()
+    plan = cmd.build_execution_plan(args)
+    cmd.execute(plan)
 
 
 if __name__ == '__main__':

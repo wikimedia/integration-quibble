@@ -6,6 +6,7 @@ from unittest import mock
 
 from quibble import cmd
 from quibble.cmd import MultipleChoices
+import quibble.commands
 
 
 class MultipleChoicesTest(unittest.TestCase):
@@ -288,3 +289,12 @@ class CmdTest(unittest.TestCase):
         q = cmd.QuibbleCmd()
         q.args = q.parse_arguments(args=[])
         self.assertEquals([], q.args.project_branch)
+
+    @mock.patch('os.makedirs')
+    def test_build_execution_plan(self, mock_makedirs):
+        q = cmd.QuibbleCmd()
+
+        args = q.parse_arguments(args=[])
+        plan = q.build_execution_plan(args)
+
+        self.assertIsInstance(plan[0], quibble.commands.ZuulCloneCommand)
