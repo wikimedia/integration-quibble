@@ -20,8 +20,6 @@ import argparse
 from contextlib import ExitStack
 import logging
 import os
-import pkg_resources
-from shutil import copyfile
 import subprocess
 import sys
 import tempfile
@@ -196,11 +194,6 @@ class QuibbleCmd(object):
 
         return parser
 
-    def copylog(self, src, dest):
-        dest = os.path.join(self.log_dir, dest)
-        self.log.info('Copying %s to %s' % (src, dest))
-        copyfile(src, dest)
-
     def setup_environment(self):
         """
         Set and get needed environment variables.
@@ -275,70 +268,13 @@ class QuibbleCmd(object):
         ).execute()
 
     def mw_install(self):
-        dbclass = quibble.backend.getDBClass(engine=self.args.db)
-        db = dbclass(base_dir=self.db_dir, dump_dir=self.dump_dir)
-        self.backends['db'] = db  # hold a reference to prevent gc
-        db.start()
-
-        install_args = [
-            '--scriptpath=',
-            '--dbtype=%s' % self.args.db,
-            '--dbname=%s' % db.dbname,
-        ]
-        if self.args.db == 'sqlite':
-            install_args.extend([
-                '--dbpath=%s' % db.rootdir,
-            ])
-        elif self.args.db in ('mysql', 'postgres'):
-            install_args.extend([
-                '--dbuser=%s' % db.user,
-                '--dbpass=%s' % db.password,
-                '--dbserver=%s' % db.dbserver,
-            ])
-        else:
-            raise Exception('Unsupported database: %s' % self.args.db)
-
-        quibble.mediawiki.maintenance.install(
-            args=install_args,
-            mwdir=self.mw_install_path
-        )
-
-        localsettings = os.path.join(self.mw_install_path, 'LocalSettings.php')
-        # Prepend our custom configuration snippets
-        with open(localsettings, 'r+') as lf:
-            quibblesettings = pkg_resources.resource_filename(
-                __name__, 'mediawiki/local_settings.php')
-            with open(quibblesettings) as qf:
-                quibble_conf = qf.read()
-
-            installed_conf = lf.read()
-            lf.seek(0, 0)
-            lf.write(quibble_conf + '\n?>' + installed_conf)
-        self.copylog(localsettings, 'LocalSettings.php')
-        subprocess.check_call(['php', '-l', localsettings])
-
-        update_args = []
-        if self.args.packages_source == 'vendor':
-            # When trying to update a library in mediawiki/core and
-            # mediawiki/vendor, a circular dependency is produced as both
-            # patches depend upon each other.
-            #
-            # All non-mediawiki/vendor jobs will skip checking for matching
-            # versions and continue "at their own risk". mediawiki/vendor will
-            # still check versions to make sure it stays in sync with MediaWiki
-            # core.
-            #
-            # T88211
-            self.log.info('mediawiki/vendor used. '
-                          'Skipping external dependencies')
-            update_args.append('--skip-external-dependencies')
-
-        quibble.mediawiki.maintenance.update(
-            args=update_args,
-            mwdir=self.mw_install_path
-        )
-        quibble.mediawiki.maintenance.rebuildLocalisationCache(
-            lang=['en'], mwdir=self.mw_install_path)
+        quibble.commands.InstallMediaWiki(
+            mw_install_path=self.mw_install_path,
+            db_engine=self.args.db,
+            db_dir=self.db_dir,
+            dump_dir=self.dump_dir,
+            log_dir=self.log_dir,
+            use_vendor=(self.args.packages_source == 'vendor')).execute()
 
     def isCoreOrVendor(self, project):
         return project == 'mediawiki/core' or project == 'mediawiki/vendor'

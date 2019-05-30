@@ -99,3 +99,38 @@ class VendorComposerDependenciesTest(unittest.TestCase):
                         '--no-progress', '--prefer-dist', '-v',
                         'justinrainbow/jsonschema=^1.2.3'],
                        cwd='/tmp/vendor')])
+
+
+class InstallMediaWikiTest(unittest.TestCase):
+
+    @mock.patch('builtins.open', mock.mock_open())
+    @mock.patch('quibble.util.copylog')
+    @mock.patch('subprocess.check_call')
+    @mock.patch('quibble.backend.getDBClass')
+    @mock.patch('quibble.mediawiki.maintenance.install')
+    @mock.patch('quibble.mediawiki.maintenance.update')
+    @mock.patch('quibble.mediawiki.maintenance.rebuildLocalisationCache')
+    def test_execute(self, mock_rebuild_l10n, mock_update, mock_install_script,
+                     mock_db_factory, mock_check_call, mock_copylog):
+        c = quibble.commands.InstallMediaWiki(
+            '/tmp', 'mysql', '/db', '/dump', '/log', True)
+
+        db = mock.MagicMock(
+            dbname='testwiki',
+            user='USER',
+            password='PASS',
+            dbserver='SERVER')
+        mock_db_factory.return_value = mock.MagicMock(return_value=db)
+
+        # TODO: Assert that localsettings is edited correctly.
+
+        c.execute()
+
+        mock_install_script.assert_called_once_with(
+            args=['--scriptpath=', '--dbtype=mysql', '--dbname=testwiki',
+                  '--dbuser=USER', '--dbpass=PASS', '--dbserver=SERVER'],
+            mwdir='/tmp')
+
+        mock_update.assert_called_once_with(
+            args=['--skip-external-dependencies'],
+            mwdir='/tmp')
