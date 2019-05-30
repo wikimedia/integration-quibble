@@ -275,35 +275,6 @@ class QuibbleCmd(object):
             zuul_url=os.getenv('ZUUL_URL')
         ).execute()
 
-    def ext_skin_submodule_update(self):
-        self.log.info('Updating git submodules of extensions and skins')
-
-        cmds = [
-            ['git', 'submodule', 'foreach', 'git', 'clean', '-xdff', '-q'],
-            ['git', 'submodule', 'update', '--init', '--recursive'],
-            ['git', 'submodule', 'status'],
-        ]
-
-        tops = [os.path.join(self.mw_install_path, top)
-                for top in ['extensions', 'skins']]
-
-        for top in tops:
-            for dirpath, dirnames, filenames in os.walk(top):
-                if dirpath not in tops:
-                    # Only look at the first level
-                    dirnames[:] = []
-                if '.gitmodules' not in filenames:
-                    continue
-
-                for cmd in cmds:
-                    try:
-                        subprocess.check_call(cmd, cwd=dirpath)
-                    except subprocess.CalledProcessError as e:
-                        self.log.error(
-                            "Failed to process git submodules for %s" %
-                            dirpath)
-                        raise e
-
     # Used to be bin/mw-create-composer-local.py
     def create_composer_local(self):
         self.log.info('composer.local.json for merge plugin')
@@ -482,7 +453,8 @@ class QuibbleCmd(object):
 
         if not self.args.skip_zuul:
             self.clone(projects_to_clone)
-            self.ext_skin_submodule_update()
+            quibble.commands.ExtSkinSubmoduleUpdateCommand(
+                self.mw_install_path).execute()
 
         if self.isExtOrSkin(zuul_project):
             run_composer = self.should_run('composer-test')
