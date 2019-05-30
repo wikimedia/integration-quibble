@@ -370,18 +370,10 @@ class QuibbleCmd(object):
             phpunit_testsuite = 'skins'
 
         if self.should_run('phpunit'):
-            self.log.info("PHPUnit%swithout Database group" % (
-                ' %s suite ' % (phpunit_testsuite or ' ')))
-            # XXX might want to run the triggered extension first then the
-            # other tests.
-            # XXX some mediawiki/core smoke PHPunit tests should probably
-            # be run as well.
-            junit_dbless_file = os.path.join(
-                self.log_dir, 'junit-dbless.xml')
-            quibble.test.run_phpunit_databaseless(
-                mwdir=self.mw_install_path,
-                testsuite=phpunit_testsuite,
-                junit_file=junit_dbless_file)
+            quibble.commands.PhpUnitDatabaseless(
+                self.mw_install_path,
+                phpunit_testsuite,
+                self.log_dir).execute()
 
         if zuul_project == 'mediawiki/core':
             quibble.test.run_core(
@@ -418,14 +410,10 @@ class QuibbleCmd(object):
                                 display=display)
 
         if self.should_run('phpunit'):
-            self.log.info("PHPUnit%sDatabase group" % (
-                ' %s suite ' % (phpunit_testsuite or ' ')))
-            junit_db_file = os.path.join(
-                self.log_dir, 'junit-db.xml')
-            quibble.test.run_phpunit_database(
-                mwdir=self.mw_install_path,
-                testsuite=phpunit_testsuite,
-                junit_file=junit_db_file)
+            quibble.commands.PhpUnitDatabase(
+                self.mw_install_path,
+                phpunit_testsuite,
+                self.log_dir).execute()
 
         if self.args.commands:
             self.log.info('User commands')

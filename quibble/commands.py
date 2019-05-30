@@ -2,6 +2,7 @@
 
 import json
 import logging
+import os
 import os.path
 import pkg_resources
 from quibble.test import parallel_run
@@ -335,3 +336,62 @@ class InstallMediaWiki:
     def __str__(self):
         return "Install MediaWiki, db={} db_dir={} vendor={}".format(
             self.db_engine, self.db_dir, self.use_vendor)
+
+
+class AbstractPhpUnit:
+    def run_phpunit(self, group=[], exclude_group=[]):
+        log.info(self)
+
+        always_excluded = ['Broken', 'ParserFuzz', 'Stub']
+
+        cmd = ['php', 'tests/phpunit/phpunit.php', '--debug-tests']
+        if self.testsuite:
+            cmd.extend(['--testsuite', self.testsuite])
+
+        if group:
+            cmd.extend(['--group', ','.join(group)])
+
+        cmd.extend(['--exclude-group',
+                    ','.join(always_excluded + exclude_group)])
+
+        if self.junit_file:
+            cmd.extend(['--log-junit', self.junit_file])
+        log.info(' '.join(cmd))
+
+        phpunit_env = {}
+        phpunit_env.update(os.environ)
+        phpunit_env.update({'LANG': 'C.UTF-8'})
+
+        subprocess.check_call(cmd, cwd=self.mw_install_path, env=phpunit_env)
+
+
+class PhpUnitDatabaseless(AbstractPhpUnit):
+    def __init__(self, mw_install_path, testsuite, log_dir):
+        self.mw_install_path = mw_install_path
+        self.testsuite = testsuite
+        self.log_dir = log_dir
+        self.junit_file = os.path.join(self.log_dir, 'junit-dbless.xml')
+
+    def execute(self):
+        # XXX might want to run the triggered extension first then the
+        # other tests.
+        # XXX some mediawiki/core smoke PHPunit tests should probably
+        # be run as well.
+        self.run_phpunit(exclude_group=['Database'])
+
+    def __str__(self):
+        return "PHPUnit {} suite (without database)".format(self.testsuite)
+
+
+class PhpUnitDatabase(AbstractPhpUnit):
+    def __init__(self, mw_install_path, testsuite, log_dir):
+        self.mw_install_path = mw_install_path
+        self.testsuite = testsuite
+        self.log_dir = log_dir
+        self.junit_file = os.path.join(self.log_dir, 'junit-db.xml')
+
+    def execute(self):
+        self.run_phpunit(group=['Database'])
+
+    def __str__(self):
+        return "PHPUnit {} suite (with database)".format(self.testsuite)

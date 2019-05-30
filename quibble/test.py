@@ -117,43 +117,6 @@ def run_qunit(mwdir, port=9412):
     )
 
 
-def run_phpunit(mwdir, group=[], exclude_group=[], testsuite=None,
-                junit_file=None):
-
-    log = logging.getLogger('test.run_phpunit')
-    always_excluded = ['Broken', 'ParserFuzz', 'Stub']
-
-    cmd = ['php', 'tests/phpunit/phpunit.php', '--debug-tests']
-    if testsuite:
-        cmd.extend(['--testsuite', testsuite])
-
-    if group:
-        cmd.extend(['--group', ','.join(group)])
-
-    cmd.extend(['--exclude-group',
-                ','.join(always_excluded + exclude_group)])
-
-    if junit_file:
-        cmd.extend(['--log-junit', junit_file])
-    log.info(' '.join(cmd))
-
-    phpunit_env = {}
-    phpunit_env.update(os.environ)
-    phpunit_env.update({'LANG': 'C.UTF-8'})
-
-    subprocess.check_call(cmd, cwd=mwdir, env=phpunit_env)
-
-
-def run_phpunit_database(*args, **kwargs):
-    kwargs['group'] = ['Database']
-    run_phpunit(*args, **kwargs)
-
-
-def run_phpunit_databaseless(*args, **kwargs):
-    kwargs['exclude_group'] = ['Database']
-    run_phpunit(*args, **kwargs)
-
-
 def commands(cmds, cwd):
     log = logging.getLogger('test.commands')
     log.info('working directory: %s' % cwd)

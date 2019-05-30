@@ -173,3 +173,39 @@ class InstallMediaWikiTest(unittest.TestCase):
         mock_update.assert_called_once_with(
             args=['--skip-external-dependencies'],
             mwdir='/tmp')
+
+
+class PhpUnitDatabaseTest(unittest.TestCase):
+
+    @mock.patch('subprocess.check_call')
+    def test_execute(self, mock_check_call):
+        c = quibble.commands.PhpUnitDatabase(
+            mw_install_path='/tmp', testsuite='extensions', log_dir='/log')
+
+        c.execute()
+
+        mock_check_call.assert_called_once_with(
+            ['php', 'tests/phpunit/phpunit.php', '--debug-tests',
+             '--testsuite', 'extensions', '--group', 'Database',
+             '--exclude-group', 'Broken,ParserFuzz,Stub', '--log-junit',
+             '/log/junit-db.xml'],
+            cwd='/tmp',
+            env=mock.ANY)
+
+
+class PhpUnitDatabaselessTest(unittest.TestCase):
+
+    @mock.patch('subprocess.check_call')
+    def test_execute(self, mock_check_call):
+        c = quibble.commands.PhpUnitDatabaseless(
+            mw_install_path='/tmp', testsuite='extensions', log_dir='/log')
+
+        c.execute()
+
+        mock_check_call.assert_called_once_with(
+            ['php', 'tests/phpunit/phpunit.php', '--debug-tests',
+             '--testsuite', 'extensions', '--exclude-group',
+             'Broken,ParserFuzz,Stub,Database', '--log-junit',
+             '/log/junit-dbless.xml'],
+            cwd='/tmp',
+            env=mock.ANY)
