@@ -3,6 +3,7 @@
 import json
 import logging
 import os.path
+from quibble.util import copylog
 import quibble.zuul
 import subprocess
 
@@ -118,3 +119,53 @@ class ComposerComposerDependencies:
 
     def __str__(self):
         return "Run composer update for mediawiki/core"
+
+
+class VendorComposerDependencies:
+    def __init__(self, mw_install_path, log_dir):
+        self.mw_install_path = mw_install_path
+        self.log_dir = log_dir
+
+    def execute(self):
+        log.info('vendor.git used. '
+                 'Requiring composer dev dependencies')
+        mw_composer_json = os.path.join(self.mw_install_path, 'composer.json')
+        vendor_dir = os.path.join(self.mw_install_path, 'vendor')
+        with open(mw_composer_json, 'r') as f:
+            composer = json.load(f)
+
+        reqs = ['='.join([dependency, version])
+                for dependency, version in composer['require-dev'].items()]
+
+        log.debug('composer require %s' % ' '.join(reqs))
+        composer_require = ['composer', 'require', '--dev', '--ansi',
+                            '--no-progress', '--prefer-dist', '-v']
+        composer_require.extend(reqs)
+
+        subprocess.check_call(composer_require, cwd=vendor_dir)
+
+        # Point composer-merge-plugin to mediawiki/core.
+        # That let us easily merge autoload-dev section and thus complete
+        # the autoloader.
+        # T158674
+        subprocess.check_call([
+            'composer', 'config',
+            'extra.merge-plugin.include', mw_composer_json],
+            cwd=vendor_dir)
+
+        # FIXME integration/composer used to be outdated and broke the
+        # autoloader. Since composer 1.0.0-alpha11 the following might not
+        # be needed anymore.
+        subprocess.check_call([
+            'composer', 'dump-autoload', '--optimize'],
+            cwd=vendor_dir)
+
+        copylog(mw_composer_json,
+                os.path.join(self.log_dir, 'composer.core.json.txt'))
+        copylog(os.path.join(vendor_dir, 'composer.json'),
+                os.path.join(self.log_dir, 'composer.vendor.json.txt'))
+        copylog(os.path.join(vendor_dir, 'composer/autoload_files.php'),
+                os.path.join(self.log_dir, 'composer.autoload_files.php.txt'))
+
+    def __str__(self):
+        return "Install composer dev-requires"

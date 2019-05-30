@@ -75,3 +75,27 @@ class CreateComposerLocalTest(unittest.TestCase):
                 }
             }
             mock_dump.assert_called_with(expected, mock.ANY)
+
+
+class VendorComposerDependenciesTest(unittest.TestCase):
+
+    @mock.patch('builtins.open', mock.mock_open())
+    @mock.patch('json.load')
+    @mock.patch('subprocess.check_call')
+    @mock.patch('quibble.util.copylog')
+    def test_execute(self, mock_copylog, mock_check_call, mock_load):
+        c = quibble.commands.VendorComposerDependencies('/tmp', '/log')
+
+        mock_load.return_value = {
+            'require-dev': {
+                'justinrainbow/jsonschema': '^1.2.3',
+            }
+        }
+
+        c.execute()
+
+        mock_check_call.assert_has_calls(
+            [mock.call(['composer', 'require', '--dev', '--ansi',
+                        '--no-progress', '--prefer-dist', '-v',
+                        'justinrainbow/jsonschema=^1.2.3'],
+                       cwd='/tmp/vendor')])

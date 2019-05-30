@@ -18,7 +18,6 @@
 
 import argparse
 from contextlib import ExitStack
-import json
 import logging
 import os
 import pkg_resources
@@ -341,45 +340,6 @@ class QuibbleCmd(object):
         quibble.mediawiki.maintenance.rebuildLocalisationCache(
             lang=['en'], mwdir=self.mw_install_path)
 
-    def fetch_composer_dev(self):
-        mw_composer_json = os.path.join(self.mw_install_path, 'composer.json')
-        vendor_dir = os.path.join(self.mw_install_path, 'vendor')
-        with open(mw_composer_json, 'r') as f:
-            composer = json.load(f)
-
-        reqs = ['='.join([dependency, version])
-                for dependency, version in composer['require-dev'].items()]
-
-        self.log.debug('composer require %s' % ' '.join(reqs))
-        composer_require = ['composer', 'require', '--dev', '--ansi',
-                            '--no-progress', '--prefer-dist', '-v']
-        composer_require.extend(reqs)
-
-        subprocess.check_call(composer_require, cwd=vendor_dir)
-
-        if self.args.packages_source == 'vendor':
-            # Point composer-merge-plugin to mediawiki/core.
-            # That let us easily merge autoload-dev section and thus complete
-            # the autoloader.
-            # T158674
-            subprocess.check_call([
-                'composer', 'config',
-                'extra.merge-plugin.include', mw_composer_json],
-                cwd=vendor_dir)
-
-        # FIXME integration/composer used to be outdated and broke the
-        # autoloader. Since composer 1.0.0-alpha11 the following might not
-        # be needed anymore.
-        subprocess.check_call([
-            'composer', 'dump-autoload', '--optimize'],
-            cwd=vendor_dir)
-
-        self.copylog(mw_composer_json, 'composer.core.json.txt')
-        self.copylog(os.path.join(vendor_dir, 'composer.json'),
-                     'composer.vendor.json.txt')
-        self.copylog(os.path.join(vendor_dir, 'composer/autoload_files.php'),
-                     'composer.autoload_files.php.txt')
-
     def isCoreOrVendor(self, project):
         return project == 'mediawiki/core' or project == 'mediawiki/vendor'
 
@@ -464,9 +424,8 @@ class QuibbleCmd(object):
 
         if not self.args.skip_deps:
             if self.args.packages_source == 'vendor':
-                self.log.info('vendor.git used. '
-                              'Requiring composer dev dependencies')
-                self.fetch_composer_dev()
+                quibble.commands.VendorComposerDependencies(
+                    self.mw_install_path, self.log_dir).execute()
 
             subprocess.check_call(['npm', 'prune'], cwd=self.mw_install_path)
             subprocess.check_call(['npm', 'install'], cwd=self.mw_install_path)
