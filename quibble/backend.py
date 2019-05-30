@@ -139,7 +139,7 @@ class DatabaseServer(BackendServer):
 
     def dump(self):
         self.log.warning('%s does not support dumping database' % (
-            self.__class__.__name))
+            self.__class__.__name__))
 
 
 class Postgres(DatabaseServer):
