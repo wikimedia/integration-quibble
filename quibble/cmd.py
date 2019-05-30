@@ -17,7 +17,6 @@
 #     limitations under the License.
 
 import argparse
-from contextlib import ExitStack
 import logging
 import os
 import sys
@@ -381,32 +380,13 @@ class QuibbleCmd(object):
                 composer=self.should_run('composer-test'),
                 npm=self.should_run('npm-test')).execute()
 
-        http_port = 9412
         if self.should_run('qunit') or self.should_run('selenium'):
-            with quibble.backend.DevWebServer(
-                    mwdir=self.mw_install_path,
-                    port=http_port):
-                if self.should_run('qunit'):
-                    quibble.test.run_qunit(self.mw_install_path,
-                                           port=http_port)
-
-                # Webdriver.io Selenium tests available since 1.29
-                if self.should_run('selenium') and \
-                        os.path.exists(os.path.join(
-                            self.mw_install_path, 'tests/selenium')):
-                    with ExitStack() as stack:
-                        display = os.environ.get('DISPLAY', None)
-                        if not display:
-                            display = ':94'  # XXX racy when run concurrently!
-                            self.log.info("No DISPLAY, using Xvfb.")
-                            stack.enter_context(
-                                quibble.backend.Xvfb(display=display))
-
-                        with quibble.backend.ChromeWebDriver(display=display):
-                            quibble.test.run_webdriver(
-                                mwdir=self.mw_install_path,
-                                port=http_port,
-                                display=display)
+            display = os.environ.get('DISPLAY', None)
+            quibble.commands.BrowserTests(
+                self.mw_install_path,
+                self.should_run('qunit'),
+                self.should_run('selenium'),
+                display).execute()
 
         if self.should_run('phpunit'):
             quibble.commands.PhpUnitDatabase(
@@ -415,13 +395,8 @@ class QuibbleCmd(object):
                 self.log_dir).execute()
 
         if self.args.commands:
-            self.log.info('User commands')
-            with quibble.backend.DevWebServer(
-                    mwdir=self.mw_install_path,
-                    port=http_port):
-                quibble.test.commands(
-                    self.args.commands,
-                    cwd=self.mw_install_path)
+            quibble.commands.UserCommands(
+                self.mw_install_path, self.args.commands).execute()
 
 
 def get_arg_parser():

@@ -204,3 +204,41 @@ class PhpUnitDatabaselessTest(unittest.TestCase):
              '/log/junit-dbless.xml'],
             cwd='/tmp',
             env=mock.ANY)
+
+
+class BrowserTestsTest(unittest.TestCase):
+
+    @mock.patch.dict('os.environ', {'somevar': '42'}, clear=True)
+    @mock.patch('quibble.backend.DevWebServer')
+    @mock.patch('quibble.is_in_docker', return_value=True)
+    @mock.patch('subprocess.check_call')
+    def test_execute(self, mock_check_call, *_):
+        def check_env_for_no_sandbox(cmd, env={}, **_):
+            assert 'CHROMIUM_FLAGS' in env
+            assert '--no-sandbox' in env['CHROMIUM_FLAGS']
+
+        mock_check_call.side_effect = check_env_for_no_sandbox
+
+        quibble.commands.BrowserTests('/tmp', True, False, None).execute()
+
+        assert mock_check_call.call_count > 0
+
+
+class UserCommandsTest(unittest.TestCase):
+
+    @mock.patch('quibble.backend.DevWebServer')
+    @mock.patch('subprocess.check_call')
+    def test_commands(self, mock_check_call, *_):
+        quibble.commands.UserCommands('/tmp', ['true', 'false']).execute()
+
+        mock_check_call.assert_has_calls([
+            mock.call('true', cwd='/tmp', shell=True),
+            mock.call('false', cwd='/tmp', shell=True)])
+
+    @mock.patch('quibble.backend.DevWebServer')
+    def test_commands_raises_exception_on_error(self, *_):
+        with self.assertRaises(subprocess.CalledProcessError, msg=''):
+            quibble.commands.UserCommands('/tmp', ['false']).execute()
+
+        with self.assertRaises(subprocess.CalledProcessError, msg=''):
+            quibble.commands.UserCommands('/tmp', ['true', 'false']).execute()

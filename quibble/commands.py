@@ -1,5 +1,6 @@
 """Encapsulates each step of a job"""
 
+from contextlib import ExitStack
 import json
 import logging
 import os
@@ -12,6 +13,7 @@ import quibble.zuul
 import subprocess
 
 log = logging.getLogger(__name__)
+HTTP_PORT = 9412
 
 
 class ZuulCloneCommand:
@@ -453,3 +455,97 @@ class PhpUnitDatabase(AbstractPhpUnit):
 
     def __str__(self):
         return "PHPUnit {} suite (with database)".format(self.testsuite)
+
+
+class BrowserTests:
+    def __init__(self, mw_install_path, qunit, selenium, display):
+        self.mw_install_path = mw_install_path
+        self.qunit = qunit
+        # FIXME: find a nice way to analyze whether we're actually running
+        # qunit or selenium before creating the command.
+        self.selenium = selenium
+        self.display = display
+
+    def execute(self):
+        with quibble.backend.DevWebServer(
+                mwdir=self.mw_install_path,
+                port=HTTP_PORT):
+            if self.qunit:
+                self.run_qunit()
+
+            # Webdriver.io Selenium tests available since 1.29
+            if self.selenium and \
+                    os.path.exists(os.path.join(
+                        self.mw_install_path, 'tests/selenium')):
+                with ExitStack() as stack:
+                    if not self.display:
+                        self.display = ':94'  # XXX racy when run concurrently!
+                        log.info("No DISPLAY, using Xvfb.")
+                        stack.enter_context(
+                            quibble.backend.Xvfb(display=self.display))
+
+                    with quibble.backend.ChromeWebDriver(display=self.display):
+                        self.run_webdriver()
+
+    def run_qunit(self):
+        karma_env = {
+             'CHROME_BIN': '/usr/bin/chromium',
+             'MW_SERVER': 'http://127.0.0.1:%s' % HTTP_PORT,
+             'MW_SCRIPT_PATH': '/',
+             'FORCE_COLOR': '1',  # for 'supports-color'
+             }
+        karma_env.update(os.environ)
+        karma_env.update({'CHROMIUM_FLAGS': quibble.chromium_flags()})
+
+        subprocess.check_call(
+            ['./node_modules/.bin/grunt', 'qunit'],
+            cwd=self.mw_install_path,
+            env=karma_env,
+        )
+
+    def run_webdriver(self):
+        webdriver_env = {}
+        webdriver_env.update(os.environ)
+        webdriver_env.update({
+            'MW_SERVER': 'http://127.0.0.1:%s' % HTTP_PORT,
+            'MW_SCRIPT_PATH': '/',
+            'FORCE_COLOR': '1',  # for 'supports-color'
+            'MEDIAWIKI_USER': 'WikiAdmin',
+            'MEDIAWIKI_PASSWORD': 'testwikijenkinspass',
+            'DISPLAY': self.display,
+        })
+
+        subprocess.check_call(
+            ['npm', 'run', 'selenium-test'],
+            cwd=self.mw_install_path,
+            env=webdriver_env)
+
+    def __str__(self):
+        tests = []
+        if self.qunit:
+            tests.append("qunit")
+        if self.selenium:
+            tests.append("selenium (maybe)")
+        return "Browser tests in {}: {} using DISPLAY={}".format(
+            self.mw_install_path, tests, self.display)
+
+
+class UserCommands:
+    def __init__(self, mw_install_path, commands):
+        self.mw_install_path = mw_install_path
+        self.commands = commands
+
+    def execute(self):
+        log.info('User commands')
+        with quibble.backend.DevWebServer(
+                mwdir=self.mw_install_path,
+                port=HTTP_PORT):
+            log.info('working directory: %s' % self.mw_install_path)
+
+            for cmd in self.commands:
+                log.info(cmd)
+                subprocess.check_call(
+                    cmd, shell=True, cwd=self.mw_install_path)
+
+    def __str__(self):
+        return "User commands: {}".format(self.commands)
