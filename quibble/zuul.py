@@ -30,21 +30,16 @@ CLONE_MAP = [
 ]
 
 
-def clone(repos, workspace, cache_dir, branch=None, project_branch=[],
-          workers=1):
+def clone(branch, cache_dir, project_branch, projects, workers, workspace,
+          zuul_branch, zuul_newrev, zuul_project, zuul_ref, zuul_url):
     log = logging.getLogger('quibble.zuul.clone')
 
-    if isinstance(repos, str):
-        repos = [repos]
+    if isinstance(projects, str):
+        projects = [projects]
 
-    zuul_env = {k: v for k, v in os.environ.items()
-                if k.startswith('ZUUL_')}
-    zuul_env['PATH'] = os.environ['PATH']
-
-    # Ripped off from zuul/cmd/cloner.py
-    if 'ZUUL_REF' in zuul_env and 'ZUUL_URL' not in zuul_env:
+    if zuul_ref is not None and zuul_url is None:
         raise Exception('Zuul ref requires a Zuul url')
-    if 'ZUUL_NEWREV' in zuul_env and 'ZUUL_PROJECT' not in zuul_env:
+    if zuul_newrev is not None and zuul_project is None:
         raise Exception('Zuul newrev requires a Zuul project')
 
     project_branches = {}
@@ -55,16 +50,16 @@ def clone(repos, workspace, cache_dir, branch=None, project_branch=[],
 
     zuul_cloner = Cloner(
         git_base_url='https://gerrit.wikimedia.org/r',
-        projects=repos,
+        projects=projects,
         workspace=workspace,
-        zuul_branch=zuul_env.get('ZUUL_BRANCH'),
-        zuul_ref=zuul_env.get('ZUUL_REF'),
-        zuul_url=zuul_env.get('ZUUL_URL'),
+        zuul_branch=zuul_branch,
+        zuul_ref=zuul_ref,
+        zuul_url=zuul_url,
         branch=branch,
         project_branches=project_branches,
         cache_dir=cache_dir,
-        zuul_newrev=zuul_env.get('ZUUL_NEWREV'),
-        zuul_project=zuul_env.get('ZUUL_PROJECT'),
+        zuul_newrev=zuul_newrev,
+        zuul_project=zuul_project,
         cache_no_hardlinks=False,  # False allows hardlink
         )
     # The constructor expects a file, set the value directly
@@ -72,7 +67,7 @@ def clone(repos, workspace, cache_dir, branch=None, project_branch=[],
 
     # Reimplement Cloner.execute() to make sure mediawiki/core is cloned first
     # and clone the rest in parallel.
-    mapper = CloneMapper(CLONE_MAP, repos)
+    mapper = CloneMapper(CLONE_MAP, projects)
     dests = mapper.expand(workspace=workspace)
 
     if workers == 1:

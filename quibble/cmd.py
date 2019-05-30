@@ -32,6 +32,7 @@ import quibble.mediawiki.maintenance
 import quibble.backend
 import quibble.test
 import quibble.zuul
+import quibble.commands
 
 
 # Used for add_argument(choices=) let us validate multiple choices at once.
@@ -260,13 +261,19 @@ class QuibbleCmd(object):
         return self.dependencies
 
     def clone(self, projects):
-        quibble.zuul.clone(
-            projects,
+        quibble.commands.ZuulCloneCommand(
             branch=self.args.branch,
-            project_branch=self.args.project_branch,
-            workspace=os.path.join(self.workspace, 'src'),
             cache_dir=self.args.git_cache,
-            workers=self.args.git_parallel)
+            project_branch=self.args.project_branch,
+            projects=projects,
+            workers=self.args.git_parallel,
+            workspace=os.path.join(self.workspace, 'src'),
+            zuul_branch=os.getenv('ZUUL_BRANCH'),
+            zuul_newrev=os.getenv('ZUUL_NEWREV'),
+            zuul_project=os.getenv('ZUUL_PROJECT'),
+            zuul_ref=os.getenv('ZUUL_REF'),
+            zuul_url=os.getenv('ZUUL_URL')
+        ).execute()
 
     def ext_skin_submodule_update(self):
         self.log.info('Updating git submodules of extensions and skins')

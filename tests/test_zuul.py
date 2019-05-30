@@ -1,4 +1,3 @@
-import os
 import unittest
 from unittest import mock
 
@@ -8,27 +7,31 @@ import quibble.zuul
 class TestClone(unittest.TestCase):
 
     def test_ref_requires_url_to_fetch_from(self):
-        zuul_env = {'PATH': '/usr/bin',
-                    'ZUUL_BRANCH': 'features/v1',
-                    'ZUUL_REF': 'heads/refs/features/v1',
-                    }
-        with mock.patch.dict(os.environ, zuul_env, clear=True):
-            with self.assertRaisesRegex(
-                    Exception, 'Zuul ref requires a Zuul url'):
-                quibble.zuul.clone(['project'], '/tmp', '/tmp/cache')
+        with self.assertRaisesRegex(
+                Exception, 'Zuul ref requires a Zuul url'):
+            quibble.zuul.clone(
+                branch=None, cache_dir='/tmp/cache', project_branch=[],
+                projects=['project'], workers=1, workspace='/tmp/src',
+                zuul_branch='features/v1', zuul_newrev='1234567789ABCDEF',
+                zuul_project=None, zuul_ref='heads/refs/features/v1',
+                zuul_url=None)
 
     def test_newrev_requires_a_project(self):
-        zuul_env = {'PATH': '/usr/bin',
-                    'ZUUL_NEWREV': '1234567789ABCDEF',
-                    }
-        with mock.patch.dict(os.environ, zuul_env, clear=True):
-            with self.assertRaisesRegex(
-                    Exception, 'Zuul newrev requires a Zuul project'):
-                quibble.zuul.clone(['project'], '/tmp', '/tmp/cache')
+        with self.assertRaisesRegex(
+                Exception, 'Zuul newrev requires a Zuul project'):
+            quibble.zuul.clone(
+                branch=None, cache_dir='/tmp/cache', project_branch=[],
+                projects=['project'], workers=1, workspace='/tmp/src',
+                zuul_branch=None, zuul_newrev='1234567789ABCDEF',
+                zuul_project=None, zuul_ref=None, zuul_url=None)
 
     @mock.patch('quibble.zuul.Cloner')
     def test_accepts_strings_as_repos(self, mock_cloner):
-        quibble.zuul.clone('project_as_string', '/tmp', '/tmp/cache')
+        quibble.zuul.clone(
+            branch=None, cache_dir='/tmp/cache', project_branch=[],
+            projects='project_as_string', workers=1, workspace='/tmp/src',
+            zuul_branch=None, zuul_newrev=None, zuul_project=None,
+            zuul_ref=None, zuul_url=None)
 
         (args, kwargs) = mock_cloner.call_args
         self.assertIn('projects', kwargs)
@@ -36,7 +39,11 @@ class TestClone(unittest.TestCase):
 
     @mock.patch('quibble.zuul.Cloner')
     def test_branch(self, mock_cloner):
-        quibble.zuul.clone('project', '/workspace', '/cache', branch='REL1_42')
+        quibble.zuul.clone(
+            branch='REL1_42', cache_dir='/tmp/cache', project_branch=[],
+            projects='project', workers=1, workspace='/tmp/src',
+            zuul_branch=None, zuul_newrev=None, zuul_project=None,
+            zuul_ref=None, zuul_url=None)
 
         (args, kwargs) = mock_cloner.call_args
         self.assertIn('branch', kwargs)
@@ -45,8 +52,10 @@ class TestClone(unittest.TestCase):
     @mock.patch('quibble.zuul.Cloner')
     def test_project_branch(self, mock_cloner):
         quibble.zuul.clone(
-            'project', '/workspace', '/cache',
-            project_branch=[['mediawiki/core=REL1_42']])
+            branch='REL1_42', cache_dir='/tmp/cache',
+            project_branch=[['mediawiki/core=REL1_42']], projects='project',
+            workers=1, workspace='/tmp/src', zuul_branch=None,
+            zuul_newrev=None, zuul_project=None, zuul_ref=None, zuul_url=None)
 
         (args, kwargs) = mock_cloner.call_args
         self.assertIn('mediawiki/core', kwargs['project_branches'])
@@ -56,10 +65,13 @@ class TestClone(unittest.TestCase):
     @mock.patch('quibble.zuul.Cloner')
     def test_multiple_project_branch(self, mock_cloner):
         quibble.zuul.clone(
-            'project', '/workspace', '/cache',
+            branch='REL1_42', cache_dir='/tmp/cache',
             project_branch=[
                 ['mediawiki/core=REL1_42'],
-                ['mediawiki/vendor=REL1_42']])
+                ['mediawiki/vendor=REL1_42']],
+            projects='project', workers=1, workspace='/tmp/src',
+            zuul_branch=None, zuul_newrev=None, zuul_project=None,
+            zuul_ref=None, zuul_url=None)
 
         (args, kwargs) = mock_cloner.call_args
         self.assertIn('mediawiki/core', kwargs['project_branches'])
