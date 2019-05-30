@@ -55,3 +55,23 @@ class ExtSkinSubmoduleUpdateCommandTest(unittest.TestCase):
             ]
         else:
             return []
+
+
+class CreateComposerLocalTest(unittest.TestCase):
+
+    def test_execute(self):
+        c = quibble.commands.CreateComposerLocal(
+            '/tmp',
+            ['mediawiki/extensions/Wikibase', 'justinrainbow/jsonschema'])
+
+        with mock.patch('json.dump') as mock_dump:
+            c.execute()
+
+            expected = {
+                'extra': {
+                    'merge-plugin': {
+                        'include': ['extensions/Wikibase/composer.json']
+                    }
+                }
+            }
+            mock_dump.assert_called_with(expected, mock.ANY)

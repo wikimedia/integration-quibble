@@ -1,5 +1,6 @@
 """Encapsulates each step of a job"""
 
+import json
 import logging
 import os.path
 import quibble.zuul
@@ -74,3 +75,46 @@ class ExtSkinSubmoduleUpdateCommand:
         # and print the analysis here.
         return "Extension and skin submodule update under MediaWiki root {}"\
             .format(self.mw_install_path)
+
+
+# Used to be bin/mw-create-composer-local.py
+class CreateComposerLocal:
+    def __init__(self, mw_install_path, dependencies):
+        self.mw_install_path = mw_install_path
+        self.dependencies = dependencies
+
+    def execute(self):
+        log.info('composer.local.json for merge plugin')
+        extensions = [ext.strip()[len('mediawiki/'):] + '/composer.json'
+                      for ext in self.dependencies
+                      if ext.strip().startswith('mediawiki/extensions/')]
+        out = {
+            'extra': {
+                'merge-plugin': {'include': extensions}
+                }
+            }
+        composer_local = os.path.join(self.mw_install_path,
+                                      'composer.local.json')
+        with open(composer_local, 'w') as f:
+            json.dump(out, f)
+        log.info('Created composer.local.json')
+
+    def __str__(self):
+        return "Create composer.local.json with dependencies {}".format(
+            self.dependencies)
+
+
+class ComposerComposerDependencies:
+    def __init__(self, mw_install_path):
+        self.mw_install_path = mw_install_path
+
+    def execute(self):
+        log.info('Running "composer update" for mediawiki/core')
+        cmd = ['composer', 'update',
+               '--ansi', '--no-progress', '--prefer-dist',
+               '--profile', '-v',
+               ]
+        subprocess.check_call(cmd, cwd=self.mw_install_path)
+
+    def __str__(self):
+        return "Run composer update for mediawiki/core"
