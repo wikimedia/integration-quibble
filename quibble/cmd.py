@@ -259,30 +259,6 @@ class QuibbleCmd(object):
 
         return self.dependencies
 
-    def clone(self, projects):
-        return quibble.commands.ZuulCloneCommand(
-            branch=self.args.branch,
-            cache_dir=self.args.git_cache,
-            project_branch=self.args.project_branch,
-            projects=projects,
-            workers=self.args.git_parallel,
-            workspace=os.path.join(self.workspace, 'src'),
-            zuul_branch=os.getenv('ZUUL_BRANCH'),
-            zuul_newrev=os.getenv('ZUUL_NEWREV'),
-            zuul_project=os.getenv('ZUUL_PROJECT'),
-            zuul_ref=os.getenv('ZUUL_REF'),
-            zuul_url=os.getenv('ZUUL_URL')
-        )
-
-    def mw_install(self):
-        return quibble.commands.InstallMediaWiki(
-            mw_install_path=self.mw_install_path,
-            db_engine=self.args.db,
-            db_dir=self.db_dir,
-            dump_dir=self.dump_dir,
-            log_dir=self.log_dir,
-            use_vendor=(self.args.packages_source == 'vendor'))
-
     def isCoreOrVendor(self, project):
         return project == 'mediawiki/core' or project == 'mediawiki/vendor'
 
@@ -335,7 +311,19 @@ class QuibbleCmd(object):
             clone_vendor=(self.args.packages_source == 'vendor'))
 
         if not self.args.skip_zuul:
-            plan.append(self.clone(projects_to_clone))
+            plan.append(quibble.commands.ZuulCloneCommand(
+                branch=self.args.branch,
+                cache_dir=self.args.git_cache,
+                project_branch=self.args.project_branch,
+                projects=projects_to_clone,
+                workers=self.args.git_parallel,
+                workspace=os.path.join(self.workspace, 'src'),
+                zuul_branch=os.getenv('ZUUL_BRANCH'),
+                zuul_newrev=os.getenv('ZUUL_NEWREV'),
+                zuul_project=os.getenv('ZUUL_PROJECT'),
+                zuul_ref=os.getenv('ZUUL_REF'),
+                zuul_url=os.getenv('ZUUL_URL')
+            ))
             plan.append(quibble.commands.ExtSkinSubmoduleUpdateCommand(
                 self.mw_install_path))
 
@@ -357,7 +345,13 @@ class QuibbleCmd(object):
                 self.mw_install_path))
 
         if not self.args.skip_install:
-            plan.append(self.mw_install())
+            plan.append(quibble.commands.InstallMediaWiki(
+                mw_install_path=self.mw_install_path,
+                db_engine=self.args.db,
+                db_dir=self.db_dir,
+                dump_dir=self.dump_dir,
+                log_dir=self.log_dir,
+                use_vendor=(self.args.packages_source == 'vendor')))
 
         if not self.args.skip_deps:
             if self.args.packages_source == 'vendor':
