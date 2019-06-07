@@ -7,8 +7,7 @@ import os
 import os.path
 import pkg_resources
 from quibble.gitchangedinhead import GitChangedInHead
-from quibble.test import parallel_run
-from quibble.util import copylog
+from quibble.util import copylog, parallel_run
 import quibble.zuul
 import subprocess
 

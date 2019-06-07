@@ -25,7 +25,6 @@ import tempfile
 import quibble
 import quibble.mediawiki.maintenance
 import quibble.backend
-import quibble.test
 import quibble.zuul
 import quibble.commands
 
