@@ -349,7 +349,7 @@ class QuibbleCmd(object):
         if not self.args.skip_deps and self.args.packages_source == 'composer':
             plan.append(quibble.commands.CreateComposerLocal(
                 self.mw_install_path, self.dependencies))
-            plan.append(quibble.commands.ComposerComposerDependencies(
+            plan.append(quibble.commands.NativeComposerDependencies(
                 self.mw_install_path))
 
         plan.append(self.mw_install())

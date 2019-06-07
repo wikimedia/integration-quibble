@@ -232,7 +232,7 @@ class CoreNpmComposerTest:
         return "Run tests in mediawiki/core: {}".format(tests)
 
 
-class ComposerComposerDependencies:
+class NativeComposerDependencies:
     def __init__(self, mw_install_path):
         self.mw_install_path = mw_install_path
 
@@ -295,7 +295,7 @@ class VendorComposerDependencies:
                 os.path.join(self.log_dir, 'composer.autoload_files.php.txt'))
 
     def __str__(self):
-        return "Install composer dev-requires"
+        return "Install composer dev-requires for vendor.git"
 
 
 class NpmInstall:
