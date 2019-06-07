@@ -1,5 +1,6 @@
+from nose.tools import assert_raises
 import quibble.util
-from quibble.util import isCoreOrVendor, isExtOrSkin
+from quibble.util import isCoreOrVendor, isExtOrSkin, move_item_to_head
 
 
 def test_parallel_run_accepts_an_empty_list_of_tasks():
@@ -43,3 +44,19 @@ def test_isExtOrSkin_mismatches_core():
 
 def test_isExtOrSkin_mismatches_vendor():
     assert isExtOrSkin('mediawiki/vendor') is False
+
+
+def test_move_item_to_head_present():
+    orig = ['mediawiki/core', 'extensions/foo', 'bar']
+    expected = ['extensions/foo', 'mediawiki/core', 'bar']
+
+    reordered = move_item_to_head(orig, 'extensions/foo')
+    assert expected == reordered
+    assert orig[0] == 'mediawiki/core'
+
+
+def test_move_item_to_head_absent():
+    orig = ['mediawiki/core', 'bar']
+
+    with assert_raises(ValueError):
+        move_item_to_head(orig, 'extensions/foo')

@@ -413,6 +413,8 @@ class QuibbleCmd(object):
         if self.should_run('selenium'):
             plan.append(quibble.commands.BrowserTests(
                 self.mw_install_path,
+                quibble.util.move_item_to_head(
+                    self.dependencies, zuul_project),
                 display))
 
         if self.should_run('phpunit'):

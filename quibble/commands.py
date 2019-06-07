@@ -581,8 +581,9 @@ class QunitTests:
 
 
 class BrowserTests:
-    def __init__(self, mw_install_path, display):
+    def __init__(self, mw_install_path, projects, display):
         self.mw_install_path = mw_install_path
+        self.projects = projects
         self.display = display
 
     def execute(self):
@@ -592,18 +593,23 @@ class BrowserTests:
             self.run_selenium()
 
     def run_selenium(self):
-        if repo_has_npm_script(self.mw_install_path, 'selenium-test'):
-            with ExitStack() as stack:
-                if not self.display:
-                    self.display = ':94'  # XXX racy when run concurrently!
-                    log.info("No DISPLAY, using Xvfb.")
-                    stack.enter_context(
-                        quibble.backend.Xvfb(display=self.display))
+        with ExitStack() as stack:
+            if not self.display:
+                self.display = ':94'  # XXX racy when run concurrently!
+                log.info("No DISPLAY, using Xvfb.")
+                stack.enter_context(
+                    quibble.backend.Xvfb(display=self.display))
 
-                with quibble.backend.ChromeWebDriver(display=self.display):
-                    self.run_webdriver()
+            with quibble.backend.ChromeWebDriver(display=self.display):
+                for project in self.projects:
+                    project_dir = os.path.normpath(os.path.join(
+                        self.mw_install_path,
+                        quibble.zuul.repo_dir(project)))
+                    if repo_has_npm_script(project_dir, 'selenium-test'):
+                        self.run_webdriver(project_dir)
 
-    def run_webdriver(self):
+    def run_webdriver(self, project_dir):
+        log.info('Running webdriver test in %s' % project_dir)
         webdriver_env = {}
         webdriver_env.update(os.environ)
         webdriver_env.update({
@@ -616,13 +622,17 @@ class BrowserTests:
         })
 
         subprocess.check_call(
+            ['npm', 'install', '--prefer-offline'],
+            cwd=project_dir)
+        subprocess.check_call(
             ['npm', 'run', 'selenium-test'],
-            cwd=self.mw_install_path,
+            cwd=project_dir,
             env=webdriver_env)
 
     def __str__(self):
-        return "Browser tests (maybe) in {} using DISPLAY={}".format(
-            self.mw_install_path, self.display or "Xvfb")
+        return "Browser tests using DISPLAY={}, for projects {}".format(
+            self.display or "Xvfb",
+            ", ".join(self.projects))
 
 
 class UserCommands:

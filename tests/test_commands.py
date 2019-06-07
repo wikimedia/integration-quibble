@@ -277,12 +277,16 @@ class BrowserTestsTest(unittest.TestCase):
             }
         }
 
-        c = quibble.commands.BrowserTests('/tmp', ':0')
+        c = quibble.commands.BrowserTests(
+                '/tmp', ['mediawiki/core', 'mediawiki/skins/Vector'], ':0')
         c.execute()
 
         mock_check_call.assert_any_call(
             ['npm', 'run', 'selenium-test'],
             cwd='/tmp', env=mock.ANY)
+        mock_check_call.assert_any_call(
+            ['npm', 'run', 'selenium-test'],
+            cwd='/tmp/skins/Vector', env=mock.ANY)
 
     @mock.patch('builtins.open', mock.mock_open())
     @mock.patch('json.load')
@@ -297,7 +301,8 @@ class BrowserTestsTest(unittest.TestCase):
             }
         }
 
-        c = quibble.commands.BrowserTests('/tmp', ':0')
+        c = quibble.commands.BrowserTests(
+                '/tmp', ['mediawiki/core', 'mediawiki/skins/Vector'], ':0')
         c.execute()
 
         mock_check_call.assert_not_called()

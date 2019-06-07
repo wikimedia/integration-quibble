@@ -76,3 +76,9 @@ def isExtOrSkin(project):
     return project.startswith(
         ('mediawiki/extensions/', 'mediawiki/skins/')
     )
+
+
+def move_item_to_head(dependencies, project):
+    repos = list(dependencies)
+    repos.insert(0, repos.pop(repos.index(project)))
+    return repos
