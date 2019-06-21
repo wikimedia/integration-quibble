@@ -441,6 +441,23 @@ class PhpWebserver(WebserverEngine):
         return '<PhpWebserver %s %s>' % (self.url, self.mwdir)
 
 
+@web_backend('apache')
+class ApacheWebserver(WebserverEngine):
+    def __init__(self, *args, **kwargs):
+        super(ApacheWebserver, self).__init__(*args, **kwargs)
+
+        assert self.port == 9412
+
+    def start(self):
+        subprocess.Popen(['php-fpm', '-D'])
+        server_cmd = ['apache2ctl', '-DFOREGROUND']
+
+        super(ApacheWebserver, self)._start(server_cmd)
+
+    def __str__(self):
+        return '<Apache %s %s>' % (self.url, self.mwdir)
+
+
 class Xvfb(BackendServer):
 
     def __init__(self, display=':94'):

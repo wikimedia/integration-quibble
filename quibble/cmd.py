@@ -428,7 +428,7 @@ def get_arg_parser():
         help='Base URL where MediaWiki can be accessed.')
     parser.add_argument(
         '--web-backend',
-        choices=['php', 'external'],
+        choices=['php', 'external', 'apache'],
         default='php',
         help='Web server to use. Default to PHP\'s built-in. '
              '"external" assumes that the local MediaWiki site can be accessed'
