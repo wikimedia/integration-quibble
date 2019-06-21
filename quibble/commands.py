@@ -39,9 +39,10 @@ class ZuulCloneCommand:
             self.zuul_project, self.zuul_ref, self.zuul_url)
 
     def __str__(self):
-        return "Zuul clone {} with parameters {}".format(
-            self.projects,
-            self.kwargs)
+        pruned_params = {k: v for k, v in self.__dict__.items()
+                         if v is not None and v != []}
+        return "Zuul clone with parameters {}".format(
+            json.dumps(pruned_params))
 
 
 class ExtSkinSubmoduleUpdateCommand:
@@ -172,7 +173,7 @@ class ExtSkinComposerNpmTest:
             tests.append("composer")
         if self.npm:
             tests.append("npm")
-        return "Extension and skin tests: {}".format(tests)
+        return "Extension and skin tests: {}".format(", ".join(tests))
 
 
 class CoreNpmComposerTest:
@@ -229,7 +230,7 @@ class CoreNpmComposerTest:
             tests.append("composer")
         if self.npm:
             tests.append("npm")
-        return "Run tests in mediawiki/core: {}".format(tests)
+        return "Run tests in mediawiki/core: {}".format(", ".join(tests))
 
 
 class NativeComposerDependencies:
@@ -440,7 +441,8 @@ class PhpUnitDatabaseless(AbstractPhpUnit):
         self.run_phpunit(exclude_group=['Database'])
 
     def __str__(self):
-        return "PHPUnit {} suite (without database)".format(self.testsuite)
+        return "PHPUnit {} suite (without database)".format(
+            self.testsuite or 'default')
 
 
 class PhpUnitDatabase(AbstractPhpUnit):
@@ -454,7 +456,8 @@ class PhpUnitDatabase(AbstractPhpUnit):
         self.run_phpunit(group=['Database'])
 
     def __str__(self):
-        return "PHPUnit {} suite (with database)".format(self.testsuite)
+        return "PHPUnit {} suite (with database)".format(
+            self.testsuite or 'default')
 
 
 class BrowserTests:
@@ -526,8 +529,9 @@ class BrowserTests:
             tests.append("qunit")
         if self.selenium:
             tests.append("selenium (maybe)")
+
         return "Browser tests in {}: {} using DISPLAY={}".format(
-            self.mw_install_path, tests, self.display)
+            self.mw_install_path, ", ".join(tests), self.display or "Xvfb")
 
 
 class UserCommands:
@@ -548,4 +552,4 @@ class UserCommands:
                     cmd, shell=True, cwd=self.mw_install_path)
 
     def __str__(self):
-        return "User commands: {}".format(self.commands)
+        return "User commands: {}".format(", ".join(self.commands))
