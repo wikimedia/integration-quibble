@@ -82,6 +82,10 @@ class QuibbleCmd(object):
             action='store_true',
             help='Do not run composer/npm')
         parser.add_argument(
+            '--skip-install',
+            action='store_true',
+            help='Do not install MediaWiki')
+        parser.add_argument(
             '--db',
             choices=['sqlite', 'mysql', 'postgres'],
             default='mysql',
@@ -352,7 +356,8 @@ class QuibbleCmd(object):
             plan.append(quibble.commands.NativeComposerDependencies(
                 self.mw_install_path))
 
-        plan.append(self.mw_install())
+        if not self.args.skip_install:
+            plan.append(self.mw_install())
 
         if not self.args.skip_deps:
             if self.args.packages_source == 'vendor':
