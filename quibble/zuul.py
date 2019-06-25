@@ -78,11 +78,12 @@ def clone(branch, cache_dir, project_branch, projects, workers, workspace,
     log.info("Preparing %s repositories with %s workers" % (
              len(dests), workers))
 
-    mw_git_dir = os.path.join(dests['mediawiki/core'], '.git')
-    if not os.path.exists(mw_git_dir):
-        log.info("Cloning mediawiki/core first")
-        zuul_cloner.prepareRepo('mediawiki/core', dests['mediawiki/core'])
-        del(dests['mediawiki/core'])
+    if 'mediawiki/core' in projects:
+        mw_git_dir = os.path.join(dests['mediawiki/core'], '.git')
+        if not os.path.exists(mw_git_dir):
+            log.info("Cloning mediawiki/core first")
+            zuul_cloner.prepareRepo('mediawiki/core', dests['mediawiki/core'])
+            del(dests['mediawiki/core'])
 
     with ThreadPoolExecutor(max_workers=workers) as executor:
         for project, dest in dests.items():

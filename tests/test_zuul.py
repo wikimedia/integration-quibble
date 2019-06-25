@@ -81,6 +81,16 @@ class TestClone(unittest.TestCase):
         self.assertEquals('REL1_42',
                           kwargs['project_branches']['mediawiki/vendor'])
 
+    @mock.patch('quibble.zuul.Cloner')
+    def test_can_clone_without_mediawiki_core(self, mock_cloner):
+        quibble.zuul.clone(
+            branch='master', cache_dir='/tmp/cache', project_branch=[],
+            # Clone without mediawiki/core
+            projects=['mediawiki/skins/Foo', 'mediawiki/skins/Bar'],
+            workers=2, workspace='/tmp/src',
+            zuul_branch=None, zuul_newrev=None, zuul_project=None,
+            zuul_ref=None, zuul_url=None)
+
 
 class TestRepoDir(unittest.TestCase):
 
