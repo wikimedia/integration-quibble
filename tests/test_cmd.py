@@ -185,21 +185,6 @@ class CmdTest(unittest.TestCase):
         self.assertEqual(os.environ['LOG_DIR'], '/mylog')
         self.assertEqual(os.environ['MW_LOG_DIR'], '/mylog')
 
-    def test_isCoreOrVendor(self):
-        q = cmd.QuibbleCmd()
-        self.assertTrue(q.isCoreOrVendor('mediawiki/core'))
-        self.assertTrue(q.isCoreOrVendor('mediawiki/vendor'))
-        self.assertFalse(q.isCoreOrVendor('mediawiki/extensions/Foo'))
-        self.assertFalse(q.isCoreOrVendor('mediawiki/skins/Bar'))
-
-    def test_isExtOrSkin(self):
-        q = cmd.QuibbleCmd()
-        q.isExtOrSkin
-        self.assertTrue(q.isExtOrSkin('mediawiki/extensions/Foo'))
-        self.assertTrue(q.isExtOrSkin('mediawiki/skins/Bar'))
-        self.assertFalse(q.isExtOrSkin('mediawiki/core'))
-        self.assertFalse(q.isExtOrSkin('mediawiki/vendor'))
-
     def test_should_run_accepts_all_stages_by_default(self):
         q = cmd.QuibbleCmd()
         q.args = q.parse_arguments(args=[])

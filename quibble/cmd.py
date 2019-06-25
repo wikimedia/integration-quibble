@@ -28,6 +28,8 @@ import quibble.backend
 import quibble.zuul
 import quibble.commands
 
+from quibble.util import isExtOrSkin
+
 
 # Used for add_argument(choices=) let us validate multiple choices at once.
 # >>> 'a' in MultipleChoices(['a', 'b', 'c'])
@@ -258,14 +260,6 @@ class QuibbleCmd(object):
 
         return self.dependencies
 
-    def isCoreOrVendor(self, project):
-        return project == 'mediawiki/core' or project == 'mediawiki/vendor'
-
-    def isExtOrSkin(self, project):
-        return project.startswith(
-            ('mediawiki/extensions/', 'mediawiki/skins/')
-        )
-
     def should_run(self, stage):
         if self.args.commands:
             return False
@@ -326,7 +320,7 @@ class QuibbleCmd(object):
             plan.append(quibble.commands.ExtSkinSubmoduleUpdateCommand(
                 self.mw_install_path))
 
-        if self.isExtOrSkin(zuul_project):
+        if isExtOrSkin(zuul_project):
             run_composer = self.should_run('composer-test')
             run_npm = self.should_run('npm-test')
             if run_composer or run_npm:
