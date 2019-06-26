@@ -206,6 +206,22 @@ class PhpUnitDatabaselessTest(unittest.TestCase):
             env=mock.ANY)
 
 
+class PhpUnitUnitTest(unittest.TestCase):
+
+    @mock.patch('subprocess.check_call')
+    def test_execute(self, mock_check_call):
+        quibble.commands.PhpUnitUnit(
+            mw_install_path='/tmp', log_dir='/log'
+        ).execute()
+
+        mock_check_call.assert_called_once_with(
+            ['composer', 'phpunit:unit',
+             '--exclude-group', 'Broken,ParserFuzz,Stub',
+             '--log-junit', '/log/junit-unit.xml'],
+            cwd='/tmp',
+            env=mock.ANY)
+
+
 class BrowserTestsTest(unittest.TestCase):
 
     @mock.patch.dict('os.environ', {'somevar': '42'}, clear=True)

@@ -472,12 +472,12 @@ class InstallMediaWiki:
 
 
 class AbstractPhpUnit:
-    def run_phpunit(self, group=[], exclude_group=[]):
+    def run_phpunit(self, group=[], exclude_group=[], cmd=None):
         log.info(self)
 
         always_excluded = ['Broken', 'ParserFuzz', 'Stub']
-
-        cmd = ['php', 'tests/phpunit/phpunit.php', '--debug-tests']
+        if not cmd:
+            cmd = ['php', 'tests/phpunit/phpunit.php', '--debug-tests']
         if self.testsuite:
             cmd.extend(['--testsuite', self.testsuite])
 
@@ -515,6 +515,20 @@ class PhpUnitDatabaseless(AbstractPhpUnit):
     def __str__(self):
         return "PHPUnit {} suite (without database)".format(
             self.testsuite or 'default')
+
+
+class PhpUnitUnit(AbstractPhpUnit):
+    def __init__(self, mw_install_path, log_dir):
+        self.mw_install_path = mw_install_path
+        self.log_dir = log_dir
+        self.testsuite = None
+        self.junit_file = os.path.join(self.log_dir, 'junit-unit.xml')
+
+    def execute(self):
+        self.run_phpunit(cmd=['composer', 'phpunit:unit'])
+
+    def __str__(self):
+        return "PHPUnit unit tests"
 
 
 class PhpUnitDatabase(AbstractPhpUnit):

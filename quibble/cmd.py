@@ -44,7 +44,8 @@ class MultipleChoices(list):
 class QuibbleCmd(object):
 
     log = logging.getLogger('quibble.cmd')
-    stages = ['phpunit', 'npm-test', 'composer-test', 'qunit', 'selenium']
+    stages = ['phpunit-unit', 'phpunit', 'npm-test', 'composer-test', 'qunit',
+              'selenium']
     dump_dir = None
     db_dir = None
 
@@ -386,6 +387,11 @@ class QuibbleCmd(object):
             phpunit_testsuite = 'extensions'
         elif zuul_project.startswith('mediawiki/skins/'):
             phpunit_testsuite = 'skins'
+
+        if self.should_run('phpunit-unit'):
+            plan.append(quibble.commands.PhpUnitUnit(
+                self.mw_install_path,
+                self.log_dir))
 
         if self.should_run('phpunit'):
             plan.append(quibble.commands.PhpUnitDatabaseless(
