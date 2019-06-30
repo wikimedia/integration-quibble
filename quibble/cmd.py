@@ -399,6 +399,7 @@ class QuibbleCmd(object):
         for cmd in plan:
             self.log.debug(cmd)
         if self.args.dry_run:
+            self.log.warning("Exiting without execution: --dry-run")
             return
         for command in plan:
             command.execute()
