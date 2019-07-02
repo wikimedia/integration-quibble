@@ -240,39 +240,39 @@ class QuibbleCmd(object):
             '%s env variable is deprecated. '
             'Instead pass projects as arguments.' % var)
 
-    def set_repos_to_clone(self, projects=[], clone_vendor=False):
+    def repos_to_clone(self, projects=[], zuul_project=None,
+                       clone_vendor=False):
         """
         Find repos to clone basedon passed arguments and environment
         """
+        dependencies = []
         # mediawiki/core should be first else git clone will fail because the
         # destination directory already exists.
-        self.dependencies.insert(0, 'mediawiki/core')
-        self.dependencies.append('mediawiki/skins/Vector')
+        dependencies.insert(0, 'mediawiki/core')
+        dependencies.append('mediawiki/skins/Vector')
         if clone_vendor:
             self.log.info('Adding mediawiki/vendor')
-            self.dependencies.append('mediawiki/vendor')
+            dependencies.append('mediawiki/vendor')
 
-        if 'ZUUL_PROJECT' in os.environ:
-            zuul_project = os.environ.get('ZUUL_PROJECT')
-            if zuul_project not in self.dependencies:
-                self.dependencies.append(zuul_project)
+        if zuul_project is not None and zuul_project not in dependencies:
+            dependencies.append(zuul_project)
 
         if 'SKIN_DEPENDENCIES' in os.environ:
             self._warn_obsolete_env_deps('SKIN_DEPENDENCIES')
-            self.dependencies.extend(
+            dependencies.extend(
                 os.environ.get('SKIN_DEPENDENCIES').split('\\n'))
 
         if 'EXT_DEPENDENCIES' in os.environ:
             self._warn_obsolete_env_deps('EXT_DEPENDENCIES')
-            self.dependencies.extend(
+            dependencies.extend(
                 os.environ.get('EXT_DEPENDENCIES').split('\\n'))
 
-        self.dependencies.extend(projects)
+        dependencies.extend(projects)
 
         self.log.info('Projects: %s'
-                      % ', '.join(self.dependencies))
+                      % ', '.join(dependencies))
 
-        return self.dependencies
+        return dependencies
 
     def should_run(self, stage):
         if self.args.commands:
@@ -308,13 +308,16 @@ class QuibbleCmd(object):
 
         zuul_project = os.environ.get('ZUUL_PROJECT', None)
         if zuul_project is None:
+            # TODO: Isn't this default already covered by quibble.zuul, and we
+            # can remove this code?
             self.log.warning('ZUUL_PROJECT not set. Assuming mediawiki/core')
             zuul_project = 'mediawiki/core'
         else:
             self.log.debug("ZUUL_PROJECT=%s" % zuul_project)
 
-        projects_to_clone = self.set_repos_to_clone(
+        self.dependencies = self.repos_to_clone(
             projects=self.args.projects,
+            zuul_project=zuul_project,
             clone_vendor=(self.args.packages_source == 'vendor'))
 
         if not self.args.skip_zuul:
@@ -331,14 +334,14 @@ class QuibbleCmd(object):
                 'zuul_url': os.getenv('ZUUL_URL'),
             }
             plan.append(quibble.commands.ZuulCloneCommand(
-                projects=projects_to_clone,
+                projects=self.dependencies,
                 **zuul_params
             ))
 
             if self.args.resolve_requires:
                 plan.append(quibble.commands.ResolveRequiresCommand(
                     mw_install_path=self.mw_install_path,
-                    projects=projects_to_clone,
+                    projects=self.dependencies,
                     zuul_params=zuul_params,
                     fail_on_extra_requires=self.args.fail_on_extra_requires,
                 ))
