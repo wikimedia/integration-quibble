@@ -231,7 +231,7 @@ class ExtSkinComposerNpmTest:
         log.info('Running "npm test" for %s' % project_name)
         cmds = [
             ['npm', 'prune'],
-            ['npm', 'install', '--no-progress'],
+            ['npm', 'install', '--no-progress', '--prefer-offline'],
             ['npm', 'test'],
         ]
         for cmd in cmds:
@@ -375,7 +375,9 @@ class NpmInstall:
 
     def execute(self):
         subprocess.check_call(['npm', 'prune'], cwd=self.directory)
-        subprocess.check_call(['npm', 'install'], cwd=self.directory)
+        subprocess.check_call(
+            ['npm', 'install', '--no-progress', '--prefer-offline'],
+            cwd=self.directory)
 
     def __str__(self):
         return "npm install in {}".format(self.directory)
