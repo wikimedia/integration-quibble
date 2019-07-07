@@ -215,7 +215,7 @@ class PhpUnitUnitTest(unittest.TestCase):
         ).execute()
 
         mock_check_call.assert_called_once_with(
-            ['composer', 'phpunit:unit',
+            ['composer', 'phpunit:unit', '--',
              '--exclude-group', 'Broken,ParserFuzz,Stub',
              '--log-junit', '/log/junit-unit.xml'],
             cwd='/tmp',

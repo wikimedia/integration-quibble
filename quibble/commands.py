@@ -525,7 +525,7 @@ class PhpUnitUnit(AbstractPhpUnit):
         self.junit_file = os.path.join(self.log_dir, 'junit-unit.xml')
 
     def execute(self):
-        self.run_phpunit(cmd=['composer', 'phpunit:unit'])
+        self.run_phpunit(cmd=['composer', 'phpunit:unit', '--'])
 
     def __str__(self):
         return "PHPUnit unit tests"
