@@ -208,8 +208,30 @@ class PhpUnitDatabaselessTest(unittest.TestCase):
 
 class PhpUnitUnitTest(unittest.TestCase):
 
+    @mock.patch('builtins.open', mock.mock_open())
+    @mock.patch('json.load')
     @mock.patch('subprocess.check_call')
-    def test_execute(self, mock_check_call):
+    def test_execute_no_scripts(self, mock_check_call, mock_load, *_):
+        mock_load.return_value = {
+            "requires": {}
+        }
+
+        quibble.commands.PhpUnitUnit(
+            mw_install_path='/tmp', log_dir='/log'
+        ).execute()
+
+        mock_check_call.assert_not_called()
+
+    @mock.patch('builtins.open', mock.mock_open())
+    @mock.patch('json.load')
+    @mock.patch('subprocess.check_call')
+    def test_execute_has_units(self, mock_check_call, mock_load, *_):
+        mock_load.return_value = {
+            "scripts": {
+                "phpunit:unit": {}
+            }
+        }
+
         quibble.commands.PhpUnitUnit(
             mw_install_path='/tmp', log_dir='/log'
         ).execute()
