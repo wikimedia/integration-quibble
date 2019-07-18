@@ -569,19 +569,8 @@ class BrowserTests:
             if self.qunit:
                 self.run_qunit()
 
-            # Webdriver.io Selenium tests available since 1.29
-            if self.selenium and \
-                    os.path.exists(os.path.join(
-                        self.mw_install_path, 'tests/selenium')):
-                with ExitStack() as stack:
-                    if not self.display:
-                        self.display = ':94'  # XXX racy when run concurrently!
-                        log.info("No DISPLAY, using Xvfb.")
-                        stack.enter_context(
-                            quibble.backend.Xvfb(display=self.display))
-
-                    with quibble.backend.ChromeWebDriver(display=self.display):
-                        self.run_webdriver()
+            if self.selenium:
+                self.run_selenium()
 
     def run_qunit(self):
         karma_env = {
@@ -598,6 +587,20 @@ class BrowserTests:
             cwd=self.mw_install_path,
             env=karma_env,
         )
+
+    def run_selenium(self):
+        # Webdriver.io Selenium tests available since 1.29
+        if os.path.exists(os.path.join(
+                self.mw_install_path, 'tests/selenium')):
+            with ExitStack() as stack:
+                if not self.display:
+                    self.display = ':94'  # XXX racy when run concurrently!
+                    log.info("No DISPLAY, using Xvfb.")
+                    stack.enter_context(
+                        quibble.backend.Xvfb(display=self.display))
+
+                with quibble.backend.ChromeWebDriver(display=self.display):
+                    self.run_webdriver()
 
     def run_webdriver(self):
         webdriver_env = {}
