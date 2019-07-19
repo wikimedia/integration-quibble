@@ -261,6 +261,46 @@ class BrowserTestsTest(unittest.TestCase):
 
         assert mock_check_call.call_count > 0
 
+    @mock.patch('builtins.open', mock.mock_open())
+    @mock.patch('json.load')
+    @mock.patch('subprocess.check_call')
+    @mock.patch('quibble.backend.DevWebServer')
+    @mock.patch('quibble.backend.ChromeWebDriver')
+    def test_project_selenium(self, mock_driver, mock_server, mock_check_call,
+                              mock_load):
+        mock_load.return_value = {
+            'scripts': {
+                'selenium-test': 'run that stuff'
+            }
+        }
+
+        c = quibble.commands.BrowserTests(
+                '/tmp', False, True, ':0')
+        c.execute()
+
+        mock_check_call.assert_any_call(
+            ['npm', 'run', 'selenium-test'],
+            cwd='/tmp', env=mock.ANY)
+
+    @mock.patch('builtins.open', mock.mock_open())
+    @mock.patch('json.load')
+    @mock.patch('subprocess.check_call')
+    @mock.patch('quibble.backend.DevWebServer')
+    @mock.patch('quibble.backend.ChromeWebDriver')
+    def test_project_missing_selenium(self, mock_driver, mock_server,
+                                      mock_check_call, mock_load):
+        mock_load.return_value = {
+            'scripts': {
+                'other-test': 'foo'
+            }
+        }
+
+        c = quibble.commands.BrowserTests(
+                '/tmp', False, True, ':0')
+        c.execute()
+
+        mock_check_call.assert_not_called()
+
 
 class UserCommandsTest(unittest.TestCase):
 

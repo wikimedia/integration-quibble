@@ -589,9 +589,7 @@ class BrowserTests:
         )
 
     def run_selenium(self):
-        # Webdriver.io Selenium tests available since 1.29
-        if os.path.exists(os.path.join(
-                self.mw_install_path, 'tests/selenium')):
+        if repo_has_composer_script(self.mw_install_path, 'selenium-test'):
             with ExitStack() as stack:
                 if not self.display:
                     self.display = ':94'  # XXX racy when run concurrently!
@@ -649,3 +647,11 @@ class UserCommands:
 
     def __str__(self):
         return "User commands: {}".format(", ".join(self.commands))
+
+
+def repo_has_composer_script(project_dir, script_name):
+    composer_path = os.path.join(project_dir, 'composer.json')
+    with open(composer_path) as f:
+        composer_spec = json.load(f)
+    return ('scripts' in composer_spec
+            and script_name in composer_spec['scripts'])
