@@ -525,14 +525,11 @@ class PhpUnitUnit(AbstractPhpUnit):
         self.junit_file = os.path.join(self.log_dir, 'junit-unit.xml')
 
     def execute(self):
-        mw_composer_json = os.path.join(self.mw_install_path, 'composer.json')
-        with open(mw_composer_json, 'r') as f:
-            composer = json.load(f)
-        if 'scripts' not in composer \
-                or 'phpunit:unit' not in composer['scripts']:
+        if repo_has_composer_script(self.mw_install_path, 'phpunit:unit'):
+            self.run_phpunit(cmd=['composer', 'phpunit:unit', '--'])
+        else:
             log.debug('skipping phpunit:unit stage, script is not present')
             return
-        self.run_phpunit(cmd=['composer', 'phpunit:unit', '--'])
 
     def __str__(self):
         return "PHPUnit unit tests"
