@@ -244,7 +244,7 @@ class PhpUnitUnitTest(unittest.TestCase):
             env=mock.ANY)
 
 
-class BrowserTestsTest(unittest.TestCase):
+class QunitTestsTest(unittest.TestCase):
 
     @mock.patch.dict('os.environ', {'somevar': '42'}, clear=True)
     @mock.patch('quibble.backend.DevWebServer')
@@ -257,9 +257,12 @@ class BrowserTestsTest(unittest.TestCase):
 
         mock_check_call.side_effect = check_env_for_no_sandbox
 
-        quibble.commands.BrowserTests('/tmp', True, False, None).execute()
+        quibble.commands.QunitTests('/tmp').execute()
 
         assert mock_check_call.call_count > 0
+
+
+class BrowserTestsTest(unittest.TestCase):
 
     @mock.patch('builtins.open', mock.mock_open())
     @mock.patch('json.load')
@@ -274,8 +277,7 @@ class BrowserTestsTest(unittest.TestCase):
             }
         }
 
-        c = quibble.commands.BrowserTests(
-                '/tmp', False, True, ':0')
+        c = quibble.commands.BrowserTests('/tmp', ':0')
         c.execute()
 
         mock_check_call.assert_any_call(
@@ -295,8 +297,7 @@ class BrowserTestsTest(unittest.TestCase):
             }
         }
 
-        c = quibble.commands.BrowserTests(
-                '/tmp', False, True, ':0')
+        c = quibble.commands.BrowserTests('/tmp', ':0')
         c.execute()
 
         mock_check_call.assert_not_called()

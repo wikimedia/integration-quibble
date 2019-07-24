@@ -550,24 +550,15 @@ class PhpUnitDatabase(AbstractPhpUnit):
             self.testsuite or 'default')
 
 
-class BrowserTests:
-    def __init__(self, mw_install_path, qunit, selenium, display):
+class QunitTests:
+    def __init__(self, mw_install_path):
         self.mw_install_path = mw_install_path
-        self.qunit = qunit
-        # FIXME: find a nice way to analyze whether we're actually running
-        # qunit or selenium before creating the command.
-        self.selenium = selenium
-        self.display = display
 
     def execute(self):
         with quibble.backend.DevWebServer(
                 mwdir=self.mw_install_path,
                 port=HTTP_PORT):
-            if self.qunit:
-                self.run_qunit()
-
-            if self.selenium:
-                self.run_selenium()
+            self.run_qunit()
 
     def run_qunit(self):
         karma_env = {
@@ -584,6 +575,21 @@ class BrowserTests:
             cwd=self.mw_install_path,
             env=karma_env,
         )
+
+    def __str__(self):
+        return "Run Qunit tests"
+
+
+class BrowserTests:
+    def __init__(self, mw_install_path, display):
+        self.mw_install_path = mw_install_path
+        self.display = display
+
+    def execute(self):
+        with quibble.backend.DevWebServer(
+                mwdir=self.mw_install_path,
+                port=HTTP_PORT):
+            self.run_selenium()
 
     def run_selenium(self):
         if repo_has_npm_script(self.mw_install_path, 'selenium-test'):
@@ -615,14 +621,8 @@ class BrowserTests:
             env=webdriver_env)
 
     def __str__(self):
-        tests = []
-        if self.qunit:
-            tests.append("qunit")
-        if self.selenium:
-            tests.append("selenium (maybe)")
-
-        return "Browser tests in {}: {} using DISPLAY={}".format(
-            self.mw_install_path, ", ".join(tests), self.display or "Xvfb")
+        return "Browser tests (maybe) in {} using DISPLAY={}".format(
+            self.mw_install_path, self.display or "Xvfb")
 
 
 class UserCommands:

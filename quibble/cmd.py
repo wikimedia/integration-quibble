@@ -405,12 +405,15 @@ class QuibbleCmd(object):
                 composer=self.should_run('composer-test'),
                 npm=self.should_run('npm-test')))
 
-        if self.should_run('qunit') or self.should_run('selenium'):
-            display = os.environ.get('DISPLAY', None)
+        display = os.environ.get('DISPLAY', None)
+
+        if self.should_run('qunit'):
+            plan.append(quibble.commands.QunitTests(
+                self.mw_install_path))
+
+        if self.should_run('selenium'):
             plan.append(quibble.commands.BrowserTests(
                 self.mw_install_path,
-                self.should_run('qunit'),
-                self.should_run('selenium'),
                 display))
 
         if self.should_run('phpunit'):
