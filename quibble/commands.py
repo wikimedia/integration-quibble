@@ -586,7 +586,7 @@ class BrowserTests:
         )
 
     def run_selenium(self):
-        if repo_has_composer_script(self.mw_install_path, 'selenium-test'):
+        if repo_has_npm_script(self.mw_install_path, 'selenium-test'):
             with ExitStack() as stack:
                 if not self.display:
                     self.display = ':94'  # XXX racy when run concurrently!
@@ -648,7 +648,16 @@ class UserCommands:
 
 def repo_has_composer_script(project_dir, script_name):
     composer_path = os.path.join(project_dir, 'composer.json')
-    with open(composer_path) as f:
-        composer_spec = json.load(f)
-    return ('scripts' in composer_spec
-            and script_name in composer_spec['scripts'])
+    return json_has_script(composer_path, script_name)
+
+
+def repo_has_npm_script(project_dir, script_name):
+    composer_path = os.path.join(project_dir, 'package.json')
+    return json_has_script(composer_path, script_name)
+
+
+def json_has_script(json_file, script_name):
+    with open(json_file) as f:
+        spec = json.load(f)
+    return ('scripts' in spec
+            and script_name in spec['scripts'])
