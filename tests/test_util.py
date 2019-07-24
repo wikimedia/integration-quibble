@@ -41,5 +41,5 @@ def test_isExtOrSkin_mismatches_core():
     assert isExtOrSkin('mediawiki/core') is False
 
 
-def test_isExtOrSkin_msimatches_vendor():
+def test_isExtOrSkin_mismatches_vendor():
     assert isExtOrSkin('mediawiki/vendor') is False

@@ -27,8 +27,7 @@ import quibble.mediawiki.maintenance
 import quibble.backend
 import quibble.zuul
 import quibble.commands
-
-from quibble.util import isExtOrSkin
+import quibble.util
 
 
 # Used for add_argument(choices=) let us validate multiple choices at once.
@@ -346,13 +345,13 @@ class QuibbleCmd(object):
             plan.append(quibble.commands.ExtSkinSubmoduleUpdateCommand(
                 self.mw_install_path))
 
-        if isExtOrSkin(zuul_project):
+        if quibble.util.isExtOrSkin(zuul_project):
             run_composer = self.should_run('composer-test')
             run_npm = self.should_run('npm-test')
             if run_composer or run_npm:
                 project_dir = os.path.join(
                     self.mw_install_path,
-                    quibble.zuul.repo_dir(os.environ['ZUUL_PROJECT']))
+                    quibble.zuul.repo_dir(zuul_project))
 
                 plan.append(quibble.commands.ExtSkinComposerNpmTest(
                     project_dir, run_composer, run_npm))
