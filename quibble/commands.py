@@ -662,11 +662,13 @@ def repo_has_composer_script(project_dir, script_name):
 
 
 def repo_has_npm_script(project_dir, script_name):
-    composer_path = os.path.join(project_dir, 'package.json')
-    return json_has_script(composer_path, script_name)
+    package_path = os.path.join(project_dir, 'package.json')
+    return json_has_script(package_path, script_name)
 
 
 def json_has_script(json_file, script_name):
+    if not os.path.exists(json_file):
+        return False
     with open(json_file) as f:
         spec = json.load(f)
     return ('scripts' in spec

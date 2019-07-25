@@ -222,6 +222,7 @@ class PhpUnitUnitTest(unittest.TestCase):
 
         mock_check_call.assert_not_called()
 
+    @mock.patch('os.path.exists', return_value=True)
     @mock.patch('builtins.open', mock.mock_open())
     @mock.patch('json.load')
     @mock.patch('subprocess.check_call')
@@ -264,13 +265,14 @@ class QunitTestsTest(unittest.TestCase):
 
 class BrowserTestsTest(unittest.TestCase):
 
+    @mock.patch('os.path.exists', return_value=True)
     @mock.patch('builtins.open', mock.mock_open())
     @mock.patch('json.load')
     @mock.patch('subprocess.check_call')
     @mock.patch('quibble.backend.DevWebServer')
     @mock.patch('quibble.backend.ChromeWebDriver')
     def test_project_selenium(self, mock_driver, mock_server, mock_check_call,
-                              mock_load):
+                              mock_load, mock_path_exists):
         mock_load.return_value = {
             'scripts': {
                 'selenium-test': 'run that stuff'
@@ -288,13 +290,15 @@ class BrowserTestsTest(unittest.TestCase):
             ['npm', 'run', 'selenium-test'],
             cwd='/tmp/skins/Vector', env=mock.ANY)
 
+    @mock.patch('os.path.exists', return_value=True)
     @mock.patch('builtins.open', mock.mock_open())
     @mock.patch('json.load')
     @mock.patch('subprocess.check_call')
     @mock.patch('quibble.backend.DevWebServer')
     @mock.patch('quibble.backend.ChromeWebDriver')
     def test_project_missing_selenium(self, mock_driver, mock_server,
-                                      mock_check_call, mock_load):
+                                      mock_check_call, mock_load,
+                                      mock_path_exists):
         mock_load.return_value = {
             'scripts': {
                 'other-test': 'foo'
@@ -305,6 +309,15 @@ class BrowserTestsTest(unittest.TestCase):
                 '/tmp', ['mediawiki/core', 'mediawiki/skins/Vector'], ':0')
         c.execute()
 
+        mock_check_call.assert_not_called()
+
+    @mock.patch('subprocess.check_call')
+    @mock.patch('quibble.backend.DevWebServer')
+    @mock.patch('quibble.backend.ChromeWebDriver')
+    def test_project_not_having_package_json(self, mock_driver, mock_server,
+                                             mock_check_call):
+        c = quibble.commands.BrowserTests('/tmp', ['mediawiki/vendor'], ':0')
+        c.execute()
         mock_check_call.assert_not_called()
 
 
