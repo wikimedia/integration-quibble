@@ -85,3 +85,7 @@ $wgDjvuDump = '/usr/bin/djvudump';
 $wgDjvuRenderer = '/usr/bin/ddjvu';
 $wgDjvuToXML = '/usr/bin/djvutoxml';
 $wgDjvuTxt = '/usr/bin/djvutxt';
+
+# Set cache directory
+$wgCacheDirectory = getenv( 'TMPDIR' );
+
