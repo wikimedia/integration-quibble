@@ -66,9 +66,25 @@ class CmdTest(unittest.TestCase):
                 'mediawiki/extensions/BoilerPlate',
                 'mediawiki/extensions/Example',
                 ]),
-            ['mediawiki/core', 'mediawiki/skins/Vector',
+            ['mediawiki/core',
              'mediawiki/extensions/BoilerPlate',
-             'mediawiki/extensions/Example'])
+             'mediawiki/extensions/Example',
+             'mediawiki/skins/Vector'])
+
+    @mock.patch.dict('os.environ', clear=True)
+    def test_projects_to_clone_deduplicates(self):
+        q = cmd.QuibbleCmd()
+        self.assertEqual(
+            q.repos_to_clone(
+                projects=[
+                    'mediawiki/extensions/BoilerPlate',
+                    'mediawiki/extensions/Example',
+                ],
+                zuul_project='mediawiki/extensions/Example'),
+            ['mediawiki/core',
+             'mediawiki/extensions/BoilerPlate',
+             'mediawiki/extensions/Example',
+             'mediawiki/skins/Vector'])
 
     def test_repos_to_clone_with_env(self):
         env = {
@@ -80,10 +96,10 @@ class CmdTest(unittest.TestCase):
             q = cmd.QuibbleCmd()
             self.assertEqual([
                 'mediawiki/core',  # must be first
-                'mediawiki/skins/Vector',
-                'mediawiki/skins/Monobook',
                 'mediawiki/extensions/One',
                 'mediawiki/extensions/Two',
+                'mediawiki/skins/Monobook',
+                'mediawiki/skins/Vector',
                 ], q.repos_to_clone())
 
     def test_env_dependencies_log_a_warning(self):
@@ -270,8 +286,8 @@ class CmdTest(unittest.TestCase):
             q.build_execution_plan(args)
             self.assertEqual([
                 'mediawiki/core',  # must be first
-                'mediawiki/skins/Vector',
                 'mediawiki/extensions/ZuulProjectEnvVar',
+                'mediawiki/skins/Vector',
                 ], q.dependencies)
 
     @mock.patch('quibble.is_in_docker', return_value=False)

@@ -245,29 +245,33 @@ class QuibbleCmd(object):
         """
         Find repos to clone basedon passed arguments and environment
         """
-        dependencies = []
-        # mediawiki/core should be first else git clone will fail because the
-        # destination directory already exists.
-        dependencies.insert(0, 'mediawiki/core')
-        dependencies.append('mediawiki/skins/Vector')
+        dependencies = set()
+        dependencies.add('mediawiki/skins/Vector')
         if clone_vendor:
             self.log.info('Adding mediawiki/vendor')
-            dependencies.append('mediawiki/vendor')
+            dependencies.add('mediawiki/vendor')
 
-        if zuul_project is not None and zuul_project not in dependencies:
-            dependencies.append(zuul_project)
+        if zuul_project is not None:
+            dependencies.add(zuul_project)
 
         if 'SKIN_DEPENDENCIES' in os.environ:
             self._warn_obsolete_env_deps('SKIN_DEPENDENCIES')
-            dependencies.extend(
+            dependencies.update(
                 os.environ.get('SKIN_DEPENDENCIES').split('\\n'))
 
         if 'EXT_DEPENDENCIES' in os.environ:
             self._warn_obsolete_env_deps('EXT_DEPENDENCIES')
-            dependencies.extend(
+            dependencies.update(
                 os.environ.get('EXT_DEPENDENCIES').split('\\n'))
 
-        dependencies.extend(projects)
+        dependencies.update(projects)
+
+        # mediawiki/core should be first else git clone will fail because the
+        # destination directory already exists.
+        if 'mediawiki/core' in dependencies:
+            dependencies.remove('mediawiki/core')
+        dependencies = sorted(dependencies)
+        dependencies.insert(0, 'mediawiki/core')
 
         self.log.info('Projects: %s'
                       % ', '.join(dependencies))
