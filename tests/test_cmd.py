@@ -134,7 +134,7 @@ class CmdTest(unittest.TestCase):
 
         self.assertEqual('ref', args.git_cache)
         self.assertEqual(os.getcwd(), args.workspace)
-        self.assertEqual(os.path.join(os.getcwd(), 'log'), args.log_dir)
+        self.assertEqual('log', args.log_dir)
 
     @mock.patch('quibble.is_in_docker', return_value=True)
     def test_args_defaults_in_docker(self, _):
@@ -142,7 +142,6 @@ class CmdTest(unittest.TestCase):
 
         self.assertEqual('/srv/git', args.git_cache)
         self.assertEqual('/workspace', args.workspace)
-        self.assertEqual('/workspace/log', args.log_dir)
 
     @mock.patch.dict(os.environ, clear=True)
     def test_setup_environment(self):
@@ -283,3 +282,5 @@ class CmdTest(unittest.TestCase):
         plan = q.build_execution_plan(args)
 
         self.assertIsInstance(plan[0], quibble.commands.ZuulCloneCommand)
+        mock_makedirs.assert_any_call(
+            os.path.join(args.workspace, 'log'), exist_ok=True)

@@ -57,6 +57,7 @@ class QuibbleCmd(object):
                                   else 'ref')
         self.default_workspace = ('/workspace' if quibble.is_in_docker()
                                   else os.getcwd())
+        self.default_logdir = 'log'
 
     def parse_arguments(self, args=sys.argv[1:]):
         return self.get_arg_parser().parse_args(args)
@@ -153,7 +154,7 @@ class QuibbleCmd(object):
             )
         parser.add_argument(
             '--log-dir',
-            default=os.path.join(self.default_workspace, 'log'),
+            default=self.default_logdir,
             help='Where logs and artifacts will be written to. '
             'Default: "log" relatively to workspace'
             )
@@ -440,6 +441,7 @@ class QuibbleCmd(object):
             command.execute()
 
 
+# FIXME: Don't shadow QuibbleCmd.get_arg_parser
 def get_arg_parser():
     """
     Build an argparser with sane default values.
@@ -447,9 +449,10 @@ def get_arg_parser():
     Intended for documentation generation with sphinx-argparse.
     """
     cmd = QuibbleCmd()
+    # FIXME: These both might be redundant.  And why does sphinx need a custom
+    # endpoint?
     cmd.default_git_cache = 'ref'
     cmd.default_workspace = '.'
-    cmd.default_logdir = './log'
 
     return cmd.get_arg_parser()
 
