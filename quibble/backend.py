@@ -371,7 +371,8 @@ class DevWebServer(BackendServer):
                 '-d', 'hhvm.static_file.extensions[svg]=image/svg+xml',
                 ])
         else:
-            server_cmd = ['php', '-S', '127.0.0.1:%s' % self.port]
+            server_cmd = ['php', '-d', 'output_buffering=Off', '-S',
+                          '127.0.0.1:%s' % self.port]
             if self.router:
                 server_cmd.append(
                     os.path.join(self.mwdir, self.router))
