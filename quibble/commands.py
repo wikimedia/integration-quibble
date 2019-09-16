@@ -467,9 +467,15 @@ class InstallMediaWiki:
             with open(quibblesettings) as qf:
                 quibble_conf = qf.read()
 
+            quibbleoverrides = pkg_resources.resource_filename(
+                __name__, 'mediawiki/local_settings_overrides.php')
+            with open(quibbleoverrides) as qf:
+                quibble_override_conf = qf.read()
+
             installed_conf = lf.read()
             lf.seek(0, 0)
-            lf.write(quibble_conf + '\n?>' + installed_conf)
+            lf.write(quibble_conf + '\n?>' + installed_conf
+                     + '\n?>' + quibble_override_conf)
         copylog(localsettings,
                 os.path.join(self.log_dir, 'LocalSettings.php'))
         subprocess.check_call(['php', '-l', localsettings])
