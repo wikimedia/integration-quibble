@@ -90,13 +90,14 @@ class TestClone(unittest.TestCase):
             'mediawiki/skins/Foo',
             'mediawiki/skins/Bar',
         ]
-        quibble.zuul.clone(
-            branch='master', cache_dir='/tmp/cache', project_branch=[],
-            # Clone without mediawiki/core
-            projects=repos_to_clone,
-            workers=2, workspace='/tmp/src',
-            zuul_branch=None, zuul_newrev=None, zuul_project=None,
-            zuul_ref=None, zuul_url=None)
+        with mock.patch('quibble.zuul.as_completed'):
+            quibble.zuul.clone(
+                branch='master', cache_dir='/tmp/cache', project_branch=[],
+                # Clone without mediawiki/core
+                projects=repos_to_clone,
+                workers=2, workspace='/tmp/src',
+                zuul_branch=None, zuul_newrev=None, zuul_project=None,
+                zuul_ref=None, zuul_url=None)
 
         # Make sure MediaWiki core does not get cloned
         self.assertNotIn(
@@ -110,7 +111,9 @@ class TestClone(unittest.TestCase):
         for expected_repo in repos_to_clone:
             expected_calls.append(
                 mock.call().__enter__().submit(
-                    mock_cloner().prepareRepo,
+                    quibble.zuul.clone_worker,
+                    mock.ANY,  # can_run
+                    mock.ANY,  # zuul_cloner
                     expected_repo,
                     mock.ANY  # we don't care about the destination
                     )
