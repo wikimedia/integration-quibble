@@ -162,7 +162,9 @@ class InstallMediaWikiTest(unittest.TestCase):
         # TODO: Assert that localsettings is edited correctly.
 
         mock_install_script.assert_called_once_with(
-            args=['--scriptpath=', '--dbtype=mysql', '--dbname=testwiki',
+            args=['--scriptpath=',
+                  '--server=http://localhost:%s' % quibble.commands.HTTP_PORT,
+                  '--dbtype=mysql', '--dbname=testwiki',
                   '--dbuser=USER', '--dbpass=PASS', '--dbserver=SERVER'],
             mwdir='/tmp')
 

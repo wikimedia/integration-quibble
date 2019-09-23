@@ -407,6 +407,7 @@ class InstallMediaWiki:
         # instantiating the database.
         install_args = [
             '--scriptpath=',
+            '--server=http://localhost:%s' % HTTP_PORT,
             '--dbtype=%s' % self.db_engine,
             '--dbname=%s' % db.dbname,
         ]
