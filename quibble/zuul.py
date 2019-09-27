@@ -104,7 +104,7 @@ def clone_worker(can_run, cloner, project, dest):
     if not can_run.is_set():
         return
 
-    # Copy and hijack the logger
+    # Forge a new child logger, since repositories might be cloned concurrently
     project_cloner = copy.copy(cloner)
     project_cloner.log = project_cloner.log.getChild(project)
     try:
