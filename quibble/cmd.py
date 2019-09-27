@@ -445,7 +445,8 @@ class QuibbleCmd(object):
             self.log.warning("Exiting without execution: --dry-run")
             return
         for command in plan:
-            command.execute()
+            with quibble.Chronometer(str(command), self.log.info):
+                command.execute()
 
 
 # FIXME: Don't shadow QuibbleCmd.get_arg_parser
