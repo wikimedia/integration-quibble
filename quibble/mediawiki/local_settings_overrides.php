@@ -5,3 +5,6 @@
 # of testing tools, to allow them to perform privileged actions,
 # such as running jobs.
 $wgSecretKey = 'supercalifragilisticexpialidocious';
+
+// Hack to support Extension:FileImporter browser tests
+$wgEnableUploads = true;
