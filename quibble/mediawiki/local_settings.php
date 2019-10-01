@@ -89,3 +89,12 @@ $wgDjvuTxt = '/usr/bin/djvutxt';
 # Set cache directory
 $wgCacheDirectory = getenv( 'TMPDIR' );
 
+require_once( __DIR__ . '/LocalSettings-installer.php' );
+
+# Force secret key. This key can be shared with the configuration
+# of testing tools, to allow them to perform privileged actions,
+# such as running jobs.
+$wgSecretKey = 'supercalifragilisticexpialidocious';
+
+// Hack to support Extension:FileImporter browser tests, T190829
+$wgEnableUploads = true;

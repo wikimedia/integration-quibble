@@ -10,6 +10,7 @@ from quibble.gitchangedinhead import GitChangedInHead
 from quibble.util import copylog, parallel_run, isExtOrSkin
 import quibble.mediawiki.registry
 import quibble.zuul
+import shutil
 import subprocess
 
 log = logging.getLogger(__name__)
@@ -460,25 +461,20 @@ class InstallMediaWiki:
         )
 
         localsettings = os.path.join(self.mw_install_path, 'LocalSettings.php')
-        # Prepend our custom configuration snippets
-        with open(localsettings, 'r+') as lf:
-            quibblesettings = pkg_resources.resource_filename(
-                __name__, 'mediawiki/local_settings.php')
-            with open(quibblesettings) as qf:
-                quibble_conf = qf.read()
+        localsettings_installer = \
+            os.path.join(self.mw_install_path, 'LocalSettings-installer.php')
+        quibblesettings = pkg_resources.resource_filename(
+            __name__, 'mediawiki/local_settings.php')
 
-            quibbleoverrides = pkg_resources.resource_filename(
-                __name__, 'mediawiki/local_settings_overrides.php')
-            with open(quibbleoverrides) as qf:
-                quibble_override_conf = qf.read()
+        os.rename(localsettings, localsettings_installer)
+        shutil.copyfile(quibblesettings, localsettings)
 
-            installed_conf = lf.read()
-            lf.seek(0, 0)
-            lf.write(quibble_conf + '\n?>' + installed_conf
-                     + '\n?>' + quibble_override_conf)
         copylog(localsettings,
                 os.path.join(self.log_dir, 'LocalSettings.php'))
-        subprocess.check_call(['php', '-l', localsettings])
+        copylog(localsettings_installer,
+                os.path.join(self.log_dir, 'LocalSettings-installer.php'))
+        subprocess.check_call(
+            ['php', '-l', localsettings, localsettings_installer])
 
         update_args = []
         if self.use_vendor:

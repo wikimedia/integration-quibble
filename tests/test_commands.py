@@ -140,6 +140,7 @@ class VendorComposerDependenciesTest(unittest.TestCase):
 class InstallMediaWikiTest(unittest.TestCase):
 
     @mock.patch('builtins.open', mock.mock_open())
+    @mock.patch('os.rename')
     @mock.patch('quibble.mediawiki.maintenance.rebuildLocalisationCache')
     @mock.patch('quibble.util.copylog')
     @mock.patch('subprocess.check_call')
