@@ -272,7 +272,7 @@ class CmdTest(unittest.TestCase):
         args = q.parse_arguments(args=[])
         plan = q.build_execution_plan(args)
 
-        self.assertIsInstance(plan[0], quibble.commands.ZuulCloneCommand)
+        self.assertIsInstance(plan[0], quibble.commands.ReportVersions)
         mock_makedirs.assert_any_call(
             os.path.join(args.workspace, 'log'), exist_ok=True)
 

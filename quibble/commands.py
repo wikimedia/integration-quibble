@@ -16,6 +16,33 @@ log = logging.getLogger(__name__)
 HTTP_PORT = 9412
 
 
+class ReportVersions:
+    def execute(self):
+        commands = [
+            ['chromedriver', '--version'],
+            ['chromium', '--version'],
+            ['composer', '--version'],
+            ['node', '--version'],
+            ['npm', '--version'],
+            ['php', '--version'],
+        ]
+        for cmd in commands:
+            self.logged_call(cmd)
+
+    def logged_call(self, cmd):
+        try:
+            res = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
+            log.info('{}: {}'.format(
+                ' '.join(cmd),
+                res.strip().decode('utf-8')))
+        except (subprocess.CalledProcessError,
+                FileNotFoundError):
+            log.error('Failed to run command: ' + ' '.join(cmd))
+
+    def __str__(self):
+        return 'Report package versions'
+
+
 class ZuulCloneCommand:
     def __init__(self, branch, cache_dir, project_branch, projects, workers,
                  workspace, zuul_branch, zuul_newrev, zuul_project, zuul_ref,

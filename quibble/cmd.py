@@ -324,6 +324,8 @@ class QuibbleCmd(object):
             zuul_project=zuul_project,
             clone_vendor=(self.args.packages_source == 'vendor'))
 
+        plan.append(quibble.commands.ReportVersions())
+
         if not self.args.skip_zuul:
             zuul_params = {
                 'branch': self.args.branch,
