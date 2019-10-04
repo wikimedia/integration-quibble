@@ -1,4 +1,5 @@
 /.coverage
+/.eggs/
 /.idea/
 /quibble.egg-info/
 /cache/

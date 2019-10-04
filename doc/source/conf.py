@@ -6,6 +6,8 @@
 # full list see the documentation:
 # http://www.sphinx-doc.org/en/master/config
 
+from pkg_resources import get_distribution
+
 # -- Path setup --------------------------------------------------------------
 
 # If extensions (or modules to document with autodoc) are in another directory,
@@ -24,10 +26,10 @@ author = ('Antoine Musso, Kunal Mehta, Timo Tijhof, Tyler Cipriani, '
           'Wikimedia Foundation Inc.')
 copyright = '2014 - 2018, ' + author
 
-# The short X.Y version
-version = ''
 # The full version, including alpha/beta/rc tags
-release = ''
+release = get_distribution('quibble').version
+# The short X.Y version
+version = release
 
 
 # -- General configuration ---------------------------------------------------
