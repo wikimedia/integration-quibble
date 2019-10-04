@@ -4,6 +4,11 @@
 
    usage
 
+.. toctree::
+   :maxdepth: 1
+
+   changelog
+
 .. include:: ../../README.rst
 .. include:: build-reproduction.rst
 
