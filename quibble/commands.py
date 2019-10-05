@@ -32,12 +32,15 @@ class ReportVersions:
     def logged_call(self, cmd):
         try:
             res = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
-            log.info('{}: {}'.format(
+            message = '{}: {}'.format(
                 ' '.join(cmd),
-                res.strip().decode('utf-8')))
-        except (subprocess.CalledProcessError,
-                FileNotFoundError):
+                res.strip().decode('utf-8'))
+            for line in message.split('\n'):
+                log.info(line)
+        except subprocess.CalledProcessError:
             log.error('Failed to run command: ' + ' '.join(cmd))
+        except FileNotFoundError:
+            log.error('Command not found: ' + ' '.join(cmd))
 
     def __str__(self):
         return 'Report package versions'
