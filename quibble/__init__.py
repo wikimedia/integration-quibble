@@ -57,7 +57,7 @@ def logginglevel(name, new_level):
 
 def use_headless():
     log = logging.getLogger('quibble.use_headless')
-    log.info("Display: %s" % os.environ.get('DISPLAY', '<None>'))
+    log.info("Display: %s", os.environ.get('DISPLAY', '<None>'))
 
     return not bool(os.environ.get('DISPLAY'))
 
@@ -84,7 +84,7 @@ def chromium_flags():
         ])
 
     log = logging.getLogger('quibble.chromium_flags')
-    log.debug("Flags: %s" % args)
+    log.debug("Flags: %s", args)
     return ' '.join(args)
 
 

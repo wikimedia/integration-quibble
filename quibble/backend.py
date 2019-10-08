@@ -99,7 +99,7 @@ class BackendServer:
 
     def stop(self):
         if self.server is not None:
-            self.log.info('Terminating %s' % self.__class__.__name__)
+            self.log.info('Terminating %s', self.__class__.__name__)
             self.server.terminate()
             try:
                 self.server.wait(2)
@@ -130,7 +130,7 @@ class DatabaseServer(BackendServer):
         self._tmpdir = tempfile.TemporaryDirectory(
             dir=base_dir, prefix=prefix)
         self.rootdir = self._tmpdir.name
-        self.log.debug('Root dir: %s' % self.rootdir)
+        self.log.debug('Root dir: %s', self.rootdir)
 
     def stop(self):
         if self.dump_dir:
@@ -138,8 +138,8 @@ class DatabaseServer(BackendServer):
         super(DatabaseServer, self).stop()
 
     def dump(self):
-        self.log.warning('%s does not support dumping database' % (
-            self.__class__.__name__))
+        self.log.warning('%s does not support dumping database',
+                         self.__class__.__name__)
 
 
 class Postgres(DatabaseServer):
@@ -273,7 +273,7 @@ class MySQL(DatabaseServer):
 
     def dump(self):
         dumpfile = os.path.join(self.dump_dir, 'mysqldump.sql')
-        self.log.info('Dumping database to %s' % dumpfile)
+        self.log.info('Dumping database to %s', dumpfile)
 
         mysqldump = open(dumpfile, 'wb')
         subprocess.Popen([
@@ -406,7 +406,7 @@ class Xvfb(BackendServer):
         self.display = display
 
     def start(self):
-        self.log.info('Starting Xvfb on display %s' % self.display)
+        self.log.info('Starting Xvfb on display %s', self.display)
         self.server = subprocess.Popen([
             'Xvfb', self.display,
             '-screen', '0', '1280x1024x24'

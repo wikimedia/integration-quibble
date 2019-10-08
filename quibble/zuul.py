@@ -76,8 +76,8 @@ def clone(branch, cache_dir, project_branch, projects, workers, workspace,
 
     # Reimplement the cloner execute method with parallelism and logging
     # suitable for multiplexed output.
-    log.info("Preparing %s repositories with %s workers" % (
-             len(dests), workers))
+    log.info("Preparing %d repositories with %s workers",
+             len(dests), workers)
 
     if 'mediawiki/core' in projects:
         mw_git_dir = os.path.join(dests['mediawiki/core'], '.git')

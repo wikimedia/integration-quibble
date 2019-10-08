@@ -39,9 +39,9 @@ class ReportVersions:
             for line in message.split('\n'):
                 log.info(line)
         except subprocess.CalledProcessError:
-            log.error('Failed to run command: ' + ' '.join(cmd))
+            log.error('Failed to run command: %s', ' '.join(cmd))
         except FileNotFoundError:
-            log.error('Command not found: ' + ' '.join(cmd))
+            log.error('Command not found: %s', ' '.join(cmd))
 
     def __str__(self):
         return 'Report package versions'
@@ -115,7 +115,7 @@ class ResolveRequiresCommand:
     def clone_requires(self, new_projects, cloned):
         to_be_cloned = new_projects - cloned
         if to_be_cloned:
-            log.info('Cloning: %s' % ', '.join(to_be_cloned))
+            log.info('Cloning: %s', ', '.join(to_be_cloned))
             ZuulCloneCommand(
                 projects=to_be_cloned,
                 **self.zuul_params
@@ -123,7 +123,7 @@ class ResolveRequiresCommand:
 
         found = set()
         for project in sorted(new_projects):
-            log.info('Looking for requirements of %s' % project)
+            log.info('Looking for requirements of %s', project)
 
             project_dir = os.path.join(
                 self.mw_install_path,
@@ -132,12 +132,12 @@ class ResolveRequiresCommand:
             found.update(deps.getRequiredRepos())
 
         if not found:
-            log.debug('No additional requirements from %s' % (
-                ', '.join(new_projects)))
+            log.debug('No additional requirements from %s',
+                      ', '.join(new_projects))
             return set()
 
         if found:
-            log.info('Found requirement(s): %s' % ', '.join(found))
+            log.info('Found requirement(s): %s', ', '.join(found))
             return found.union(self.clone_requires(found, cloned))
 
     def __str__(self):
@@ -175,8 +175,8 @@ class ExtSkinSubmoduleUpdateCommand:
                         subprocess.check_call(cmd, cwd=dirpath)
                     except subprocess.CalledProcessError as e:
                         log.error(
-                            "Failed to process git submodules for {}".format(
-                                dirpath))
+                            "Failed to process git submodules for %s",
+                            dirpath)
                         raise e
 
     def __str__(self):
@@ -229,7 +229,7 @@ class ExtSkinComposerNpmTest:
         # TODO: Split these tasks and move parallelism into calling logic.
         parallel_run(tasks)
 
-        log.info('%s: git clean -xqdf' % self.directory)
+        log.info('%s: git clean -xqdf', self.directory)
         subprocess.check_call(['git', 'clean', '-xqdf'],
                               cwd=self.directory)
 
@@ -237,10 +237,10 @@ class ExtSkinComposerNpmTest:
         project_name = os.path.basename(self.directory)
 
         if not os.path.exists(os.path.join(self.directory, 'composer.json')):
-            log.warning("%s lacks a composer.json" % project_name)
+            log.warning("%s lacks a composer.json", project_name)
             return
 
-        log.info('Running "composer test" for %s' % project_name)
+        log.info('Running "composer test" for %s', project_name)
         cmds = [
             ['composer', '--ansi', 'validate', '--no-check-publish'],
             ['composer', '--ansi', 'install', '--no-progress',
@@ -256,10 +256,10 @@ class ExtSkinComposerNpmTest:
         # FIXME: copy paste is terrible
         # TODO: Detect test existence in an earlier phase.
         if not os.path.exists(os.path.join(self.directory, 'package.json')):
-            log.warning("%s lacks a package.json" % project_name)
+            log.warning("%s lacks a package.json", project_name)
             return
 
-        log.info('Running "npm test" for %s' % project_name)
+        log.info('Running "npm test" for %s', project_name)
         cmds = [
             ['npm', 'prune'],
             ['npm', 'install', '--no-progress', '--prefer-offline'],
@@ -366,7 +366,7 @@ class VendorComposerDependencies:
         reqs = ['='.join([dependency, version])
                 for dependency, version in composer['require-dev'].items()]
 
-        log.debug('composer require %s' % ' '.join(reqs))
+        log.debug('composer require %s', ' '.join(reqs))
         composer_require = ['composer', 'require', '--dev', '--ansi',
                             '--no-progress', '--prefer-dist', '-v']
         composer_require.extend(reqs)
@@ -642,7 +642,7 @@ class BrowserTests:
                         self.run_webdriver(project_dir)
 
     def run_webdriver(self, project_dir):
-        log.info('Running webdriver test in %s' % project_dir)
+        log.info('Running webdriver test in %s', project_dir)
         webdriver_env = {}
         webdriver_env.update(os.environ)
         webdriver_env.update({
@@ -678,7 +678,7 @@ class UserCommands:
         with quibble.backend.DevWebServer(
                 mwdir=self.mw_install_path,
                 port=HTTP_PORT):
-            log.info('working directory: %s' % self.mw_install_path)
+            log.info('working directory: %s', self.mw_install_path)
 
             for cmd in self.commands:
                 log.info(cmd)

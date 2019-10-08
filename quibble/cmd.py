@@ -238,7 +238,7 @@ class QuibbleCmd(object):
     def _warn_obsolete_env_deps(self, var):
         self.log.warning(
             '%s env variable is deprecated. '
-            'Instead pass projects as arguments.' % var)
+            'Instead pass projects as arguments.', var)
 
     def repos_to_clone(self, projects=[], zuul_project=None,
                        clone_vendor=False):
@@ -273,8 +273,8 @@ class QuibbleCmd(object):
         dependencies = sorted(dependencies)
         dependencies.insert(0, 'mediawiki/core')
 
-        self.log.info('Projects: %s'
-                      % ', '.join(dependencies))
+        self.log.info('Projects: %s',
+                      ', '.join(dependencies))
 
         return dependencies
 
@@ -304,9 +304,9 @@ class QuibbleCmd(object):
         if self.args.dump_db_postrun:
             self.dump_dir = self.log_dir
 
-        self.log.debug('Running stages: '
-                       + ', '.join(stage for stage in self.stages
-                                   if self.should_run(stage)))
+        self.log.debug('Running stages: %s',
+                       ', '.join(stage for stage in self.stages
+                                 if self.should_run(stage)))
 
         self.setup_environment()
 
@@ -317,7 +317,7 @@ class QuibbleCmd(object):
             self.log.warning('ZUUL_PROJECT not set. Assuming mediawiki/core')
             zuul_project = 'mediawiki/core'
         else:
-            self.log.debug("ZUUL_PROJECT=%s" % zuul_project)
+            self.log.debug("ZUUL_PROJECT=%s", zuul_project)
 
         self.dependencies = self.repos_to_clone(
             projects=self.args.projects,
