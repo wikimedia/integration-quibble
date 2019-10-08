@@ -1,8 +1,8 @@
 Quibble changelog
 =================
 
-master ()
----------
+0.0.36 (2019-10-08)
+-------------------
 
 Features
 ~~~~~~~~
@@ -38,10 +38,14 @@ Bug fixes
 Misc
 ~~~~
 * Migrate the Python module to use ``setup.cfg``. Add pypi metadata. Use
-  ``setuptools_scm`` to determine the version
+  ``setuptools_scm`` to determine the version.
   Antoine Musso
 * Determine application version using
   `setuptools_scm <https://pypi.org/project/setuptools-scm/>`_.
+  Antoine Musso
+* Use lazy formattiing for logging calls.
+  Antoine Musso
+* Release check list documented in ``RELEASING.rst``.
   Antoine Musso
 
 0.0.35 (2019-09-17)
