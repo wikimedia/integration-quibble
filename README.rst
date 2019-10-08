@@ -19,7 +19,7 @@ the provided docker image.
 - Xvfb
 
 Quick Start
----
+-----------
 
 Full build and run, with no caching::
 
