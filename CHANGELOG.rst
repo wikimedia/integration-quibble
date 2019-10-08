@@ -4,7 +4,9 @@ Quibble changelog
 master ()
 ---------
 
-* ...
+Bug fixes
+~~~~~~~~~
+* Fix missing quibble/mediawiki/local_settings.php
 
 0.0.36 (2019-10-08)
 -------------------
