@@ -8,6 +8,7 @@
    :maxdepth: 1
 
    changelog
+   releasing
 
 .. include:: ../../README.rst
 .. include:: build-reproduction.rst
