@@ -4,7 +4,12 @@ Quibble changelog
 master()
 --------
 
-* ...
+* Set ``$wgServer`` to ``127.0.0.1`` instead of ``localhost`` to be consistent
+  with the server name testsuite receive via ``MW_SERVER``. Else session is
+  lost when a user get redirected after logging to ``localhost`` when the
+  session has been created via ``127.0.0.1``.
+  Antoine Musso
+  `T235023 <https://phabricator.wikimedia.org/T235023>`_
 
 0.0.37 (2019-10-09)
 -------------------
