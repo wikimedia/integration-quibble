@@ -4,6 +4,10 @@ Release check list
 List of steps to conduct to release a new version of Quibble:
 
 * Determine the new version number
+* Do run Quibble locally with all tests to ensure the basic functionalities do
+  work. This step will no more be needed once we have a proper integration
+  test that runs it entirely via CI on each patchset proposal (`T235118
+  <https://phabricator.wikimedia.org/T235118>`_).
 * Amend ``CHANGELOG.rst`` to replace 'master' with the new version and date
 * Verify ``CHANGELOG.rst`` has entries for commits since last version. Can be
   manually checked against: ``git log master..<previous tag>``
