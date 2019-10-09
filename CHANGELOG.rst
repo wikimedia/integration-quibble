@@ -1,9 +1,11 @@
 Quibble changelog
 =================
 
-master()
---------
+0.0.38 (2019-10-09)
+-------------------
 
+Bug fix
+~~~~~~~
 * Set ``$wgServer`` to ``127.0.0.1`` instead of ``localhost`` to be consistent
   with the server name testsuite receive via ``MW_SERVER``. Else session is
   lost when a user get redirected after logging to ``localhost`` when the
@@ -14,8 +16,8 @@ master()
 0.0.37 (2019-10-09)
 -------------------
 
-Bug fixes
-~~~~~~~~~
+Bug fix
+~~~~~~~
 * Fix missing quibble/mediawiki/local_settings.php
 
 0.0.36 (2019-10-08)
