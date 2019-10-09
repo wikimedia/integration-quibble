@@ -4,7 +4,12 @@ Quibble changelog
 master ()
 ---------
 
-* ...
+Misc
+~~~~
+* Ensure consistency between ``$wgServer`` and ``MW_SERVER`` environment
+  variable.
+  Antoine Musso
+  `T235023 <https://phabricator.wikimedia.org/T235023>`_
 
 0.0.38 (2019-10-09)
 -------------------

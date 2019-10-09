@@ -29,7 +29,7 @@ import quibble
 from quibble import php_is_hhvm
 
 
-def tcp_wait(port, timeout=3):
+def tcp_wait(host, port, timeout=3):
     step = 0
     delay = 0.1  # seconds
     socket_timeout = 1  # seconds
@@ -38,7 +38,7 @@ def tcp_wait(port, timeout=3):
         try:
             s = socket.socket()
             s.settimeout(socket_timeout)
-            s.connect(('127.0.0.1', int(port)))
+            s.connect((host, int(port)))
             connected = True
             break
         except (ConnectionAbortedError, ConnectionRefusedError):
@@ -353,10 +353,11 @@ class ChromeWebDriver(BackendServer):
 
 class DevWebServer(BackendServer):
 
-    def __init__(self, port=4881, mwdir=None,
+    def __init__(self, host='127.0.0.1', port=4881, mwdir=None,
                  router='maintenance/dev/includes/router.php'):
         super(DevWebServer, self).__init__()
 
+        self.host = host
         self.port = port
         self.mwdir = mwdir
         self.router = router
@@ -372,7 +373,7 @@ class DevWebServer(BackendServer):
                 ])
         else:
             server_cmd = ['php', '-d', 'output_buffering=Off', '-S',
-                          '127.0.0.1:%s' % self.port]
+                          '%s:%s' % (self.host, self.port)]
             if self.router:
                 server_cmd.append(
                     os.path.join(self.mwdir, self.router))
@@ -387,10 +388,10 @@ class DevWebServer(BackendServer):
             env=os.environ,
         )
         stream_relay(self.server, self.server.stderr, self.log.info)
-        tcp_wait(port=self.port, timeout=5)
+        tcp_wait(host=self.host, port=self.port, timeout=5)
 
     def __str__(self):
-        return 'http://127.0.0.1:%s' % self.port
+        return 'http://%s:%s' % (self.host, self.port)
 
     def __repr__(self):
         return '<DevWebServer :%s %s>' % (self.port, self.mwdir)

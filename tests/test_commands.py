@@ -164,7 +164,10 @@ class InstallMediaWikiTest(unittest.TestCase):
 
         mock_install_script.assert_called_once_with(
             args=['--scriptpath=',
-                  '--server=http://127.0.0.1:%s' % quibble.commands.HTTP_PORT,
+                  '--server=http://%s:%s' % (
+                      quibble.commands.HTTP_HOST,
+                      quibble.commands.HTTP_PORT
+                  ),
                   '--dbtype=mysql', '--dbname=testwiki',
                   '--dbuser=USER', '--dbpass=PASS', '--dbserver=SERVER'],
             mwdir='/tmp')

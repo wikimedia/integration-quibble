@@ -133,6 +133,21 @@ class TestDevWebServer(unittest.TestCase):
                              resp.read().decode())
 
     @attr('integration')
+    @mock.patch('quibble.backend.subprocess.check_output',
+                return_value=b'')
+    def test_DevWebServer_listens_on_specific_ip(self, _):
+        # Loopback interface has 127.0.0.1/8, so we can pick any IP address in
+        # that range.
+        http_host = '127.0.0.2'
+        http_port = '4880'
+        php_is_hhvm.cache_clear()
+        with DevWebServer(mwdir=PHPDOCROOT,
+                          host=http_host, port=http_port, router=None):
+            self.assertServerRespond(
+                'zend',
+                'http://%s:%s' % (http_host, http_port))
+
+    @attr('integration')
     # assumes "php" is Zend. Would fail if it happens to be HHVM
     @mock.patch('quibble.backend.subprocess.check_output',
                 return_value=b'')
@@ -150,7 +165,8 @@ class TestDevWebServer(unittest.TestCase):
         http_port = '4882'
         php_is_hhvm.cache_clear()
         with DevWebServer(mwdir=PHPDOCROOT, port=http_port, router=None):
-            self.assertServerRespond('hhvm', 'http://127.0.0.1:%s' % http_port)
+            self.assertServerRespond('hhvm',
+                                     'http://127.0.0.1:%s' % http_port)
 
     @attr('integration')
     # assumes "php" is Zend. Would fail if it happens to be HHVM

@@ -14,7 +14,12 @@ import shutil
 import subprocess
 
 log = logging.getLogger(__name__)
+HTTP_HOST = '127.0.0.1'
 HTTP_PORT = 9412
+
+
+def server_url():
+    return 'http://%s:%s' % (HTTP_HOST, HTTP_PORT)
 
 
 class ReportVersions:
@@ -438,7 +443,7 @@ class InstallMediaWiki:
         # instantiating the database.
         install_args = [
             '--scriptpath=',
-            '--server=http://127.0.0.1:%s' % HTTP_PORT,
+            '--server=%s' % server_url(),
             '--dbtype=%s' % self.db_engine,
             '--dbname=%s' % db.dbname,
         ]
@@ -590,13 +595,14 @@ class QunitTests:
     def execute(self):
         with quibble.backend.DevWebServer(
                 mwdir=self.mw_install_path,
+                host=HTTP_HOST,
                 port=HTTP_PORT):
             self.run_qunit()
 
     def run_qunit(self):
         karma_env = {
              'CHROME_BIN': '/usr/bin/chromium',
-             'MW_SERVER': 'http://127.0.0.1:%s' % HTTP_PORT,
+             'MW_SERVER': server_url(),
              'MW_SCRIPT_PATH': '/',
              'FORCE_COLOR': '1',  # for 'supports-color'
              }
@@ -622,6 +628,7 @@ class BrowserTests:
     def execute(self):
         with quibble.backend.DevWebServer(
                 mwdir=self.mw_install_path,
+                host=HTTP_HOST,
                 port=HTTP_PORT):
             self.run_selenium()
 
@@ -646,7 +653,7 @@ class BrowserTests:
         webdriver_env = {}
         webdriver_env.update(os.environ)
         webdriver_env.update({
-            'MW_SERVER': 'http://127.0.0.1:%s' % HTTP_PORT,
+            'MW_SERVER': server_url(),
             'MW_SCRIPT_PATH': '/',
             'FORCE_COLOR': '1',  # for 'supports-color'
             'MEDIAWIKI_USER': 'WikiAdmin',
@@ -677,6 +684,7 @@ class UserCommands:
         log.info('User commands')
         with quibble.backend.DevWebServer(
                 mwdir=self.mw_install_path,
+                host=HTTP_HOST,
                 port=HTTP_PORT):
             log.info('working directory: %s', self.mw_install_path)
 
