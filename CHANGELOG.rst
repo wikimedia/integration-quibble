@@ -1,8 +1,14 @@
 Quibble changelog
 =================
 
-master ()
----------
+0.0.39 (2019-10-18)
+-------------------
+
+Features
+~~~~~~~~
+* Enable MediaWiki REST API for testing (/rest.php).
+  Clara Andrew-Wani
+  `T235564 <https://phabricator.wikimedia.org/T235564>`_
 
 Misc
 ~~~~
