@@ -89,6 +89,9 @@ $wgDjvuTxt = '/usr/bin/djvutxt';
 # Set cache directory
 $wgCacheDirectory = getenv( 'TMPDIR' );
 
+// Enables the experimental REST API for testing, T235564
+$wgEnableRestAPI = true;
+
 require_once( __DIR__ . '/LocalSettings-installer.php' );
 
 # Force secret key. This key can be shared with the configuration
