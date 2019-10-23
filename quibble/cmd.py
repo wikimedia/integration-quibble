@@ -29,6 +29,8 @@ import quibble.zuul
 import quibble.commands
 import quibble.util
 
+log = logging.getLogger('quibble.cmd')
+
 
 # Used for add_argument(choices=) let us validate multiple choices at once.
 # >>> 'a' in MultipleChoices(['a', 'b', 'c'])
@@ -42,7 +44,6 @@ class MultipleChoices(list):
 
 class QuibbleCmd(object):
 
-    log = logging.getLogger('quibble.cmd')
     stages = ['phpunit-unit', 'phpunit', 'npm-test', 'composer-test', 'qunit',
               'selenium']
     dump_dir = None
@@ -242,7 +243,7 @@ class QuibbleCmd(object):
         os.environ['TMPDIR'] = tempfile.gettempdir()
 
     def _warn_obsolete_env_deps(self, var):
-        self.log.warning(
+        log.warning(
             '%s env variable is deprecated. '
             'Instead pass projects as arguments.', var)
 
@@ -254,7 +255,7 @@ class QuibbleCmd(object):
         dependencies = set()
         dependencies.add('mediawiki/skins/Vector')
         if clone_vendor:
-            self.log.info('Adding mediawiki/vendor')
+            log.info('Adding mediawiki/vendor')
             dependencies.add('mediawiki/vendor')
 
         if zuul_project is not None:
@@ -279,8 +280,7 @@ class QuibbleCmd(object):
         dependencies = sorted(dependencies)
         dependencies.insert(0, 'mediawiki/core')
 
-        self.log.info('Projects: %s',
-                      ', '.join(dependencies))
+        log.info('Projects: %s', ', '.join(dependencies))
 
         return dependencies
 
@@ -310,9 +310,9 @@ class QuibbleCmd(object):
         if self.args.dump_db_postrun:
             self.dump_dir = self.log_dir
 
-        self.log.debug('Running stages: %s',
-                       ', '.join(stage for stage in self.stages
-                                 if self.should_run(stage)))
+        log.debug('Running stages: %s',
+                  ', '.join(stage for stage in self.stages
+                            if self.should_run(stage)))
 
         self.setup_environment()
 
@@ -320,10 +320,10 @@ class QuibbleCmd(object):
         if zuul_project is None:
             # TODO: Isn't this default already covered by quibble.zuul, and we
             # can remove this code?
-            self.log.warning('ZUUL_PROJECT not set. Assuming mediawiki/core')
+            log.warning('ZUUL_PROJECT not set. Assuming mediawiki/core')
             zuul_project = 'mediawiki/core'
         else:
-            self.log.debug("ZUUL_PROJECT=%s", zuul_project)
+            log.debug("ZUUL_PROJECT=%s", zuul_project)
 
         self.dependencies = self.repos_to_clone(
             projects=self.args.projects,
@@ -446,11 +446,11 @@ class QuibbleCmd(object):
         return plan
 
     def execute(self, plan):
-        self.log.debug("Execution plan:")
+        log.debug("Execution plan:")
         for cmd in plan:
-            self.log.debug(cmd)
+            log.debug(cmd)
         for command in plan:
-            with quibble.Chronometer(str(command), self.log.info):
+            with quibble.Chronometer(str(command), log.info):
                 command.execute()
 
 
