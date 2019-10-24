@@ -78,4 +78,7 @@ class QuibbleTest(unittest.TestCase):
         mock_log = mock.MagicMock()
         with quibble.Chronometer('method', mock_log):
             pass
-        mock_log.assert_called_with('method finished in 1.000 s')
+        mock_log.assert_has_calls([
+            mock.call('>>> Start: method'),
+            mock.call('<<< Finish: method, in 1.000 s')
+        ])

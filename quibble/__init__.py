@@ -101,9 +101,9 @@ def php_is_hhvm():
 def Chronometer(name, logger):
 
     start = time.time()
+    logger('>>> Start: %s' % name)
     try:
         yield
     finally:
         duration = time.time() - start
-        if logger:
-            logger('%s finished in %.03f s' % (name, duration))
+        logger('<<< Finish: %s, in %.03f s' % (name, duration))
