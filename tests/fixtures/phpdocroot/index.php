@@ -1,3 +1,2 @@
 <?php
-$flavor = defined( 'HHVM_VERSION' ) ? 'hhvm' : 'zend';
-echo "Built-in $flavor server reached.\n";
+echo "Built-in zend server reached.\n";

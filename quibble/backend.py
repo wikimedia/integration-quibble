@@ -26,7 +26,6 @@ import threading
 import time
 
 import quibble
-from quibble import php_is_hhvm
 
 
 def tcp_wait(host, port, timeout=3):
@@ -203,11 +202,7 @@ class MySQL(DatabaseServer):
         self.errorlog = os.path.join(self.rootdir, 'error.log')
         self.pidfile = os.path.join(self.rootdir, 'mysqld.pid')
         self.socket = os.path.join(self.rootdir, 'socket')
-
-        if php_is_hhvm():
-            self.dbserver = self.socket
-        else:
-            self.dbserver = 'localhost:' + self.socket
+        self.dbserver = 'localhost:' + self.socket
 
         self._install_db()
 
@@ -365,18 +360,11 @@ class DevWebServer(BackendServer):
     def start(self):
         self.log.info('Starting MediaWiki built in webserver')
 
-        if php_is_hhvm():
-            server_cmd = ['hhvm', '-m', 'server', '-p', str(self.port)]
-            server_cmd.extend([
-                # HHVM does not set Content-Type for svg files T195634
-                '-d', 'hhvm.static_file.extensions[svg]=image/svg+xml',
-                ])
-        else:
-            server_cmd = ['php', '-d', 'output_buffering=Off', '-S',
-                          '%s:%s' % (self.host, self.port)]
-            if self.router:
-                server_cmd.append(
-                    os.path.join(self.mwdir, self.router))
+        server_cmd = ['php', '-d', 'output_buffering=Off', '-S',
+                      '%s:%s' % (self.host, self.port)]
+        if self.router:
+            server_cmd.append(
+                os.path.join(self.mwdir, self.router))
 
         self.server = subprocess.Popen(
             server_cmd,
