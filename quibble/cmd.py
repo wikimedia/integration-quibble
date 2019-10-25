@@ -46,175 +46,6 @@ class MultipleChoices(list):
 
 class QuibbleCmd(object):
 
-    def __init__(self):
-        self.default_git_cache = ('/srv/git' if quibble.is_in_docker()
-                                  else 'ref')
-        self.default_workspace = ('/workspace' if quibble.is_in_docker()
-                                  else os.getcwd())
-        self.default_logdir = 'log'
-
-    def parse_arguments(self, args=sys.argv[1:]):
-        return self.get_arg_parser().parse_args(args)
-
-    def get_arg_parser(self):
-        """
-        Parse arguments
-        """
-        parser = argparse.ArgumentParser(
-            description='Quibble: the MediaWiki test runner',
-            prog='quibble',
-            )
-        parser.add_argument(
-            '--packages-source',
-            choices=['composer', 'vendor'],
-            default='vendor',
-            help='Source to install PHP dependencies from. Default: vendor')
-        parser.add_argument(
-            '--skip-zuul',
-            action='store_true',
-            help='Do not clone/checkout in workspace')
-        parser.add_argument(
-            '--resolve-requires',
-            action='store_true',
-            help='Whether to process extension.json/skin.json and clone extra '
-                 'extensions/skins mentioned in the "requires" statement. '
-                 'This is done recursively.')
-        parser.add_argument(
-            '--fail-on-extra-requires',
-            action='store_true',
-            help='When --resolve-requires caused Quibble to clone extra '
-                 'requirements not in the list of projects: fail.'
-                 'Can be used to enforce extensions and skins to declare '
-                 'their requirements via the extension registry.')
-        parser.add_argument(
-            '--skip-deps',
-            action='store_true',
-            help='Do not run composer/npm')
-        parser.add_argument(
-            '--skip-install',
-            action='store_true',
-            help='Do not install MediaWiki')
-        parser.add_argument(
-            '--db',
-            choices=['sqlite', 'mysql', 'postgres'],
-            default='mysql',
-            help='Database backend to use. Default: mysql')
-        parser.add_argument(
-            '--db-dir',
-            default=None,
-            help=(
-                'Base directory holding database files. A sub directory '
-                'prefixed with "quibble-" will be created and deleted '
-                'on completion. '
-                'If set and relative, relatively to workspace. '
-                'Default: %s' % tempfile.gettempdir()
-            )
-        )
-        parser.add_argument(
-            '--dump-db-postrun',
-            action='store_true',
-            help='Dump the db before shutting down the server (mysql only)')
-        parser.add_argument(
-            '--git-cache',
-            default=self.default_git_cache,
-            help='Path to bare git repositories to speed up git clone'
-                 'operation. Passed to zuul-cloner as --cache-dir. '
-                 'In Docker: "/srv/git", else "ref"')
-        parser.add_argument(
-            '--git-parallel',
-            default=4,
-            type=int,
-            help='Number of workers to clone repositories. Default: 4')
-        parser.add_argument(
-            '--branch',
-            default=None,
-            help=('Branch to checkout instead of Zuul selected branch, '
-                  'for example to specify an alternate branch to test '
-                  'client library compatibility.')
-            )
-        parser.add_argument(
-            '--project-branch', nargs=1, action='append',
-            default=[],
-            metavar='PROJECT=BRANCH',
-            help=('project-specific branch to checkout which takes precedence '
-                  'over --branch if it is provided; may be specified multiple '
-                  'times.')
-            )
-        parser.add_argument(
-            '--workspace',
-            default=self.default_workspace,
-            help='Base path to work from. In Docker: "/workspace", '
-                 'else current working directory'
-            )
-        parser.add_argument(
-            '--log-dir',
-            default=self.default_logdir,
-            help='Where logs and artifacts will be written to. '
-            'Default: "log" relatively to workspace'
-            )
-        parser.add_argument(
-            'projects', default=[], nargs='*',
-            help='MediaWiki extensions and skins to clone. Always clone '
-                 'mediawiki/core and mediawiki/skins/Vector. '
-                 'If $ZUUL_PROJECT is set, it will be cloned as well.'
-            )
-
-        parser.add_argument(
-            '--color', dest='color', action='store_true',
-            help='Enable colorful output.')
-        parser.add_argument(
-            '--no-color', dest='color', action='store_false',
-            help='Disable colorful output.')
-        # Disable by default for Jenkins to avoid triggering a bug in
-        # the "Console Section" plugin which gets confused if a line
-        # starts with color code (T236222).
-        parser.set_defaults(color=sys.stdin.isatty())
-
-        stages_args = parser.add_argument_group('stages', description=(
-            'Quibble runs all test commands (stages) by default. '
-            'Use the --run or --skip options to further refine which commands '
-            'will be run. '
-            'Available stages are: %s' % ', '.join(default_stages)))
-
-        # Magic type for add_argument so that --foo=a,b,c is magically stored
-        # as: foo=['a', 'b', 'c']
-        def comma_separated_list(string):
-            return string.split(',')
-
-        stages_choices = MultipleChoices(default_stages + ['all'])
-        stages_args.add_argument(
-            '--run', default=['all'],
-            type=comma_separated_list,
-            choices=stages_choices, metavar='STAGE[,STAGE ...]',
-            help='Tests to run. Comma separated. (default: all).'
-        )
-        stages_args.add_argument(
-            '--skip', default=[],
-            type=comma_separated_list,
-            choices=stages_choices, metavar='STAGE[,STAGE ...]',
-            help='Stages to skip. Comma separated. '
-                 'Set to "all" to skip all stages. '
-                 '(default: none). '
-        )
-
-        command_args = stages_args.add_mutually_exclusive_group()
-        command_args.add_argument(
-            '-c', '--command', action='append',
-            dest='commands', metavar='COMMAND',
-            help=(
-                'Run given command instead of built-in stages. '
-                'Each command is executed relatively to '
-                'MediaWiki installation path.'))
-        command_args.add_argument(
-            '--commands', default=[], nargs='*', metavar='COMMAND',
-            help=('DEPRECATED: use -c COMMAND -c COMMAND'))
-
-        parser.add_argument(
-            '--phpunit-testsuite', default=None, metavar='pattern',
-            help='PHPUnit: filter which testsuite to run')
-
-        return parser
-
     def setup_environment(self, workspace, mw_install_path, log_dir):
         """
         Set and get needed environment variables.
@@ -452,32 +283,180 @@ class QuibbleCmd(object):
                 command.execute()
 
 
-# FIXME: Don't shadow QuibbleCmd.get_arg_parser
+def parse_arguments(args):
+    return get_arg_parser().parse_args(args)
+
+
 def get_arg_parser():
     """
-    Build an argparser with sane default values.
-
-    Intended for documentation generation with sphinx-argparse.
+    Parse arguments
     """
-    cmd = QuibbleCmd()
-    # FIXME: These both might be redundant.  And why does sphinx need a custom
-    # endpoint?
-    cmd.default_git_cache = 'ref'
-    cmd.default_workspace = '.'
+    parser = argparse.ArgumentParser(
+        description='Quibble: the MediaWiki test runner',
+        prog='quibble',
+        )
+    parser.add_argument(
+        '--packages-source',
+        choices=['composer', 'vendor'],
+        default='vendor',
+        help='Source to install PHP dependencies from. Default: vendor')
+    parser.add_argument(
+        '--skip-zuul',
+        action='store_true',
+        help='Do not clone/checkout in workspace')
+    parser.add_argument(
+        '--resolve-requires',
+        action='store_true',
+        help='Whether to process extension.json/skin.json and clone extra '
+             'extensions/skins mentioned in the "requires" statement. '
+             'This is done recursively.')
+    parser.add_argument(
+        '--fail-on-extra-requires',
+        action='store_true',
+        help='When --resolve-requires caused Quibble to clone extra '
+             'requirements not in the list of projects: fail.'
+             'Can be used to enforce extensions and skins to declare '
+             'their requirements via the extension registry.')
+    parser.add_argument(
+        '--skip-deps',
+        action='store_true',
+        help='Do not run composer/npm')
+    parser.add_argument(
+        '--skip-install',
+        action='store_true',
+        help='Do not install MediaWiki')
+    parser.add_argument(
+        '--db',
+        choices=['sqlite', 'mysql', 'postgres'],
+        default='mysql',
+        help='Database backend to use. Default: mysql')
+    parser.add_argument(
+        '--db-dir',
+        default=None,
+        help=(
+            'Base directory holding database files. A sub directory '
+            'prefixed with "quibble-" will be created and deleted '
+            'on completion. '
+            'If set and relative, relatively to workspace. '
+            'Default: %s' % tempfile.gettempdir()
+        )
+    )
+    parser.add_argument(
+        '--dump-db-postrun',
+        action='store_true',
+        help='Dump the db before shutting down the server (mysql only)')
+    parser.add_argument(
+        '--git-cache',
+        default='/srv/git' if quibble.is_in_docker() else 'ref',
+        help='Path to bare git repositories to speed up git clone'
+             'operation. Passed to zuul-cloner as --cache-dir. '
+             'In Docker: "/srv/git", else "ref"')
+    parser.add_argument(
+        '--git-parallel',
+        default=4,
+        type=int,
+        help='Number of workers to clone repositories. Default: 4')
+    parser.add_argument(
+        '--branch',
+        default=None,
+        help=('Branch to checkout instead of Zuul selected branch, '
+              'for example to specify an alternate branch to test '
+              'client library compatibility.')
+        )
+    parser.add_argument(
+        '--project-branch', nargs=1, action='append',
+        default=[],
+        metavar='PROJECT=BRANCH',
+        help=('project-specific branch to checkout which takes precedence '
+              'over --branch if it is provided; may be specified multiple '
+              'times.')
+        )
+    parser.add_argument(
+        '--workspace',
+        default='/workspace' if quibble.is_in_docker() else os.getcwd(),
+        help='Base path to work from. In Docker: "/workspace", '
+             'else current working directory'
+        )
+    parser.add_argument(
+        '--log-dir',
+        default='log',
+        help='Where logs and artifacts will be written to. '
+        'Default: "log" relatively to workspace'
+        )
+    parser.add_argument(
+        'projects', default=[], nargs='*',
+        help='MediaWiki extensions and skins to clone. Always clone '
+             'mediawiki/core and mediawiki/skins/Vector. '
+             'If $ZUUL_PROJECT is set, it will be cloned as well.'
+        )
 
-    return cmd.get_arg_parser()
+    parser.add_argument(
+        '--color', dest='color', action='store_true',
+        help='Enable colorful output.')
+    parser.add_argument(
+        '--no-color', dest='color', action='store_false',
+        help='Disable colorful output.')
+    # Disable by default for Jenkins to avoid triggering a bug in
+    # the "Console Section" plugin which gets confused if a line
+    # starts with color code (T236222).
+    parser.set_defaults(color=sys.stdin.isatty())
+
+    stages_args = parser.add_argument_group('stages', description=(
+        'Quibble runs all test commands (stages) by default. '
+        'Use the --run or --skip options to further refine which commands '
+        'will be run. '
+        'Available stages are: %s' % ', '.join(default_stages)))
+
+    # Magic type for add_argument so that --foo=a,b,c is magically stored
+    # as: foo=['a', 'b', 'c']
+    def comma_separated_list(string):
+        return string.split(',')
+
+    stages_choices = MultipleChoices(default_stages + ['all'])
+    stages_args.add_argument(
+        '--run', default=['all'],
+        type=comma_separated_list,
+        choices=stages_choices, metavar='STAGE[,STAGE ...]',
+        help='Tests to run. Comma separated. (default: all).'
+    )
+    stages_args.add_argument(
+        '--skip', default=[],
+        type=comma_separated_list,
+        choices=stages_choices, metavar='STAGE[,STAGE ...]',
+        help='Stages to skip. Comma separated. '
+             'Set to "all" to skip all stages. '
+             '(default: none). '
+    )
+
+    command_args = stages_args.add_mutually_exclusive_group()
+    command_args.add_argument(
+        '-c', '--command', action='append',
+        dest='commands', metavar='COMMAND',
+        help=(
+            'Run given command instead of built-in stages. '
+            'Each command is executed relatively to '
+            'MediaWiki installation path.'))
+    command_args.add_argument(
+        '--commands', default=[], nargs='*', metavar='COMMAND',
+        help=('DEPRECATED: use -c COMMAND -c COMMAND'))
+
+    parser.add_argument(
+        '--phpunit-testsuite', default=None, metavar='pattern',
+        help='PHPUnit: filter which testsuite to run')
+
+    return parser
 
 
 def main():
     logging.basicConfig(level=logging.INFO)
     logging.getLogger('quibble').setLevel(logging.DEBUG)
 
-    cmd = QuibbleCmd()
-    args = cmd.parse_arguments()
+    args = parse_arguments(sys.argv[1:])
 
     if args.color:
         quibble.colored_logging()
 
+    cmd = QuibbleCmd()
     plan = cmd.build_execution_plan(args)
     cmd.execute(plan)
 

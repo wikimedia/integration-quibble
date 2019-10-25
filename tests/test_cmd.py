@@ -129,7 +129,7 @@ class CmdTest(unittest.TestCase):
 
     @mock.patch('quibble.is_in_docker', return_value=False)
     def test_args_defaults(self, _):
-        args = cmd.QuibbleCmd().parse_arguments([])
+        args = cmd.parse_arguments([])
 
         self.assertEqual('ref', args.git_cache)
         self.assertEqual(os.getcwd(), args.workspace)
@@ -137,7 +137,7 @@ class CmdTest(unittest.TestCase):
 
     @mock.patch('quibble.is_in_docker', return_value=True)
     def test_args_defaults_in_docker(self, _):
-        args = cmd.QuibbleCmd().parse_arguments([])
+        args = cmd.parse_arguments([])
 
         self.assertEqual('/srv/git', args.git_cache)
         self.assertEqual('/workspace', args.workspace)
@@ -184,21 +184,21 @@ class CmdTest(unittest.TestCase):
 
     def test_should_run_accepts_all_stages_by_default(self):
         q = cmd.QuibbleCmd()
-        args = q.parse_arguments(args=[])
+        args = cmd.parse_arguments(args=[])
         stages = q.stages_to_run(args.run, args.skip, args.commands)
         self.assertEquals(default_stages, stages,
                           'must runs all stages by default')
 
     def test_should_run_runall_accepts_all_stages(self):
         q = cmd.QuibbleCmd()
-        args = q.parse_arguments(args=['--run', 'all'])
+        args = cmd.parse_arguments(args=['--run', 'all'])
         stages = q.stages_to_run(args.run, args.skip, args.commands)
         self.assertEquals(default_stages, stages,
                           '--run=all runs all stages')
 
     def test_should_run_skippall_runs_no_stage(self):
         q = cmd.QuibbleCmd()
-        args = q.parse_arguments(args=['--skip', 'all'])
+        args = cmd.parse_arguments(args=['--skip', 'all'])
         stages = q.stages_to_run(args.run, args.skip, args.commands)
         self.assertEquals([], stages,
                           '--skip=all skips all stages')
@@ -206,14 +206,14 @@ class CmdTest(unittest.TestCase):
     @mock.patch('quibble.cmd.default_stages', ['foo', 'phpunit'])
     def test_should_run_skips_a_stage(self):
         q = cmd.QuibbleCmd()
-        args = q.parse_arguments(args=['--skip', 'phpunit'])
+        args = cmd.parse_arguments(args=['--skip', 'phpunit'])
         stages = q.stages_to_run(args.run, args.skip, args.commands)
         self.assertEquals(['foo'], stages,
                           '--skip skips the stage')
 
     def test_should_run_runall_and_skip_play_nice(self):
         q = cmd.QuibbleCmd()
-        args = q.parse_arguments(args=['--run', 'all', '--skip', 'phpunit'])
+        args = cmd.parse_arguments(args=['--run', 'all', '--skip', 'phpunit'])
         stages = q.stages_to_run(args.run, args.skip, args.commands)
         expected_stages = default_stages.copy()
         expected_stages.remove('phpunit')
@@ -222,62 +222,53 @@ class CmdTest(unittest.TestCase):
 
     def test_should_run_running_a_single_stage(self):
         q = cmd.QuibbleCmd()
-        args = q.parse_arguments(args=['--run', 'phpunit'])
+        args = cmd.parse_arguments(args=['--run', 'phpunit'])
         stages = q.stages_to_run(args.run, args.skip, args.commands)
         self.assertEquals(['phpunit'], stages,
                           '--run runs exactly the given stage')
 
     def test_command_skip_all_stages(self):
         q = cmd.QuibbleCmd()
-        args = q.parse_arguments(args=['-c', '/bin/true'])
+        args = cmd.parse_arguments(args=['-c', '/bin/true'])
         stages = q.stages_to_run(args.run, args.skip, args.commands)
         self.assertEquals([], stages,
                           'User command must skip all stages')
 
     def test_run_option_is_comma_separated(self):
-        q = cmd.QuibbleCmd()
-        q.args = q.parse_arguments(args=['--run=phpunit,qunit'])
-        self.assertEquals(['phpunit', 'qunit'], q.args.run)
+        args = cmd.parse_arguments(args=['--run=phpunit,qunit'])
+        self.assertEquals(['phpunit', 'qunit'], args.run)
 
     def test_run_option_does_not_shallow_next_arg(self):
-        q = cmd.QuibbleCmd()
-        q.args = q.parse_arguments(args=['--run', 'phpunit', 'repo'])
-        self.assertEquals(['phpunit'], q.args.run)
-        self.assertEquals(['repo'], q.args.projects)
+        args = cmd.parse_arguments(args=['--run', 'phpunit', 'repo'])
+        self.assertEquals(['phpunit'], args.run)
+        self.assertEquals(['repo'], args.projects)
 
     def test_skip_option_is_comma_separated(self):
-        q = cmd.QuibbleCmd()
-        q.args = q.parse_arguments(args=['--skip=phpunit,qunit'])
-        self.assertEquals(['phpunit', 'qunit'], q.args.skip)
+        args = cmd.parse_arguments(args=['--skip=phpunit,qunit'])
+        self.assertEquals(['phpunit', 'qunit'], args.skip)
 
     def test_skip_option_does_not_shallow_next_arg(self):
-        q = cmd.QuibbleCmd()
-        q.args = q.parse_arguments(args=['--skip', 'phpunit', 'repo'])
-        self.assertEquals(['phpunit'], q.args.skip)
-        self.assertEquals(['repo'], q.args.projects)
+        args = cmd.parse_arguments(args=['--skip', 'phpunit', 'repo'])
+        self.assertEquals(['phpunit'], args.skip)
+        self.assertEquals(['repo'], args.projects)
 
     def test_command_does_not_shallow_next_arg(self):
-        q = cmd.QuibbleCmd()
-        q.args = q.parse_arguments(args=['--command', '/bin/true', 'repo'])
-        self.assertEquals(['/bin/true'], q.args.commands)
-        self.assertEquals(['repo'], q.args.projects)
+        args = cmd.parse_arguments(args=['--command', '/bin/true', 'repo'])
+        self.assertEquals(['/bin/true'], args.commands)
+        self.assertEquals(['repo'], args.projects)
 
     def test_command_used_multiple_times(self):
-        q = cmd.QuibbleCmd()
-        q.args = q.parse_arguments(args=['-c', 'true', '-c', 'false'])
-        self.assertEquals(['true', 'false'], q.args.commands)
+        args = cmd.parse_arguments(args=['-c', 'true', '-c', 'false'])
+        self.assertEquals(['true', 'false'], args.commands)
 
     def test_project_branch_arg(self):
-        q = cmd.QuibbleCmd()
-        q.args = q.parse_arguments(args=[])
-        self.assertEquals([], q.args.project_branch)
+        args = cmd.parse_arguments(args=[])
+        self.assertEquals([], args.project_branch)
 
     @mock.patch('os.makedirs')
     def test_build_execution_plan(self, mock_makedirs):
-        q = cmd.QuibbleCmd()
-
-        args = q.parse_arguments(args=[])
-        plan = q.build_execution_plan(args)
+        args = cmd.parse_arguments(args=[])
+        plan = cmd.QuibbleCmd().build_execution_plan(args)
 
         self.assertIsInstance(plan[0], quibble.commands.ReportVersions)
         mock_makedirs.assert_any_call(
@@ -288,7 +279,7 @@ class CmdTest(unittest.TestCase):
         env = {'ZUUL_PROJECT': 'mediawiki/extensions/ZuulProjectEnvVar'}
         with mock.patch.dict('os.environ', env, clear=True):
             q = cmd.QuibbleCmd()
-            args = q.parse_arguments(
+            args = cmd.parse_arguments(
                 args=['--packages-source=composer'])
             with mock.patch('quibble.commands.ZuulCloneCommand') as mock_clone:
                 q.build_execution_plan(args)
@@ -309,7 +300,7 @@ class CmdTest(unittest.TestCase):
 
         for repo in hardcoded_repos:
             q = cmd.QuibbleCmd()
-            args = q.parse_arguments(
+            args = cmd.parse_arguments(
                 args=['--packages-source=composer'])
             with mock.patch.dict('os.environ', {'ZUUL_PROJECT': repo},
                                  clear=True):
