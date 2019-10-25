@@ -166,6 +166,17 @@ class QuibbleCmd(object):
             )
 
         parser.add_argument(
+            '--color', dest='color', action='store_true',
+            help='Enable colorful output.')
+        parser.add_argument(
+            '--no-color', dest='color', action='store_false',
+            help='Disable colorful output.')
+        # Disable by default for Jenkins to avoid triggering a bug in
+        # the "Console Section" plugin which gets confused if a line
+        # starts with color code (T236222).
+        parser.set_defaults(color=sys.stdin.isatty())
+
+        parser.add_argument(
             '-n', '--dry-run',
             action='store_true',
             help='Stop before executing any commands.')
@@ -470,10 +481,13 @@ def get_arg_parser():
 def main():
     logging.basicConfig(level=logging.INFO)
     logging.getLogger('quibble').setLevel(logging.DEBUG)
-    quibble.colored_logging()
 
     cmd = QuibbleCmd()
     args = cmd.parse_arguments()
+
+    if args.color:
+        quibble.colored_logging()
+
     plan = cmd.build_execution_plan(args)
     cmd.execute(plan)
 
