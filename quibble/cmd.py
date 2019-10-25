@@ -176,11 +176,6 @@ class QuibbleCmd(object):
         # starts with color code (T236222).
         parser.set_defaults(color=sys.stdin.isatty())
 
-        parser.add_argument(
-            '-n', '--dry-run',
-            action='store_true',
-            help='Stop before executing any commands.')
-
         stages = ', '.join(self.stages)
         stages_args = parser.add_argument_group('stages', description=(
             'Quibble runs all test commands (stages) by default. '
@@ -454,9 +449,6 @@ class QuibbleCmd(object):
         self.log.debug("Execution plan:")
         for cmd in plan:
             self.log.debug(cmd)
-        if self.args.dry_run:
-            self.log.warning("Exiting without execution: --dry-run")
-            return
         for command in plan:
             with quibble.Chronometer(str(command), self.log.info):
                 command.execute()
