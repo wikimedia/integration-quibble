@@ -515,7 +515,7 @@ class AbstractPhpUnit:
 
         always_excluded = ['Broken', 'ParserFuzz', 'Stub']
         if not cmd:
-            cmd = ['php', 'tests/phpunit/phpunit.php', '--debug-tests']
+            cmd = ['php', 'tests/phpunit/phpunit.php']
         if self.testsuite:
             cmd.extend(['--testsuite', self.testsuite])
 

@@ -187,7 +187,7 @@ class PhpUnitDatabaseTest(unittest.TestCase):
         ).execute()
 
         mock_check_call.assert_called_once_with(
-            ['php', 'tests/phpunit/phpunit.php', '--debug-tests',
+            ['php', 'tests/phpunit/phpunit.php',
              '--testsuite', 'extensions', '--group', 'Database',
              '--exclude-group', 'Broken,ParserFuzz,Stub', '--log-junit',
              '/log/junit-db.xml'],
@@ -204,7 +204,7 @@ class PhpUnitDatabaselessTest(unittest.TestCase):
         ).execute()
 
         mock_check_call.assert_called_once_with(
-            ['php', 'tests/phpunit/phpunit.php', '--debug-tests',
+            ['php', 'tests/phpunit/phpunit.php',
              '--testsuite', 'extensions', '--exclude-group',
              'Broken,ParserFuzz,Stub,Database', '--log-junit',
              '/log/junit-dbless.xml'],
