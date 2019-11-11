@@ -50,7 +50,6 @@ class QuibbleCmd(object):
     db_dir = None
 
     def __init__(self):
-        self.dependencies = []
         self.default_git_cache = ('/srv/git' if quibble.is_in_docker()
                                   else 'ref')
         self.default_workspace = ('/workspace' if quibble.is_in_docker()
@@ -254,6 +253,7 @@ class QuibbleCmd(object):
             log.info('Adding mediawiki/vendor')
             dependencies.add('mediawiki/vendor')
 
+        # TODO: Remove this and build a list of additional dependencies.
         if zuul_project is not None:
             dependencies.add(zuul_project)
 
@@ -321,8 +321,8 @@ class QuibbleCmd(object):
         else:
             log.debug("ZUUL_PROJECT=%s", zuul_project)
 
-        self.dependencies = self.repos_to_clone(
-            projects=self.args.projects,
+        dependencies = self.repos_to_clone(
+            projects=args.projects,
             zuul_project=zuul_project,
             clone_vendor=(self.args.packages_source == 'vendor'))
 
@@ -342,14 +342,14 @@ class QuibbleCmd(object):
                 'zuul_url': os.getenv('ZUUL_URL'),
             }
             plan.append(quibble.commands.ZuulCloneCommand(
-                projects=self.dependencies,
+                projects=dependencies,
                 **zuul_params
             ))
 
             if self.args.resolve_requires:
                 plan.append(quibble.commands.ResolveRequiresCommand(
                     mw_install_path=self.mw_install_path,
-                    projects=self.dependencies,
+                    projects=dependencies,
                     zuul_params=zuul_params,
                     fail_on_extra_requires=self.args.fail_on_extra_requires,
                 ))
@@ -370,7 +370,7 @@ class QuibbleCmd(object):
 
         if not self.args.skip_deps and self.args.packages_source == 'composer':
             plan.append(quibble.commands.CreateComposerLocal(
-                self.mw_install_path, self.dependencies))
+                self.mw_install_path, dependencies))
             plan.append(quibble.commands.NativeComposerDependencies(
                 self.mw_install_path))
 
@@ -426,7 +426,7 @@ class QuibbleCmd(object):
             plan.append(quibble.commands.BrowserTests(
                 self.mw_install_path,
                 quibble.util.move_item_to_head(
-                    self.dependencies, zuul_project),
+                    dependencies, zuul_project),
                 display))
 
         if self.should_run('phpunit'):

@@ -291,12 +291,15 @@ class CmdTest(unittest.TestCase):
             q = cmd.QuibbleCmd()
             args = q.parse_arguments(
                 args=['--packages-source=composer'])
-            q.build_execution_plan(args)
-            self.assertEqual([
+            with mock.patch('quibble.commands.ZuulCloneCommand') as mock_clone:
+                q.build_execution_plan(args)
+        self.assertEquals(
+            [
                 'mediawiki/core',  # must be first
                 'mediawiki/extensions/ZuulProjectEnvVar',
                 'mediawiki/skins/Vector',
-                ], q.dependencies)
+            ],
+            mock_clone.call_args[1]['projects'])
 
     @mock.patch('quibble.is_in_docker', return_value=False)
     def test_build_execution_plan_does_not_duplicate_hardcoded_repos(self, _):
@@ -306,13 +309,17 @@ class CmdTest(unittest.TestCase):
             ]
 
         for repo in hardcoded_repos:
+            q = cmd.QuibbleCmd()
+            args = q.parse_arguments(
+                args=['--packages-source=composer'])
             with mock.patch.dict('os.environ', {'ZUUL_PROJECT': repo},
                                  clear=True):
-                q = cmd.QuibbleCmd()
-                args = q.parse_arguments(
-                    args=['--packages-source=composer'])
-                q.build_execution_plan(args)
-                self.assertEqual([
+                with mock.patch('quibble.commands.ZuulCloneCommand') \
+                        as mock_clone:
+                    q.build_execution_plan(args)
+            self.assertEquals(
+                [
                     'mediawiki/core',  # must be first
                     'mediawiki/skins/Vector',
-                    ], q.dependencies)
+                ],
+                mock_clone.call_args[1]['projects'])
