@@ -46,7 +46,8 @@ class CmdTest(unittest.TestCase):
     def test_projects_to_clone(self):
         q = cmd.QuibbleCmd()
         self.assertEqual(
-            q.repos_to_clone(),
+            q.repos_to_clone(
+                projects=[], zuul_project=None, clone_vendor=False),
             ['mediawiki/core', 'mediawiki/skins/Vector'],
             'Incorrect repos to clone')
 
@@ -54,7 +55,8 @@ class CmdTest(unittest.TestCase):
     def test_projects_to_clone_with_vendor(self):
         q = cmd.QuibbleCmd()
         self.assertEqual(
-            q.repos_to_clone(clone_vendor=True),
+            q.repos_to_clone(
+                projects=[], zuul_project=None, clone_vendor=True),
             ['mediawiki/core', 'mediawiki/skins/Vector', 'mediawiki/vendor'],
             'Incorrect repos to clone')
 
@@ -62,10 +64,13 @@ class CmdTest(unittest.TestCase):
     def test_projects_to_clone_appends_projects(self):
         q = cmd.QuibbleCmd()
         self.assertEqual(
-            q.repos_to_clone(projects=[
-                'mediawiki/extensions/BoilerPlate',
-                'mediawiki/extensions/Example',
-                ]),
+            q.repos_to_clone(
+                projects=[
+                    'mediawiki/extensions/BoilerPlate',
+                    'mediawiki/extensions/Example',
+                ],
+                zuul_project=None,
+                clone_vendor=False),
             ['mediawiki/core',
              'mediawiki/extensions/BoilerPlate',
              'mediawiki/extensions/Example',
@@ -80,7 +85,8 @@ class CmdTest(unittest.TestCase):
                     'mediawiki/extensions/BoilerPlate',
                     'mediawiki/extensions/Example',
                 ],
-                zuul_project='mediawiki/extensions/Example'),
+                zuul_project='mediawiki/extensions/Example',
+                clone_vendor=False),
             ['mediawiki/core',
              'mediawiki/extensions/BoilerPlate',
              'mediawiki/extensions/Example',
@@ -100,7 +106,8 @@ class CmdTest(unittest.TestCase):
                 'mediawiki/extensions/Two',
                 'mediawiki/skins/Monobook',
                 'mediawiki/skins/Vector',
-                ], q.repos_to_clone())
+                ], q.repos_to_clone(projects=[], zuul_project=None,
+                                    clone_vendor=False))
 
     def test_env_dependencies_log_a_warning(self):
         env = {
@@ -110,7 +117,8 @@ class CmdTest(unittest.TestCase):
         with mock.patch.dict('os.environ', env, clear=True):
             with self.assertLogs('quibble.cmd', level='WARNING') as log:
                 q = cmd.QuibbleCmd()
-                q.repos_to_clone()
+                q.repos_to_clone(projects=[], zuul_project=None,
+                                 clone_vendor=False)
 
         self.assertRegex(
             log.output[0],

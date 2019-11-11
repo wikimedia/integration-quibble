@@ -244,8 +244,7 @@ class QuibbleCmd(object):
             '%s env variable is deprecated. '
             'Instead pass projects as arguments.', var)
 
-    def repos_to_clone(self, projects=[], zuul_project=None,
-                       clone_vendor=False):
+    def repos_to_clone(self, projects, zuul_project, clone_vendor):
         """
         Find repos to clone basedon passed arguments and environment
         """
