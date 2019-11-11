@@ -325,16 +325,16 @@ class QuibbleCmd(object):
         dependencies = self.repos_to_clone(
             projects=args.projects,
             zuul_project=zuul_project,
-            clone_vendor=(self.args.packages_source == 'vendor'))
+            clone_vendor=(args.packages_source == 'vendor'))
 
         plan.append(quibble.commands.ReportVersions())
 
-        if not self.args.skip_zuul:
+        if not args.skip_zuul:
             zuul_params = {
-                'branch': self.args.branch,
-                'cache_dir': self.args.git_cache,
-                'project_branch': self.args.project_branch,
-                'workers': self.args.git_parallel,
+                'branch': args.branch,
+                'cache_dir': args.git_cache,
+                'project_branch': args.project_branch,
+                'workers': args.git_parallel,
                 'workspace': os.path.join(workspace, 'src'),
                 'zuul_branch': os.getenv('ZUUL_BRANCH'),
                 'zuul_newrev': os.getenv('ZUUL_NEWREV'),
@@ -342,17 +342,18 @@ class QuibbleCmd(object):
                 'zuul_ref': os.getenv('ZUUL_REF'),
                 'zuul_url': os.getenv('ZUUL_URL'),
             }
+
             plan.append(quibble.commands.ZuulCloneCommand(
                 projects=dependencies,
                 **zuul_params
             ))
 
-            if self.args.resolve_requires:
+            if args.resolve_requires:
                 plan.append(quibble.commands.ResolveRequiresCommand(
                     mw_install_path=mw_install_path,
                     projects=dependencies,
                     zuul_params=zuul_params,
-                    fail_on_extra_requires=self.args.fail_on_extra_requires,
+                    fail_on_extra_requires=args.fail_on_extra_requires,
                 ))
 
             plan.append(quibble.commands.ExtSkinSubmoduleUpdateCommand(
@@ -369,23 +370,23 @@ class QuibbleCmd(object):
                 plan.append(quibble.commands.ExtSkinComposerNpmTest(
                     project_dir, run_composer, run_npm))
 
-        if not self.args.skip_deps and self.args.packages_source == 'composer':
+        if not args.skip_deps and args.packages_source == 'composer':
             plan.append(quibble.commands.CreateComposerLocal(
                 mw_install_path, dependencies))
             plan.append(quibble.commands.NativeComposerDependencies(
                 mw_install_path))
 
-        if not self.args.skip_install:
+        if not args.skip_install:
             plan.append(quibble.commands.InstallMediaWiki(
                 mw_install_path=mw_install_path,
-                db_engine=self.args.db,
+                db_engine=args.db,
                 db_dir=db_dir,
                 dump_dir=dump_dir,
                 log_dir=log_dir,
-                use_vendor=(self.args.packages_source == 'vendor')))
+                use_vendor=(args.packages_source == 'vendor')))
 
-        if not self.args.skip_deps:
-            if self.args.packages_source == 'vendor':
+        if not args.skip_deps:
+            if args.packages_source == 'vendor':
                 plan.append(quibble.commands.VendorComposerDependencies(
                     mw_install_path, log_dir))
 
@@ -393,8 +394,8 @@ class QuibbleCmd(object):
                 mw_install_path))
 
         phpunit_testsuite = None
-        if self.args.phpunit_testsuite:
-            phpunit_testsuite = self.args.phpunit_testsuite
+        if args.phpunit_testsuite:
+            phpunit_testsuite = args.phpunit_testsuite
         elif zuul_project.startswith('mediawiki/extensions/'):
             phpunit_testsuite = 'extensions'
         elif zuul_project.startswith('mediawiki/skins/'):
@@ -436,7 +437,7 @@ class QuibbleCmd(object):
                 phpunit_testsuite,
                 log_dir))
 
-        if self.args.commands:
+        if args.commands:
             plan.append(quibble.commands.UserCommands(
                 mw_install_path, self.args.commands))
 
