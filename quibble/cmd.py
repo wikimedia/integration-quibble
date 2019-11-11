@@ -51,9 +51,6 @@ class QuibbleCmd(object):
 
     def __init__(self):
         self.dependencies = []
-        # Hold backend objects so they do not get garbage collected until end
-        # of script.
-        self.backends = {}
         self.default_git_cache = ('/srv/git' if quibble.is_in_docker()
                                   else 'ref')
         self.default_workspace = ('/workspace' if quibble.is_in_docker()
