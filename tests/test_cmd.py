@@ -5,7 +5,7 @@ import unittest
 from unittest import mock
 
 from quibble import cmd
-from quibble.cmd import MultipleChoices
+from quibble.cmd import MultipleChoices, default_stages
 import quibble.commands
 
 
@@ -185,48 +185,46 @@ class CmdTest(unittest.TestCase):
 
     def test_should_run_accepts_all_stages_by_default(self):
         q = cmd.QuibbleCmd()
-        q.args = q.parse_arguments(args=[])
-        self.assertTrue(
-            all(map(q.should_run, q.stages)),
-            'must runs all stages by default')
+        args = q.parse_arguments(args=[])
+        stages = q.stages_to_run(args.run, args.skip, args.commands)
+        self.assertEquals(default_stages, stages,
+                          'must runs all stages by default')
 
     def test_should_run_runall_accepts_all_stages(self):
         q = cmd.QuibbleCmd()
-        q.args = q.parse_arguments(args=['--run=all'])
-        self.assertTrue(
-            all(map(q.should_run, q.stages)),
-            '--run=all runs all stages')
+        args = q.parse_arguments(args=['--run', 'all'])
+        stages = q.stages_to_run(args.run, args.skip, args.commands)
+        self.assertEquals(default_stages, stages,
+                          '--run=all runs all stages')
 
     def test_should_run_skippall_runs_no_stage(self):
         q = cmd.QuibbleCmd()
-        q.args = q.parse_arguments(args=['--skip=all'])
-        self.assertFalse(
-            any(map(q.should_run, q.stages)),
-            '--skip=all skips all stages')
+        args = q.parse_arguments(args=['--skip', 'all'])
+        stages = q.stages_to_run(args.run, args.skip, args.commands)
+        self.assertEquals([], stages,
+                          '--skip=all skips all stages')
 
+    @mock.patch('quibble.cmd.default_stages', ['foo', 'phpunit'])
     def test_should_run_skips_a_stage(self):
         q = cmd.QuibbleCmd()
-        q.args = q.parse_arguments(args=['--skip=phpunit'])
-        self.assertFalse(
-            q.should_run('phpunit'),
-            '--skip skips the stage')
-        stages_to_run = [s for s in q.stages
-                         if s != 'phpunit']
-        self.assertTrue(
-            all(map(q.should_run, stages_to_run)),
-            'Must runs all non skipped stages')
+        args = q.parse_arguments(args=['--skip', 'phpunit'])
+        stages = q.stages_to_run(args.run, args.skip, args.commands)
+        self.assertEquals(['foo'], stages,
+                          '--skip skips the stage')
 
     def test_should_run_running_a_single_stage(self):
         q = cmd.QuibbleCmd()
-        q.args = q.parse_arguments(args=['--run=phpunit'])
-        self.assertTrue(
-            q.should_run('phpunit'),
-            '--run runs the stage')
-        stages_to_skip = [s for s in q.stages
-                          if s != 'phpunit']
-        self.assertFalse(
-            any(map(q.should_run, stages_to_skip)),
-            'Must not run any other stages')
+        args = q.parse_arguments(args=['--run', 'phpunit'])
+        stages = q.stages_to_run(args.run, args.skip, args.commands)
+        self.assertEquals(['phpunit'], stages,
+                          '--run runs exactly the given stage')
+
+    def test_command_skip_all_stages(self):
+        q = cmd.QuibbleCmd()
+        args = q.parse_arguments(args=['-c', '/bin/true'])
+        stages = q.stages_to_run(args.run, args.skip, args.commands)
+        self.assertEquals([], stages,
+                          'User command must skip all stages')
 
     def test_run_option_is_comma_separated(self):
         q = cmd.QuibbleCmd()
@@ -249,13 +247,6 @@ class CmdTest(unittest.TestCase):
         q.args = q.parse_arguments(args=['--skip', 'phpunit', 'repo'])
         self.assertEquals(['phpunit'], q.args.skip)
         self.assertEquals(['repo'], q.args.projects)
-
-    def test_command_skip_all_stages(self):
-        q = cmd.QuibbleCmd()
-        q.args = q.parse_arguments(args=['--command=/bin/true'])
-        self.assertFalse(
-            any(map(q.should_run, q.stages)),
-            'User command must skip all stages')
 
     def test_command_does_not_shallow_next_arg(self):
         q = cmd.QuibbleCmd()

@@ -30,6 +30,8 @@ import quibble.commands
 import quibble.util
 
 log = logging.getLogger('quibble.cmd')
+default_stages = ['phpunit-unit', 'phpunit', 'npm-test', 'composer-test',
+                  'qunit', 'selenium']
 
 
 # Used for add_argument(choices=) let us validate multiple choices at once.
@@ -44,8 +46,6 @@ class MultipleChoices(list):
 
 class QuibbleCmd(object):
 
-    stages = ['phpunit-unit', 'phpunit', 'npm-test', 'composer-test', 'qunit',
-              'selenium']
     dump_dir = None
     db_dir = None
 
@@ -173,19 +173,18 @@ class QuibbleCmd(object):
         # starts with color code (T236222).
         parser.set_defaults(color=sys.stdin.isatty())
 
-        stages = ', '.join(self.stages)
         stages_args = parser.add_argument_group('stages', description=(
             'Quibble runs all test commands (stages) by default. '
             'Use the --run or --skip options to further refine which commands '
             'will be run. '
-            'Available stages are: %s' % stages))
+            'Available stages are: %s' % ', '.join(default_stages)))
 
         # Magic type for add_argument so that --foo=a,b,c is magically stored
         # as: foo=['a', 'b', 'c']
         def comma_separated_list(string):
             return string.split(',')
 
-        stages_choices = MultipleChoices(self.stages + ['all'])
+        stages_choices = MultipleChoices(default_stages + ['all'])
         stages_args.add_argument(
             '--run', default=['all'],
             type=comma_separated_list,
@@ -280,16 +279,18 @@ class QuibbleCmd(object):
 
         return dependencies
 
-    def should_run(self, stage):
-        if self.args.commands:
-            return False
-        if 'all' in self.args.skip:
-            return False
-        if stage in self.args.skip:
-            return False
-        if 'all' in self.args.run:
-            return True
-        return stage in self.args.run
+    def stages_to_run(self, run, skip, commands):
+        if commands or 'all' in skip:
+            return []
+
+        stages = default_stages
+        if skip:
+            stages = [s for s in stages if s not in skip]
+        if 'all' in run:
+            return stages
+        if run:
+            stages = run
+        return stages
 
     def build_execution_plan(self, args):
         plan = []
@@ -306,9 +307,8 @@ class QuibbleCmd(object):
         if self.args.dump_db_postrun:
             self.dump_dir = self.log_dir
 
-        log.debug('Running stages: %s',
-                  ', '.join(stage for stage in self.stages
-                            if self.should_run(stage)))
+        stages = self.stages_to_run(args.run, args.skip, args.commands)
+        log.debug('Running stages: %s', ', '.join(stages))
 
         self.setup_environment()
 
@@ -358,8 +358,8 @@ class QuibbleCmd(object):
                 self.mw_install_path))
 
         if quibble.util.isExtOrSkin(zuul_project):
-            run_composer = self.should_run('composer-test')
-            run_npm = self.should_run('npm-test')
+            run_composer = 'composer-test' in stages
+            run_npm = 'npm-test' in stages
             if run_composer or run_npm:
                 project_dir = os.path.join(
                     self.mw_install_path,
@@ -399,12 +399,12 @@ class QuibbleCmd(object):
         elif zuul_project.startswith('mediawiki/skins/'):
             phpunit_testsuite = 'skins'
 
-        if self.should_run('phpunit-unit'):
+        if 'phpunit-unit' in stages:
             plan.append(quibble.commands.PhpUnitUnit(
                 self.mw_install_path,
                 self.log_dir))
 
-        if self.should_run('phpunit'):
+        if 'phpunit' in stages:
             plan.append(quibble.commands.PhpUnitDatabaseless(
                 self.mw_install_path,
                 phpunit_testsuite,
@@ -413,23 +413,23 @@ class QuibbleCmd(object):
         if zuul_project == 'mediawiki/core':
             plan.append(quibble.commands.CoreNpmComposerTest(
                 self.mw_install_path,
-                composer=self.should_run('composer-test'),
-                npm=self.should_run('npm-test')))
+                composer='composer-test' in stages,
+                npm='npm-test' in stages))
 
         display = os.environ.get('DISPLAY', None)
 
-        if self.should_run('qunit'):
+        if 'qunit' in stages:
             plan.append(quibble.commands.QunitTests(
                 self.mw_install_path))
 
-        if self.should_run('selenium'):
+        if 'selenium' in stages:
             plan.append(quibble.commands.BrowserTests(
                 self.mw_install_path,
                 quibble.util.move_item_to_head(
                     dependencies, zuul_project),
                 display))
 
-        if self.should_run('phpunit'):
+        if 'phpunit' in stages:
             plan.append(quibble.commands.PhpUnitDatabase(
                 self.mw_install_path,
                 phpunit_testsuite,
