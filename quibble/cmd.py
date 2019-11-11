@@ -46,9 +46,6 @@ class MultipleChoices(list):
 
 class QuibbleCmd(object):
 
-    dump_dir = None
-    db_dir = None
-
     def __init__(self):
         self.default_git_cache = ('/srv/git' if quibble.is_in_docker()
                                   else 'ref')
@@ -218,7 +215,7 @@ class QuibbleCmd(object):
 
         return parser
 
-    def setup_environment(self):
+    def setup_environment(self, workspace, mw_install_path, log_dir):
         """
         Set and get needed environment variables.
         """
@@ -230,11 +227,11 @@ class QuibbleCmd(object):
             # whatever was given from the command line.
             # Else set it, since some code might rely on it being set to detect
             # whether they are under CI.
-            os.environ['WORKSPACE'] = self.workspace
+            os.environ['WORKSPACE'] = workspace
 
-        os.environ['MW_INSTALL_PATH'] = self.mw_install_path
-        os.environ['MW_LOG_DIR'] = self.log_dir
-        os.environ['LOG_DIR'] = self.log_dir
+        os.environ['MW_INSTALL_PATH'] = mw_install_path
+        os.environ['MW_LOG_DIR'] = log_dir
+        os.environ['LOG_DIR'] = log_dir
         os.environ['TMPDIR'] = tempfile.gettempdir()
 
     def _warn_obsolete_env_deps(self, var):
@@ -296,21 +293,25 @@ class QuibbleCmd(object):
         plan = []
 
         self.args = args
-        self.workspace = self.args.workspace
-        self.mw_install_path = os.path.join(self.workspace, 'src')
-        self.log_dir = os.path.join(self.workspace, self.args.log_dir)
-        if self.args.db_dir is not None:
-            self.db_dir = os.path.join(self.workspace, self.args.db_dir)
+        workspace = args.workspace
+        mw_install_path = os.path.join(workspace, 'src')
+        log_dir = os.path.join(workspace, args.log_dir)
+        if args.db_dir is not None:
+            db_dir = os.path.join(workspace, args.db_dir)
+        else:
+            db_dir = None
 
-        os.makedirs(self.log_dir, exist_ok=True)
+        os.makedirs(log_dir, exist_ok=True)
 
-        if self.args.dump_db_postrun:
-            self.dump_dir = self.log_dir
+        if args.dump_db_postrun:
+            dump_dir = log_dir
+        else:
+            dump_dir = None
 
         stages = self.stages_to_run(args.run, args.skip, args.commands)
         log.debug('Running stages: %s', ', '.join(stages))
 
-        self.setup_environment()
+        self.setup_environment(workspace, mw_install_path, log_dir)
 
         zuul_project = os.environ.get('ZUUL_PROJECT', None)
         if zuul_project is None:
@@ -334,7 +335,7 @@ class QuibbleCmd(object):
                 'cache_dir': self.args.git_cache,
                 'project_branch': self.args.project_branch,
                 'workers': self.args.git_parallel,
-                'workspace': os.path.join(self.workspace, 'src'),
+                'workspace': os.path.join(workspace, 'src'),
                 'zuul_branch': os.getenv('ZUUL_BRANCH'),
                 'zuul_newrev': os.getenv('ZUUL_NEWREV'),
                 'zuul_project': os.getenv('ZUUL_PROJECT'),
@@ -348,21 +349,21 @@ class QuibbleCmd(object):
 
             if self.args.resolve_requires:
                 plan.append(quibble.commands.ResolveRequiresCommand(
-                    mw_install_path=self.mw_install_path,
+                    mw_install_path=mw_install_path,
                     projects=dependencies,
                     zuul_params=zuul_params,
                     fail_on_extra_requires=self.args.fail_on_extra_requires,
                 ))
 
             plan.append(quibble.commands.ExtSkinSubmoduleUpdateCommand(
-                self.mw_install_path))
+                mw_install_path))
 
         if quibble.util.isExtOrSkin(zuul_project):
             run_composer = 'composer-test' in stages
             run_npm = 'npm-test' in stages
             if run_composer or run_npm:
                 project_dir = os.path.join(
-                    self.mw_install_path,
+                    mw_install_path,
                     quibble.zuul.repo_dir(zuul_project))
 
                 plan.append(quibble.commands.ExtSkinComposerNpmTest(
@@ -370,26 +371,26 @@ class QuibbleCmd(object):
 
         if not self.args.skip_deps and self.args.packages_source == 'composer':
             plan.append(quibble.commands.CreateComposerLocal(
-                self.mw_install_path, dependencies))
+                mw_install_path, dependencies))
             plan.append(quibble.commands.NativeComposerDependencies(
-                self.mw_install_path))
+                mw_install_path))
 
         if not self.args.skip_install:
             plan.append(quibble.commands.InstallMediaWiki(
-                mw_install_path=self.mw_install_path,
+                mw_install_path=mw_install_path,
                 db_engine=self.args.db,
-                db_dir=self.db_dir,
-                dump_dir=self.dump_dir,
-                log_dir=self.log_dir,
+                db_dir=db_dir,
+                dump_dir=dump_dir,
+                log_dir=log_dir,
                 use_vendor=(self.args.packages_source == 'vendor')))
 
         if not self.args.skip_deps:
             if self.args.packages_source == 'vendor':
                 plan.append(quibble.commands.VendorComposerDependencies(
-                    self.mw_install_path, self.log_dir))
+                    mw_install_path, log_dir))
 
             plan.append(quibble.commands.NpmInstall(
-                self.mw_install_path))
+                mw_install_path))
 
         phpunit_testsuite = None
         if self.args.phpunit_testsuite:
@@ -401,18 +402,18 @@ class QuibbleCmd(object):
 
         if 'phpunit-unit' in stages:
             plan.append(quibble.commands.PhpUnitUnit(
-                self.mw_install_path,
-                self.log_dir))
+                mw_install_path,
+                log_dir))
 
         if 'phpunit' in stages:
             plan.append(quibble.commands.PhpUnitDatabaseless(
-                self.mw_install_path,
+                mw_install_path,
                 phpunit_testsuite,
-                self.log_dir))
+                log_dir))
 
         if zuul_project == 'mediawiki/core':
             plan.append(quibble.commands.CoreNpmComposerTest(
-                self.mw_install_path,
+                mw_install_path,
                 composer='composer-test' in stages,
                 npm='npm-test' in stages))
 
@@ -420,24 +421,24 @@ class QuibbleCmd(object):
 
         if 'qunit' in stages:
             plan.append(quibble.commands.QunitTests(
-                self.mw_install_path))
+                mw_install_path))
 
         if 'selenium' in stages:
             plan.append(quibble.commands.BrowserTests(
-                self.mw_install_path,
+                mw_install_path,
                 quibble.util.move_item_to_head(
                     dependencies, zuul_project),
                 display))
 
         if 'phpunit' in stages:
             plan.append(quibble.commands.PhpUnitDatabase(
-                self.mw_install_path,
+                mw_install_path,
                 phpunit_testsuite,
-                self.log_dir))
+                log_dir))
 
         if self.args.commands:
             plan.append(quibble.commands.UserCommands(
-                self.mw_install_path, self.args.commands))
+                mw_install_path, self.args.commands))
 
         return plan
 

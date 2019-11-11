@@ -145,38 +145,37 @@ class CmdTest(unittest.TestCase):
     @mock.patch.dict(os.environ, clear=True)
     def test_setup_environment(self):
         q = cmd.QuibbleCmd()
-        q.workspace = '/testworkspace'
-        q.mw_install_path = ''
-        q.log_dir = ''
 
         with mock.patch('quibble.is_in_docker', return_value=True):
             # In Docker we always use self.workspace
-            q.setup_environment()
+            q.setup_environment(
+                workspace='/testworkspace', mw_install_path='', log_dir='')
             self.assertEqual(os.environ['WORKSPACE'], '/testworkspace')
             with mock.patch.dict(os.environ, {'WORKSPACE': '/fromenv'},
                                  clear=True):
                 # In Docker, ignore $WORKSPACE
-                q.setup_environment()
+                q.setup_environment(
+                    workspace='/testworkspace', mw_install_path='', log_dir='')
                 self.assertEqual(os.environ['WORKSPACE'], '/testworkspace')
 
         with mock.patch('quibble.is_in_docker', return_value=False):
-            q.setup_environment()
+            q.setup_environment(
+                workspace='/testworkspace', mw_install_path='', log_dir='')
             self.assertEqual(os.environ['WORKSPACE'], '/testworkspace')
 
             with mock.patch.dict(os.environ, {'WORKSPACE': '/fromenv'},
                                  clear=True):
                 # When not in Docker, we honor $WORKSPACE
-                q.setup_environment()
+                q.setup_environment(
+                    workspace='/testworkspace', mw_install_path='', log_dir='')
                 self.assertEqual(os.environ['WORKSPACE'], '/fromenv')
 
     @mock.patch.dict(os.environ, clear=True)
     def test_setup_environment_has_log_directories(self):
         q = cmd.QuibbleCmd()
-        q.workspace = '/workspace'
-        q.mw_install_path = ''
-        q.log_dir = '/mylog'
 
-        q.setup_environment()
+        q.setup_environment(workspace='/workspace', mw_install_path='',
+                            log_dir='/mylog')
 
         self.assertIn('LOG_DIR', os.environ)
         self.assertIn('MW_LOG_DIR', os.environ)
