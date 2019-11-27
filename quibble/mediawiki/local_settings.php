@@ -92,6 +92,9 @@ $wgCacheDirectory = getenv( 'TMPDIR' );
 // Enables the experimental REST API for testing, T235564
 $wgEnableRestAPI = true;
 
+// Parsoid does not yet work in Quibble; set Flow's default content format to wikitext to reduce logspam.
+$wgFlowContentFormat = 'wikitext';
+
 require_once( __DIR__ . '/LocalSettings-installer.php' );
 
 # Force secret key. This key can be shared with the configuration
