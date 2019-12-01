@@ -212,6 +212,15 @@ class CmdTest(unittest.TestCase):
         self.assertEquals(['foo'], stages,
                           '--skip skips the stage')
 
+    def test_should_run_runall_and_skip_play_nice(self):
+        q = cmd.QuibbleCmd()
+        args = q.parse_arguments(args=['--run', 'all', '--skip', 'phpunit'])
+        stages = q.stages_to_run(args.run, args.skip, args.commands)
+        expected_stages = default_stages.copy()
+        expected_stages.remove('phpunit')
+        self.assertEquals(expected_stages, stages,
+                          '--run=all respects --skip')
+
     def test_should_run_running_a_single_stage(self):
         q = cmd.QuibbleCmd()
         args = q.parse_arguments(args=['--run', 'phpunit'])
