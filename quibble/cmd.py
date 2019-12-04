@@ -31,7 +31,7 @@ import quibble.util
 
 log = logging.getLogger('quibble.cmd')
 default_stages = ['phpunit-unit', 'phpunit', 'npm-test', 'composer-test',
-                  'qunit', 'selenium']
+                  'qunit', 'selenium', 'api-testing']
 
 
 # Used for add_argument(choices=) let us validate multiple choices at once.
@@ -261,6 +261,12 @@ class QuibbleCmd(object):
                 quibble.util.move_item_to_head(
                     dependencies, zuul_project),
                 display))
+
+        if 'api-testing' in stages:
+            plan.append(quibble.commands.ApiTesting(
+                mw_install_path,
+                quibble.util.move_item_to_head(
+                    dependencies, zuul_project)))
 
         if 'phpunit' in stages:
             plan.append(quibble.commands.PhpUnitDatabase(

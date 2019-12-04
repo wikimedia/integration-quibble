@@ -619,6 +619,42 @@ class QunitTests:
         return "Run Qunit tests"
 
 
+class ApiTesting:
+    def __init__(self, mw_install_path, projects):
+        self.mw_install_path = mw_install_path
+        self.projects = projects
+
+    def execute(self):
+        with quibble.backend.DevWebServer(
+                mwdir=self.mw_install_path,
+                host=HTTP_HOST,
+                port=HTTP_PORT):
+            self.run_api_testing()
+
+    def run_api_testing(self):
+        quibble_testing_config = {
+            "API_TESTING_CONFIG_FILE": self.mw_install_path
+            + "/tests/api-testing/.api-testing-quibble.json"
+        }
+        quibble_testing_config.update(os.environ)
+
+        for project in self.projects:
+            project_dir = os.path.normpath(os.path.join(
+                self.mw_install_path,
+                quibble.zuul.repo_dir(project)))
+            if repo_has_npm_script(project_dir, 'api-testing'):
+                subprocess.check_call(
+                    ['npm', 'install', '--no-progress', '--prefer-offline'],
+                    cwd=project_dir)
+                subprocess.check_call(
+                    ['npm', 'run', 'api-testing'],
+                    cwd=project_dir,
+                    env=quibble_testing_config)
+
+    def __str__(self):
+        return "Run API-Testing"
+
+
 class BrowserTests:
     def __init__(self, mw_install_path, projects, display):
         self.mw_install_path = mw_install_path

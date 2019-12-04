@@ -269,6 +269,62 @@ class QunitTestsTest(unittest.TestCase):
         assert mock_check_call.call_count > 0
 
 
+class ApiTestingTest(unittest.TestCase):
+
+    @mock.patch('os.path.exists', return_value=True)
+    @mock.patch('builtins.open', mock.mock_open())
+    @mock.patch('json.load')
+    @mock.patch('subprocess.check_call')
+    @mock.patch('quibble.backend.DevWebServer')
+    @mock.patch('quibble.backend.ChromeWebDriver')
+    def test_project_api_testing(self, mock_driver, mock_server,
+                                 mock_check_call, mock_load,
+                                 mock_path_exists):
+        mock_load.return_value = {
+            'scripts': {
+                'api-testing': 'run tests'
+            }
+        }
+
+        c = quibble.commands.ApiTesting(
+            '/tmp', ['mediawiki/core', 'mediawiki/skins/Vector'])
+        c.execute()
+
+        mock_check_call.assert_any_call(
+            ['npm', 'run', 'api-testing'],
+            cwd='/tmp', env=mock.ANY)
+
+    @mock.patch('os.path.exists', return_value=True)
+    @mock.patch('builtins.open', mock.mock_open())
+    @mock.patch('json.load')
+    @mock.patch('subprocess.check_call')
+    @mock.patch('quibble.backend.DevWebServer')
+    @mock.patch('quibble.backend.ChromeWebDriver')
+    def test_project_missing_api_testing(self, mock_driver, mock_server,
+                                         mock_check_call, mock_load,
+                                         mock_path_exists):
+        mock_load.return_value = {
+            'scripts': {
+                'other-test': 'foo'
+            }
+        }
+
+        c = quibble.commands.ApiTesting(
+            '/tmp', ['mediawiki/core', 'mediawiki/skins/Vector'])
+        c.execute()
+
+        mock_check_call.assert_not_called()
+
+    @mock.patch('subprocess.check_call')
+    @mock.patch('quibble.backend.DevWebServer')
+    @mock.patch('quibble.backend.ChromeWebDriver')
+    def test_project_not_having_package_json(self, mock_driver, mock_server,
+                                             mock_check_call):
+        c = quibble.commands.ApiTesting('/tmp', ['mediawiki/vendor'])
+        c.execute()
+        mock_check_call.assert_not_called()
+
+
 class BrowserTestsTest(unittest.TestCase):
 
     @mock.patch('os.path.exists', return_value=True)
