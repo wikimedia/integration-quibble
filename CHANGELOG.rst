@@ -1,10 +1,32 @@
 Quibble changelog
 =================
 
-master ()
----------
+0.0.40 (2020-01-08)
+-------------------
 
-* ...
+Features
+~~~~~~~~
+
+* Disable color codes around log level words in CI
+  Timo Tijhof
+  `T236222 <https://phabricator.wikimedia.org/T236222`
+* Update Quibble to use api-testing npm package
+  Clara Andrew-Wani
+  `T236680 <https://phabricator.wikimedia.org/T236680`
+* phpunit: Drop --debug-tests command, killed off in PHPUnit 8
+  James D. Forrester
+  `T192167 <https://phabricator.wikimedia.org/T192167`
+
+Misc
+~~~~
+* Chronometer emits folding markers
+  Adam Wight
+  `T220586 <https://phabricator.wikimedia.org/T220586`
+* Drop HHVM support
+  Adam Wight
+  `T236019 <https://phabricator.wikimedia.org/T236019`
+* Drop --dry-run parameter
+  Adam Wight
 
 0.0.39 (2019-10-18)
 -------------------
