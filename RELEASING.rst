@@ -22,10 +22,9 @@ List of steps to conduct to release a new version of Quibble:
 
     !log Tag Quibble <version> @ <sha1> # T1234 T5666 ...
 
-* Send announcement to wikitech-l@lists.wikimedia.org and qa@list.wikimedia.org
+* Send announcement to wikitech-l@lists.wikimedia.org
 
 Then begin a new cycle:
 
 * Amend ``CHANGELOG.rst`` and insert an entry for ``master``.
 * git add, commit, send to review, get it merged
-
