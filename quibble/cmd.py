@@ -30,7 +30,8 @@ import quibble.commands
 import quibble.util
 
 log = logging.getLogger('quibble.cmd')
-default_stages = ['phpunit-unit', 'phpunit', 'npm-test', 'composer-test',
+default_stages = ['phpunit-unit', 'phpunit', 'phpunit-standalone',
+                  'npm-test', 'composer-test',
                   'qunit', 'selenium', 'api-testing']
 
 
@@ -242,6 +243,16 @@ class QuibbleCmd(object):
                 mw_install_path,
                 phpunit_testsuite,
                 log_dir))
+
+        if('phpunit-standalone' in stages
+           and quibble.util.isExtOrSkin(zuul_project)
+           ):
+            plan.append(quibble.commands.PhpUnitStandalone(
+                mw_install_path,
+                None,
+                log_dir,
+                repo_path=quibble.zuul.repo_dir(zuul_project)
+                ))
 
         if zuul_project == 'mediawiki/core':
             plan.append(quibble.commands.CoreNpmComposerTest(

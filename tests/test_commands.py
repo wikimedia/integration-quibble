@@ -206,10 +206,30 @@ class PhpUnitDatabaselessTest(unittest.TestCase):
         mock_check_call.assert_called_once_with(
             ['php', 'tests/phpunit/phpunit.php',
              '--testsuite', 'extensions', '--exclude-group',
-             'Broken,ParserFuzz,Stub,Database', '--log-junit',
+             'Broken,ParserFuzz,Stub,Database,Standalone', '--log-junit',
              '/log/junit-dbless.xml'],
             cwd='/tmp',
             env=mock.ANY)
+
+
+class PhpUnitStandaloneTest(unittest.TestCase):
+
+    @mock.patch.dict('os.environ', {'somevar': '42'}, clear=True)
+    @mock.patch('subprocess.check_call')
+    def test_execute(self, mock_check_call):
+        quibble.commands.PhpUnitStandalone(
+            mw_install_path='/tmp', testsuite=None, log_dir='/log',
+            repo_path='../extensions/Scribunto',
+        ).execute()
+
+        mock_check_call.assert_called_once_with(
+            ['php', 'tests/phpunit/phpunit.php',
+             '../extensions/Scribunto',
+             '--group', 'Standalone',
+             '--exclude-group', 'Broken,ParserFuzz,Stub', '--log-junit',
+             '/log/junit-standalone.xml'],
+            cwd='/tmp',
+            env={'LANG': 'C.UTF-8', 'somevar': '42'})
 
 
 class PhpUnitUnitTest(unittest.TestCase):

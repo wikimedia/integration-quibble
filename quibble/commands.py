@@ -553,11 +553,29 @@ class PhpUnitDatabaseless(AbstractPhpUnit):
         # other tests.
         # XXX some mediawiki/core smoke PHPunit tests should probably
         # be run as well.
-        self.run_phpunit(exclude_group=['Database'])
+        self.run_phpunit(exclude_group=['Database', 'Standalone'])
 
     def __str__(self):
-        return "PHPUnit {} suite (without database)".format(
+        return "PHPUnit {} suite (without database or standalone)".format(
             self.testsuite or 'default')
+
+
+class PhpUnitStandalone(AbstractPhpUnit):
+    def __init__(self, mw_install_path, testsuite, log_dir, repo_path):
+        self.mw_install_path = mw_install_path
+        self.testsuite = testsuite
+        self.log_dir = log_dir
+        self.repo_path = repo_path
+        self.junit_file = os.path.join(self.log_dir, 'junit-standalone.xml')
+
+    def execute(self):
+        self.run_phpunit(group=['Standalone'], cmd=[
+            'php', 'tests/phpunit/phpunit.php', self.repo_path])
+
+    def __str__(self):
+        return "PHPUnit {} standalone suite on {}".format(
+            self.testsuite or 'default',
+            self.repo_path)
 
 
 class PhpUnitUnit(AbstractPhpUnit):
