@@ -30,6 +30,10 @@ import quibble.commands
 import quibble.util
 
 log = logging.getLogger('quibble.cmd')
+known_stages = ['all',
+                'phpunit-unit', 'phpunit', 'phpunit-standalone',
+                'npm-test', 'composer-test',
+                'qunit', 'selenium', 'api-testing']
 default_stages = ['phpunit-unit', 'phpunit', 'phpunit-standalone',
                   'npm-test', 'composer-test',
                   'qunit', 'selenium', 'api-testing']
@@ -422,14 +426,14 @@ def get_arg_parser():
         'Quibble runs all test commands (stages) by default. '
         'Use the --run or --skip options to further refine which commands '
         'will be run. '
-        'Available stages are: %s' % ', '.join(default_stages)))
+        'Available stages are: %s' % ', '.join(known_stages)))
 
     # Magic type for add_argument so that --foo=a,b,c is magically stored
     # as: foo=['a', 'b', 'c']
     def comma_separated_list(string):
         return string.split(',')
 
-    stages_choices = MultipleChoices(default_stages + ['all'])
+    stages_choices = MultipleChoices(known_stages)
     stages_args.add_argument(
         '--run', default=['all'],
         type=comma_separated_list,
