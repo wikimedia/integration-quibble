@@ -22,6 +22,20 @@ def server_url():
     return 'http://%s:%s' % (HTTP_HOST, HTTP_PORT)
 
 
+def npm_install(project_dir):
+    if repo_has_npm_lock(project_dir):
+        subprocess.check_call(
+            ['npm', 'ci'],
+            cwd=project_dir)
+    else:
+        subprocess.check_call(
+            ['npm', 'prune'],
+            cwd=project_dir)
+        subprocess.check_call(
+            ['npm', 'install', '--no-progress', '--prefer-offline'],
+            cwd=project_dir)
+
+
 class ReportVersions:
     def execute(self):
         commands = [
@@ -258,20 +272,14 @@ class ExtSkinComposerNpmTest:
     def run_extskin_npm(self):
         project_name = os.path.basename(self.directory)
 
-        # FIXME: copy paste is terrible
         # TODO: Detect test existence in an earlier phase.
-        if not os.path.exists(os.path.join(self.directory, 'package.json')):
+        if not repo_has_npm(self.directory):
             log.warning("%s lacks a package.json", project_name)
             return
 
         log.info('Running "npm test" for %s', project_name)
-        cmds = [
-            ['npm', 'prune'],
-            ['npm', 'install', '--no-progress', '--prefer-offline'],
-            ['npm', 'test'],
-        ]
-        for cmd in cmds:
-            subprocess.check_call(cmd, cwd=self.directory)
+        npm_install(self.directory)
+        subprocess.check_call(['npm', 'test'], cwd=self.directory)
 
     def __str__(self):
         tests = []
@@ -410,10 +418,7 @@ class NpmInstall:
         self.directory = directory
 
     def execute(self):
-        subprocess.check_call(['npm', 'prune'], cwd=self.directory)
-        subprocess.check_call(
-            ['npm', 'install', '--no-progress', '--prefer-offline'],
-            cwd=self.directory)
+        npm_install(self.directory)
 
     def __str__(self):
         return "npm install in {}".format(self.directory)
@@ -643,9 +648,7 @@ class ApiTesting:
                 self.mw_install_path,
                 quibble.zuul.repo_dir(project)))
             if repo_has_npm_script(project_dir, 'api-testing'):
-                subprocess.check_call(
-                    ['npm', 'install', '--no-progress', '--prefer-offline'],
-                    cwd=project_dir)
+                npm_install(project_dir)
                 subprocess.check_call(
                     ['npm', 'run', 'api-testing'],
                     cwd=project_dir,
@@ -697,9 +700,7 @@ class BrowserTests:
             'DISPLAY': self.display,
         })
 
-        subprocess.check_call(
-            ['npm', 'install', '--prefer-offline'],
-            cwd=project_dir)
+        npm_install(project_dir)
         subprocess.check_call(
             ['npm', 'run', 'selenium-test'],
             cwd=project_dir,
@@ -736,6 +737,16 @@ class UserCommands:
 def repo_has_composer_script(project_dir, script_name):
     composer_path = os.path.join(project_dir, 'composer.json')
     return json_has_script(composer_path, script_name)
+
+
+def repo_has_npm(project_dir):
+    lock_path = os.path.join(project_dir, 'package.json')
+    return os.path.exists(lock_path)
+
+
+def repo_has_npm_lock(project_dir):
+    lock_path = os.path.join(project_dir, 'package-lock.json')
+    return os.path.exists(lock_path)
 
 
 def repo_has_npm_script(project_dir, script_name):
