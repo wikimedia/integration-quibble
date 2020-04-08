@@ -1,17 +1,30 @@
 Quibble changelog
 =================
 
-master ()
----------
+0.0.41 (2020-04-08)
+-------------------
 
-* ...
+Features
+~~~~~~~~
+* Prefer 'npm ci' instead of 'npm prune' + 'npm install'
+  Timo Tijhof
+  `T234738 <https://phabricator.wikimedia.org/T234738>`
+* Add phpunit-standalone, for phpunit --group Standalone
+  James D. Forrester
+  `T225068 <https://phabricator.wikimedia.org/T225068>`
+
+Misc
+~~~~
+* RELEASING: Drop reference to now-shut qa mailing list
+  James D. Forrester
+* Split default_stages out into known_stages
+  James D. Forrester
 
 0.0.40 (2020-01-08)
 -------------------
 
 Features
 ~~~~~~~~
-
 * Disable color codes around log level words in CI
   Timo Tijhof
   `T236222 <https://phabricator.wikimedia.org/T236222`
