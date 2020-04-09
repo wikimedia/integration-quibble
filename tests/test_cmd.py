@@ -281,7 +281,7 @@ class CmdTest(unittest.TestCase):
             q = cmd.QuibbleCmd()
             args = cmd.parse_arguments(
                 args=['--packages-source=composer'])
-            with mock.patch('quibble.commands.ZuulCloneCommand') as mock_clone:
+            with mock.patch('quibble.commands.ZuulClone') as mock_clone:
                 q.build_execution_plan(args)
         self.assertEquals(
             [
@@ -304,7 +304,7 @@ class CmdTest(unittest.TestCase):
                 args=['--packages-source=composer'])
             with mock.patch.dict('os.environ', {'ZUUL_PROJECT': repo},
                                  clear=True):
-                with mock.patch('quibble.commands.ZuulCloneCommand') \
+                with mock.patch('quibble.commands.ZuulClone') \
                         as mock_clone:
                     q.build_execution_plan(args)
             self.assertEquals(

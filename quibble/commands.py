@@ -66,7 +66,7 @@ class ReportVersions:
         return 'Report package versions'
 
 
-class ZuulCloneCommand:
+class ZuulClone:
     def __init__(self, branch, cache_dir, project_branch, projects, workers,
                  workspace, zuul_branch, zuul_newrev, zuul_project, zuul_ref,
                  zuul_url):
@@ -95,7 +95,7 @@ class ZuulCloneCommand:
             json.dumps(pruned_params))
 
 
-class ResolveRequiresCommand:
+class ResolveRequires:
 
     def __init__(
         self, mw_install_path, projects, zuul_params,
@@ -104,7 +104,7 @@ class ResolveRequiresCommand:
         """
         mw_install_path: root dir of MediaWiki
         projects: list of Gerrit projects to initially clone
-        zuul_params: other parameters for ZuulCloneCommand
+        zuul_params: other parameters for ZuulClone
         fail_on_extra_requires: if any repositories has been cloned and has
         not been given in the initial list of projects, raise an exception.
         """
@@ -131,7 +131,7 @@ class ResolveRequiresCommand:
         to_be_cloned = new_projects - cloned
         if to_be_cloned:
             log.info('Cloning: %s', ', '.join(to_be_cloned))
-            ZuulCloneCommand(
+            ZuulClone(
                 projects=to_be_cloned,
                 **self.zuul_params
             ).execute()
@@ -161,7 +161,7 @@ class ResolveRequiresCommand:
             'Fails on extra requires: %s' % self.fail_on_extra_requires)
 
 
-class ExtSkinSubmoduleUpdateCommand:
+class ExtSkinSubmoduleUpdate:
     def __init__(self, mw_install_path):
         self.mw_install_path = mw_install_path
 
@@ -723,7 +723,7 @@ class BrowserTests:
             ", ".join(self.projects))
 
 
-class UserCommands:
+class UserScripts:
     def __init__(self, mw_install_path, commands):
         self.mw_install_path = mw_install_path
         self.commands = commands

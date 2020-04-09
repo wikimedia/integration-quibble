@@ -179,20 +179,20 @@ class QuibbleCmd(object):
                 'zuul_url': os.getenv('ZUUL_URL'),
             }
 
-            plan.append(quibble.commands.ZuulCloneCommand(
+            plan.append(quibble.commands.ZuulClone(
                 projects=dependencies,
                 **zuul_params
             ))
 
             if args.resolve_requires:
-                plan.append(quibble.commands.ResolveRequiresCommand(
+                plan.append(quibble.commands.ResolveRequires(
                     mw_install_path=mw_install_path,
                     projects=dependencies,
                     zuul_params=zuul_params,
                     fail_on_extra_requires=args.fail_on_extra_requires,
                 ))
 
-            plan.append(quibble.commands.ExtSkinSubmoduleUpdateCommand(
+            plan.append(quibble.commands.ExtSkinSubmoduleUpdate(
                 mw_install_path))
 
         if quibble.util.isExtOrSkin(zuul_project):
@@ -290,7 +290,7 @@ class QuibbleCmd(object):
                 log_dir))
 
         if args.commands:
-            plan.append(quibble.commands.UserCommands(
+            plan.append(quibble.commands.UserScripts(
                 mw_install_path, self.args.commands))
 
         return plan

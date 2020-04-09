@@ -8,10 +8,10 @@ from .util import run_sequentially
 import quibble.commands
 
 
-class ExtSkinSubmoduleUpdateCommandTest(unittest.TestCase):
+class ExtSkinSubmoduleUpdateTest(unittest.TestCase):
 
     def test_submodule_update_errors(self):
-        c = quibble.commands.ExtSkinSubmoduleUpdateCommand('/tmp')
+        c = quibble.commands.ExtSkinSubmoduleUpdate('/tmp')
 
         with mock.patch('os.walk') as mock_walk:
             mock_walk.side_effect = self.walk_extensions
@@ -28,7 +28,7 @@ class ExtSkinSubmoduleUpdateCommandTest(unittest.TestCase):
                     cwd='/tmp/extensions/VisualEditor')
 
     def test_submodule_update(self):
-        c = quibble.commands.ExtSkinSubmoduleUpdateCommand('/tmp')
+        c = quibble.commands.ExtSkinSubmoduleUpdate('/tmp')
 
         with mock.patch('os.walk') as mock_walk:
             mock_walk.side_effect = self.walk_extensions
@@ -403,12 +403,12 @@ class BrowserTestsTest(unittest.TestCase):
         mock_check_call.assert_not_called()
 
 
-class UserCommandsTest(unittest.TestCase):
+class UserScriptsTest(unittest.TestCase):
 
     @mock.patch('quibble.backend.DevWebServer')
     @mock.patch('subprocess.check_call')
     def test_commands(self, mock_check_call, *_):
-        quibble.commands.UserCommands('/tmp', ['true', 'false']).execute()
+        quibble.commands.UserScripts('/tmp', ['true', 'false']).execute()
 
         mock_check_call.assert_has_calls([
             mock.call('true', cwd='/tmp', shell=True),
@@ -417,7 +417,7 @@ class UserCommandsTest(unittest.TestCase):
     @mock.patch('quibble.backend.DevWebServer')
     def test_commands_raises_exception_on_error(self, *_):
         with self.assertRaises(subprocess.CalledProcessError, msg=''):
-            quibble.commands.UserCommands('/tmp', ['false']).execute()
+            quibble.commands.UserScripts('/tmp', ['false']).execute()
 
         with self.assertRaises(subprocess.CalledProcessError, msg=''):
-            quibble.commands.UserCommands('/tmp', ['true', 'false']).execute()
+            quibble.commands.UserScripts('/tmp', ['true', 'false']).execute()
