@@ -1,19 +1,23 @@
 """Encapsulates each step of a job"""
 
 import contextlib
+import io
 import json
 import logging
+import multiprocessing
 import os
 import os.path
 import pkg_resources
 from quibble.gitchangedinhead import GitChangedInHead
-from quibble.util import copylog, parallel_run, isExtOrSkin
+from quibble.util import copylog, parallel_run, isExtOrSkin, ProgressReporter
 import quibble.mediawiki.registry
 import quibble.zuul
 import subprocess
 import sys
+import tempfile
 
 log = logging.getLogger(__name__)
+monitor_interval = 10
 
 
 def execute_command(command):
@@ -988,6 +992,82 @@ class GitClean:
 
     def __str__(self):
         return "Revert to git clean -xqdf in {}".format(self.directory)
+
+
+class Parallel:
+    """Run subcommands in parallel.
+
+    Steps are an iterable of command objects, to be evaluated
+    immediately.
+
+    Subprocess stdout and stderr, and logging are piped to an interleaved
+    capture buffer and logged by the parent as each child completes.
+
+    Any exceptions are bubbled up.
+    """
+
+    def __init__(self, *, name=None, steps):
+        self.name = name
+        self.steps = list(steps)
+
+        self.workers = max(1, min(len(self.steps), os.cpu_count()))
+
+    def execute(self):
+        # Short-circuit if there aren't enough steps to run in parallel.
+        if len(self.steps) == 0:
+            return
+        elif len(self.steps) == 1:
+            return execute_command(self.steps[0])
+
+        with multiprocessing.Pool(processes=self.workers) as pool:
+            results = pool.imap_unordered(self._run_child, self.steps)
+            results_in_progress = ProgressReporter(
+                desc=self.name,
+                iterable=results,
+                sleep_interval=monitor_interval,
+                total=len(self.steps),
+            )
+            for error, capture in results_in_progress:
+                log.info(capture)
+                if error:
+                    raise error
+
+    @staticmethod
+    def _run_child(command):
+        """Run a command and return its output
+
+        This is executed in the child process context, and pipes all of its own
+        output streams to a single collector.  This collected output and any
+        error are returned in a serializable format.
+
+        Returns
+        -------
+        tuple
+            error : Exception or None
+            captured : text
+                Output of the command, with stdout, stderr, and log lines
+                interleaved.
+        """
+        with tempfile.TemporaryFile(
+            mode='w+'
+        ) as collector, quibble.util.redirect_all_streams(collector):
+            try:
+                execute_command(command)
+                error = None
+            except Exception as ex:
+                error = ex
+            finally:
+                collector.flush()
+                collector.seek(0, io.SEEK_SET)
+                captured = collector.read()
+
+        return (error, captured)
+
+    def __str__(self):
+        label = self.name if self.name else "Run steps in parallel"
+        return "{} (concurrency={}):".format(label, self.workers) + "".join(
+            ["\n* " + step for step in map(str, self.steps)]
+        )
 
 
 def _repo_has_composer_script(project_dir, script_name):

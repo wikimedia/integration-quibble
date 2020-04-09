@@ -2,12 +2,19 @@
 
 import contextlib
 import logging
+import pytest
 import subprocess
+import sys
 import unittest
 from unittest import mock
 from .util import run_sequentially
 
 import quibble.commands
+
+
+broken_on_macos = pytest.mark.skipif(
+    sys.platform != 'linux', reason="Broken on MacOS, see T299840"
+)
 
 
 class ExtSkinSubmoduleUpdateTest(unittest.TestCase):
@@ -587,3 +594,101 @@ class UserScriptsTest(unittest.TestCase):
             quibble.commands.UserScripts(
                 '/tmp', ['true', 'false'], ''
             ).execute()
+
+
+class EchoCommand:
+    def __init__(self, *, fail=False, number=None):
+        self.fail = fail
+        self.number = number
+
+    def execute(self):
+        logging.error("log line")
+        print("stdout line")
+        print("stderr line", file=sys.stderr)
+
+        if self.number:
+            print("I am {}.".format(self.number))
+        if self.fail:
+            print("then fail")
+            raise Exception("bad")
+
+
+def sequential_pool():
+    pool = mock.MagicMock()
+    pool.return_value.__enter__.return_value.imap_unordered.side_effect = (
+        lambda executor, tasks: [executor(x) for x in tasks]
+    )
+    return pool
+
+
+class ParallelTest(unittest.TestCase):
+    def test_init(self):
+        p = quibble.commands.Parallel(steps=range(3))
+        self.assertEqual(3, len(p.steps))
+
+    @mock.patch('multiprocessing.Pool')
+    def test_execute_empty(self, mock_pool):
+        quibble.commands.Parallel(steps=[]).execute()
+        mock_pool.assert_not_called()
+
+    @mock.patch('multiprocessing.Pool')
+    def test_execute_single(self, mock_pool):
+        command = mock.MagicMock()
+        quibble.commands.Parallel(steps=[command]).execute()
+        self.assertTrue(command.execute.called)
+        mock_pool.assert_not_called()
+
+    @mock.patch('multiprocessing.Pool', new_callable=sequential_pool)
+    def test_execute_parallel(self, mock_pool):
+        command1 = mock.MagicMock()
+        command1.execute.return_value = None
+        command2 = mock.MagicMock()
+        command2.execute.return_value = None
+        quibble.commands.Parallel(steps=[command1, command2]).execute()
+        self.assertTrue(mock_pool.called)
+        self.assertTrue(command1.execute.called)
+        self.assertTrue(command2.execute.called)
+
+    def test_execute_parallel_error(self):
+        command1 = mock.MagicMock()
+        command1.execute.return_value = None
+        command2 = mock.MagicMock()
+        command2.execute.side_effect = Exception("bad")
+        with self.assertRaises(Exception, msg="bad"):
+            quibble.commands.Parallel(steps=[command1, command2]).execute()
+        # TODO: also test that we short-circuit all children after any failure.
+
+    @broken_on_macos
+    @mock.patch('quibble.commands.log')
+    def test_parallel_captures_logging(self, mock_log):
+        quibble.commands.Parallel(
+            steps=[
+                EchoCommand(number=1),
+                EchoCommand(number=2),
+                EchoCommand(number=3),
+            ]
+        ).execute()
+
+        # TODO:
+        #  * assert that log level filters are inherited from parent process.
+        mock_log.info.assert_any_call(
+            "log line\nstdout line\nstderr line\nI am 1.\n"
+        )
+        mock_log.info.assert_any_call(
+            "log line\nstdout line\nstderr line\nI am 2.\n"
+        )
+        mock_log.info.assert_any_call(
+            "log line\nstdout line\nstderr line\nI am 3.\n"
+        )
+
+    @broken_on_macos
+    @mock.patch('quibble.commands.log')
+    def test_parallel_captures_logging_despite_failure(self, mock_log):
+        with self.assertRaises(Exception, msg="bad"):
+            quibble.commands.Parallel(
+                steps=[EchoCommand(), EchoCommand(fail=True)]
+            ).execute()
+
+        mock_log.info.assert_any_call(
+            "log line\nstdout line\nstderr line\nthen fail\n"
+        )
