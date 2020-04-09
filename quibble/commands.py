@@ -9,7 +9,7 @@ import os
 import os.path
 import pkg_resources
 from quibble.gitchangedinhead import GitChangedInHead
-from quibble.util import copylog, parallel_run, isExtOrSkin, ProgressReporter
+from quibble.util import copylog, isExtOrSkin, ProgressReporter
 import quibble.mediawiki.registry
 import quibble.zuul
 import subprocess
@@ -309,23 +309,11 @@ class NpmTest:
         return "npm test in {}".format(self.directory)
 
 
-class CoreNpmComposerTest:
-    def __init__(self, mw_install_path, composer, npm):
+class CoreComposerTest:
+    def __init__(self, mw_install_path):
         self.mw_install_path = mw_install_path
-        self.composer = composer
-        self.npm = npm
 
     def execute(self):
-        tasks = []
-        if self.composer:
-            tasks.append((self._run_composer_test,))
-        if self.npm:
-            tasks.append((self._run_npm_test,))
-
-        # TODO: Split these tasks and move parallelism into calling logic.
-        parallel_run(tasks)
-
-    def _run_composer_test(self):
         files = []
         changed = GitChangedInHead([], cwd=self.mw_install_path).changedFiles()
         if 'composer.json' in changed or '.phpcs.xml' in changed:
@@ -352,17 +340,8 @@ class CoreNpmComposerTest:
                 composer_test_cmd, cwd=self.mw_install_path, env=env
             )
 
-    def _run_npm_test(self):
-        log.info("Running npm test")
-        subprocess.check_call(['npm', 'test'], cwd=self.mw_install_path)
-
     def __str__(self):
-        tests = []
-        if self.composer:
-            tests.append("composer")
-        if self.npm:
-            tests.append("npm")
-        return "Run tests in mediawiki/core: {}".format(", ".join(tests))
+        return "Run composer test in mediawiki/core"
 
 
 class NativeComposerDependencies:

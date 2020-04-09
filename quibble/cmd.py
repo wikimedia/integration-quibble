@@ -371,11 +371,24 @@ class QuibbleCmd(object):
             )
 
         if is_core:
-            plan.append(
-                quibble.commands.CoreNpmComposerTest(
-                    mw_install_path, composer=run_composer, npm=run_npm
+            parallel_steps = []
+            label = []
+            if run_composer:
+                label.append("'composer test'")
+                parallel_steps.append(
+                    quibble.commands.CoreComposerTest(mw_install_path)
                 )
-            )
+            if run_npm:
+                label.append("'npm test'")
+                parallel_steps.append(
+                    quibble.commands.NpmTest(mw_install_path)
+                )
+            if parallel_steps:
+                plan.append(
+                    quibble.commands.Parallel(
+                        name=" and ".join(label), steps=parallel_steps
+                    )
+                )
 
         if (
             set(['qunit', 'selenium', 'api-testing']) & set(stages)

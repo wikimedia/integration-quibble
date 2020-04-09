@@ -11,7 +11,10 @@ plan:
  -  'npm install in /WORKSPACE/src'
  -  'PHPUnit default suite (without database or standalone)'
  -  'Run phpbench'
- -  'Run tests in mediawiki/core: composer, npm'
+ -  |-
+    Run 'composer test' and 'npm test' in parallel (concurrency=2):
+    * Run composer test in mediawiki/core
+    * npm test in /WORKSPACE/src
  -  'Start backends, <PhpWebserver http://127.0.0.1:9412 /WORKSPACE/src> <Xvfb :94> <ChromeWebDriver :94>'
  -  'Run Qunit tests'
  -  'Browser tests for projects mediawiki/core, mediawiki/skins/Vector, mediawiki/vendor'

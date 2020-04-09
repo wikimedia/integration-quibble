@@ -7,7 +7,6 @@ import subprocess
 import sys
 import unittest
 from unittest import mock
-from .util import run_sequentially
 
 import quibble.commands
 
@@ -133,24 +132,21 @@ class NpmTestTest(unittest.TestCase):
         mock_call.assert_any_call(['npm', 'test'], cwd='/tmp')
 
 
-class CoreNpmComposerTestTest(unittest.TestCase):
+class CoreComposerTestTest(unittest.TestCase):
     @mock.patch.dict('os.environ', {'somevar': '42'}, clear=True)
-    @mock.patch('quibble.commands.parallel_run', side_effect=run_sequentially)
     @mock.patch(
         'quibble.gitchangedinhead.GitChangedInHead.changedFiles',
         return_value=['foo.php', 'bar.php'],
     )
     @mock.patch('subprocess.check_call')
     def test_execute(self, mock_check_call, *_):
-        quibble.commands.CoreNpmComposerTest('/tmp', True, True).execute()
+        quibble.commands.CoreComposerTest('/tmp').execute()
 
         mock_check_call.assert_any_call(
             ['composer', 'test-some', 'foo.php', 'bar.php'],
             cwd='/tmp',
             env={'somevar': '42', 'COMPOSER_PROCESS_TIMEOUT': mock.ANY},
         )
-
-        mock_check_call.assert_any_call(['npm', 'test'], cwd='/tmp')
 
 
 class VendorComposerDependenciesTest(unittest.TestCase):
