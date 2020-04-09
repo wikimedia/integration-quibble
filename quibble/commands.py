@@ -116,8 +116,6 @@ class ResolveRequiresCommand:
         self.fail_on_extra_requires = fail_on_extra_requires
 
     def execute(self):
-        log.info('Recursively processing registration dependencies')
-
         ext_cloned = set(filter(isExtOrSkin, self.projects))
         with quibble.logginglevel('zuul.CloneMapper', logging.WARNING):
             required = self.clone_requires(ext_cloned, ext_cloned)
@@ -128,8 +126,6 @@ class ResolveRequiresCommand:
             raise Exception(msg)
         else:
             log.warning(msg)
-
-        log.info('Done preparing registration dependencies')
 
     def clone_requires(self, new_projects, cloned):
         to_be_cloned = new_projects - cloned
