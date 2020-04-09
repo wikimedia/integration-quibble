@@ -243,10 +243,7 @@ class ExtSkinComposerNpmTest:
 
         # TODO: Split these tasks and move parallelism into calling logic.
         parallel_run(tasks)
-
-        log.info('%s: git clean -xqdf', self.directory)
-        subprocess.check_call(['git', 'clean', '-xqdf'],
-                              cwd=self.directory)
+        git_clean(self.directory)
 
     def run_extskin_composer(self):
         project_name = os.path.basename(self.directory)
@@ -775,3 +772,8 @@ def json_has_script(json_file, script_name):
         spec = json.load(f)
     return ('scripts' in spec
             and script_name in spec['scripts'])
+
+
+def git_clean(directory):
+    log.info("Revert to git clean -xqdf in %s", directory)
+    subprocess.check_call(['git', 'clean', '-xqdf'], cwd=directory)
