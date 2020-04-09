@@ -189,8 +189,8 @@ class PhpUnitDatabaseTest(unittest.TestCase):
         mock_check_call.assert_called_once_with(
             ['php', 'tests/phpunit/phpunit.php',
              '--testsuite', 'extensions', '--group', 'Database',
-             '--exclude-group', 'Broken,ParserFuzz,Stub', '--log-junit',
-             '/log/junit-db.xml'],
+             '--exclude-group', 'Broken,ParserFuzz,Stub,Standalone',
+             '--log-junit', '/log/junit-db.xml'],
             cwd='/tmp',
             env={'LANG': 'C.UTF-8', 'somevar': '42'})
 

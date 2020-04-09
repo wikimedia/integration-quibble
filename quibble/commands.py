@@ -562,8 +562,10 @@ class PhpUnitStandalone(AbstractPhpUnit):
         self.junit_file = os.path.join(self.log_dir, 'junit-standalone.xml')
 
     def execute(self):
-        self.run_phpunit(group=['Standalone'], cmd=[
-            'php', 'tests/phpunit/phpunit.php', self.repo_path])
+        self.run_phpunit(
+            group=['Standalone'],
+            # Have to run custom entry point to run the in repo path
+            cmd=['php', 'tests/phpunit/phpunit.php', self.repo_path])
 
     def __str__(self):
         return "PHPUnit {} standalone suite on {}".format(
@@ -597,7 +599,7 @@ class PhpUnitDatabase(AbstractPhpUnit):
         self.junit_file = os.path.join(self.log_dir, 'junit-db.xml')
 
     def execute(self):
-        self.run_phpunit(group=['Database'])
+        self.run_phpunit(group=['Database'], exclude_group=['Standalone'])
 
     def __str__(self):
         return "PHPUnit {} suite (with database)".format(
