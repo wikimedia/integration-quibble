@@ -16,7 +16,6 @@
 
 import contextlib
 import logging
-from multiprocessing import Pool
 import os
 import re
 from shutil import copyfile
@@ -34,37 +33,6 @@ log = logging.getLogger(__name__)
 def copylog(src, dest):
     log.info('Copying %s to %s', src, dest)
     copyfile(src, dest)
-
-
-def _task_wrapper(args):
-    """
-    Helper for multiprocessing.Pool.imap_unordered.
-
-    The first argument is a function to call.  Rest of the arguments are passed
-    to the function.
-    """
-
-    func = args[0]
-    func_args = args[1:]
-    ret = func(*func_args)
-
-    if ret is None:
-        return True
-    else:
-        return ret
-
-
-def parallel_run(tasks):
-    """
-    Tasks is an iterable of bound functions.  The wrapper makes it easy for us
-    to run a list of different functions, rather than one function over a list
-    of inputs.
-    """
-    workers = max(1, len(tasks))
-    with Pool(processes=workers) as pool:
-        # As soon as any one task fails, the `all()` drops us out of the Pool's
-        # context manager, and any remaining threads are terminated.
-        return all(pool.imap_unordered(_task_wrapper, tasks))
 
 
 def isCoreOrVendor(project):
