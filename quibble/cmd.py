@@ -300,8 +300,7 @@ class QuibbleCmd(object):
         for cmd in plan:
             log.debug(cmd)
         for command in plan:
-            with quibble.Chronometer(str(command), log.info):
-                command.execute()
+            quibble.commands.execute_command(command)
 
 
 def parse_arguments(args):

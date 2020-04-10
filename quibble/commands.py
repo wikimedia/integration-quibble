@@ -18,6 +18,12 @@ HTTP_HOST = '127.0.0.1'
 HTTP_PORT = 9412
 
 
+def execute_command(command):
+    '''Shared decorator for execution'''
+    with quibble.Chronometer(str(command), log.info):
+        command.execute()
+
+
 def server_url():
     return 'http://%s:%s' % (HTTP_HOST, HTTP_PORT)
 
@@ -131,10 +137,10 @@ class ResolveRequires:
         to_be_cloned = new_projects - cloned
         if to_be_cloned:
             log.info('Cloning: %s', ', '.join(to_be_cloned))
-            ZuulClone(
+            execute_command(ZuulClone(
                 projects=to_be_cloned,
                 **self.zuul_params
-            ).execute()
+            ))
 
         found = set()
         for project in sorted(new_projects):
