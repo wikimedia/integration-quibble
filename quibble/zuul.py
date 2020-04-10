@@ -28,6 +28,7 @@ CLONE_MAP = [
     {'name': 'mediawiki/vendor', 'dest': './vendor'},
     {'name': 'mediawiki/extensions/(.*)', 'dest': './extensions/\\1'},
     {'name': 'mediawiki/skins/(.*)', 'dest': './skins/\\1'},
+    {'name': 'mediawiki/services/(.*)', 'dest': './services/\\1'},
 ]
 
 

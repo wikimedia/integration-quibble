@@ -168,3 +168,7 @@ class TestRepoDir(unittest.TestCase):
     def test_maps_skins_to_extensions_directory(self):
         self.assertEqual('skins/NiceSkin',
                          quibble.zuul.repo_dir('mediawiki/skins/NiceSkin'))
+
+    def test_maps_parsoid_to_services_directory(self):
+        self.assertEqual('services/parsoid',
+                         quibble.zuul.repo_dir('mediawiki/services/parsoid'))
