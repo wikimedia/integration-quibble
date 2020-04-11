@@ -268,66 +268,45 @@ class CreateComposerLocal:
         )
 
 
-class ExtSkinComposerNpmTest:
-    def __init__(self, directory, composer, npm):
+class ExtSkinComposerTest:
+    def __init__(self, directory):
         self.directory = directory
-        self.composer = composer
-        self.npm = npm
 
     def execute(self):
-        tasks = []
-        if self.composer:
-            tasks.append((self._run_extskin_composer,))
-        if self.npm:
-            tasks.append((self._run_extskin_npm,))
-
-        # TODO: Split these tasks and move parallelism into calling logic.
-        parallel_run(tasks)
-        GitClean(self.directory).execute()
-
-    def _run_extskin_composer(self):
-        project_name = os.path.basename(self.directory)
-
-        if not os.path.exists(os.path.join(self.directory, 'composer.json')):
-            log.warning("%s lacks a composer.json", project_name)
-            return
-
-        log.info('Running "composer test" for %s', project_name)
-        cmds = [
-            ['composer', '--ansi', 'validate', '--no-check-publish'],
-            [
-                'composer',
-                '--ansi',
-                'install',
-                '--no-progress',
-                '--prefer-dist',
-                '--profile',
-                '-v',
-            ],
-            ['composer', '--ansi', 'test'],
-        ]
-        for cmd in cmds:
-            subprocess.check_call(cmd, cwd=self.directory)
-
-    def _run_extskin_npm(self):
-        project_name = os.path.basename(self.directory)
-
-        # TODO: Detect test existence in an earlier phase.
-        if not _repo_has_npm(self.directory):
-            log.warning("%s lacks a package.json", project_name)
-            return
-
-        log.info('Running "npm test" for %s', project_name)
-        _npm_install(self.directory)
-        subprocess.check_call(['npm', 'test'], cwd=self.directory)
+        if _repo_has_composer_script(self.directory, 'test'):
+            cmds = [
+                ['composer', '--ansi', 'validate', '--no-check-publish'],
+                [
+                    'composer',
+                    '--ansi',
+                    'install',
+                    '--no-progress',
+                    '--prefer-dist',
+                    '--profile',
+                    '-v',
+                ],
+                ['composer', '--ansi', 'test'],
+            ]
+            for cmd in cmds:
+                subprocess.check_call(cmd, cwd=self.directory)
 
     def __str__(self):
-        tests = []
-        if self.composer:
-            tests.append("composer")
-        if self.npm:
-            tests.append("npm")
-        return "Extension and skin tests: {}".format(", ".join(tests))
+        return "composer test in {}".format(self.directory)
+
+
+class NpmTest:
+    def __init__(self, directory):
+        self.directory = directory
+
+    def execute(self):
+        if _repo_has_npm_script(self.directory, 'test'):
+            _npm_install(self.directory)
+            subprocess.check_call(['npm', 'test'], cwd=self.directory)
+        else:
+            log.warning("%s lacks a package.json", self.directory)
+
+    def __str__(self):
+        return "npm test in {}".format(self.directory)
 
 
 class CoreNpmComposerTest:
@@ -1073,11 +1052,6 @@ class Parallel:
 def _repo_has_composer_script(project_dir, script_name):
     composer_path = os.path.join(project_dir, 'composer.json')
     return _json_has_script(composer_path, script_name)
-
-
-def _repo_has_npm(project_dir):
-    lock_path = os.path.join(project_dir, 'package.json')
-    return os.path.exists(lock_path)
 
 
 def _repo_has_npm_lock(project_dir):

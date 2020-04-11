@@ -115,25 +115,22 @@ class CreateComposerLocalTest(unittest.TestCase):
         )
 
 
-class ExtSkinComposerNpmTestTest(unittest.TestCase):
-    @mock.patch('quibble.commands.parallel_run', side_effect=run_sequentially)
-    @mock.patch('os.path.exists', return_value=True)
+class ExtSkinComposerTestTest(unittest.TestCase):
+    @mock.patch(
+        'quibble.commands._repo_has_composer_script', return_value=True
+    )
     @mock.patch('subprocess.check_call')
-    def test_execute_all(self, mock_call, *_):
-        quibble.commands.ExtSkinComposerNpmTest('/tmp', True, True).execute()
-
+    def test_execute(self, mock_call, *_):
+        quibble.commands.ExtSkinComposerTest('/tmp').execute()
         mock_call.assert_any_call(['composer', '--ansi', 'test'], cwd='/tmp')
-        mock_call.assert_any_call(['npm', 'test'], cwd='/tmp')
 
-    @mock.patch('os.path.exists', return_value=False)
-    @mock.patch('quibble.commands.parallel_run', side_effect=run_sequentially)
+
+class NpmTestTest(unittest.TestCase):
+    @mock.patch('quibble.commands._repo_has_npm_script', return_value=True)
     @mock.patch('subprocess.check_call')
-    def test_execute_none(self, mock_call, *_):
-        quibble.commands.ExtSkinComposerNpmTest('/tmp', True, True).execute()
-
-        mock_call.assert_called_once_with(
-            ['git', 'clean', '-xqdf'], cwd='/tmp'
-        )
+    def test_execute(self, mock_call, *_):
+        quibble.commands.NpmTest('/tmp').execute()
+        mock_call.assert_any_call(['npm', 'test'], cwd='/tmp')
 
 
 class CoreNpmComposerTestTest(unittest.TestCase):

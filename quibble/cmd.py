@@ -260,13 +260,24 @@ class QuibbleCmd(object):
             )
 
         if is_extension or is_skin:
-            if run_composer or run_npm:
-                project_dir = os.path.join(mw_install_path, repo_path)
+            project_dir = os.path.join(mw_install_path, repo_path)
 
-                plan.append(
-                    quibble.commands.ExtSkinComposerNpmTest(
-                        project_dir, run_composer, run_npm
-                    )
+            parallel_steps = []
+            if run_composer:
+                parallel_steps.append(
+                    quibble.commands.ExtSkinComposerTest(project_dir)
+                )
+            if run_npm:
+                parallel_steps.append(quibble.commands.NpmTest(project_dir))
+            if parallel_steps:
+                plan.extend(
+                    [
+                        quibble.commands.Parallel(
+                            name="npm and composer tests, if present",
+                            steps=parallel_steps,
+                        ),
+                        quibble.commands.GitClean(project_dir),
+                    ]
                 )
 
         if not args.skip_deps and use_composer:
