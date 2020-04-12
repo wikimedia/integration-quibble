@@ -94,8 +94,7 @@ class ExtSkinComposerNpmTestTest(unittest.TestCase):
     def test_execute_none(self, mock_call, *_):
         quibble.commands.ExtSkinComposerNpmTest('/tmp', True, True).execute()
 
-        mock_call.assert_called_once_with(
-            ['git', 'clean', '-xqdf'], cwd='/tmp')
+        mock_call.assert_not_called()
 
 
 class CoreNpmComposerTestTest(unittest.TestCase):

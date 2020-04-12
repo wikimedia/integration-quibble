@@ -163,22 +163,43 @@ class QuibbleCmd(object):
             zuul_project=zuul_project,
             clone_vendor=(args.packages_source == 'vendor'))
 
+        zuul_params = {
+            'branch': args.branch,
+            'cache_dir': args.git_cache,
+            'project_branch': args.project_branch,
+            'workers': args.git_parallel,
+            'workspace': os.path.join(workspace, 'src'),
+            'zuul_branch': os.getenv('ZUUL_BRANCH'),
+            'zuul_newrev': os.getenv('ZUUL_NEWREV'),
+            'zuul_project': os.getenv('ZUUL_PROJECT'),
+            'zuul_ref': os.getenv('ZUUL_REF'),
+            'zuul_url': os.getenv('ZUUL_URL'),
+        }
+
         plan.append(quibble.commands.ReportVersions())
 
         if not args.skip_zuul:
-            zuul_params = {
-                'branch': args.branch,
-                'cache_dir': args.git_cache,
-                'project_branch': args.project_branch,
-                'workers': args.git_parallel,
-                'workspace': os.path.join(workspace, 'src'),
-                'zuul_branch': os.getenv('ZUUL_BRANCH'),
-                'zuul_newrev': os.getenv('ZUUL_NEWREV'),
-                'zuul_project': os.getenv('ZUUL_PROJECT'),
-                'zuul_ref': os.getenv('ZUUL_REF'),
-                'zuul_url': os.getenv('ZUUL_URL'),
-            }
+            plan.append(quibble.commands.ZuulClone(
+                projects=[zuul_project],
+                **zuul_params
+            ))
 
+        project_dir = os.path.join(
+            mw_install_path,
+            quibble.zuul.repo_dir(zuul_project))
+
+        if quibble.util.isExtOrSkin(zuul_project):
+            run_composer = 'composer-test' in stages
+            run_npm = 'npm-test' in stages
+            if run_composer or run_npm:
+                plan.append(quibble.commands.ExtSkinComposerNpmTest(
+                    project_dir, run_composer, run_npm))
+
+        if zuul_project != 'mediawiki/core':
+            plan.append(quibble.commands.GitClean(
+                project_dir if args.skip_zuul else mw_install_path))
+
+        if not args.skip_zuul:
             plan.append(quibble.commands.ZuulClone(
                 projects=dependencies,
                 **zuul_params
@@ -194,17 +215,6 @@ class QuibbleCmd(object):
 
             plan.append(quibble.commands.ExtSkinSubmoduleUpdate(
                 mw_install_path))
-
-        if quibble.util.isExtOrSkin(zuul_project):
-            run_composer = 'composer-test' in stages
-            run_npm = 'npm-test' in stages
-            if run_composer or run_npm:
-                project_dir = os.path.join(
-                    mw_install_path,
-                    quibble.zuul.repo_dir(zuul_project))
-
-                plan.append(quibble.commands.ExtSkinComposerNpmTest(
-                    project_dir, run_composer, run_npm))
 
         if not args.skip_deps and args.packages_source == 'composer':
             plan.append(quibble.commands.CreateComposerLocal(
