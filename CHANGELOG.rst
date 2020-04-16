@@ -3,7 +3,31 @@ Quibble changelog
 
 master (UNRELEASED)
 -------------------
-* …
+
+Features
+~~~~~~~~
+* Exclude phpunit group Standalone from the Database run
+  James D. Forrester
+* Clone only the target project at first
+  Adam Wight
+  `T211702 <https://phabricator.wikimedia.org/T211702>`
+
+Misc
+~~~~
+* Remove redundant logging
+  Adam Wight
+* Extract git_clean into a function
+  Adam Wight
+* Drop redundant "Command" suffix
+  Adam Wight
+* Map mediawiki/services/parsoid to /workspace/src/services/parsoid
+  C. Scott Ananian
+* Extract execution decorator
+  Adam Wight
+* Provide GitClean as a command
+  Adam Wight
+* Logspam: Set Flow's default content format to wikitext
+  Kosta Harlan
 
 0.0.41 (2020-04-08)
 -------------------
