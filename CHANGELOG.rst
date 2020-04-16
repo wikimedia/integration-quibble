@@ -1,7 +1,7 @@
 Quibble changelog
 =================
 
-master (UNRELEASED)
+0.0.42 (2020-04-16)
 -------------------
 
 Features
