@@ -1,9 +1,11 @@
 # vim
 **/*.swp
+
 # Local caches bind mounted in the container
 cache
 ref
+src
+
 # Dev related
-.git
 .tox
 /workspace

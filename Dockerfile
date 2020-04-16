@@ -14,8 +14,8 @@
 #     See the License for the specific language governing permissions and
 #     limitations under the License.
 
-FROM docker-registry.wikimedia.org/releng/npm-stretch:latest as npm-stretch
-FROM docker-registry.wikimedia.org/releng/ci-stretch:latest
+FROM docker-registry.wikimedia.org/releng/node10:latest as node10
+FROM docker-registry.wikimedia.org/releng/ci-buster:latest
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -25,16 +25,26 @@ ENV NPM_CONFIG_CACHE=/cache/npm
 ENV BABEL_CACHE_PATH=$XDG_CACHE_HOME/babel-cache.json
 
 # CI utilities
-RUN git clone --depth=1 "https://gerrit.wikimedia.org/r/p/integration/composer" "/srv/deployment/integration/composer" && \
-    rm -fR /srv/deployment/integration/composer/.git && \
-	ln -s "/srv/deployment/integration/composer/vendor/bin/composer" "/usr/local/bin/composer"
-
+COPY .composer.phar.sha256sum /srv/composer/composer.phar.sha256sum
 RUN apt-get update \
-    && apt-get install -y python3 python3-setuptools python3-pip
-
-RUN apt-get update \
-    && : "Zuul cloner dependencies" \
+    && : "Initial bootstrapping dependencies and composer" \
     && apt-get install -y \
+        jq \
+        curl \
+        zip \
+        unzip \
+    && cd /srv/composer \
+    && curl --silent --fail --output composer.phar https://getcomposer.org/download/1.10.5/composer.phar \
+    && sha256sum -c composer.phar.sha256sum \
+    && chmod +x /srv/composer/composer.phar \
+    && mv /srv/composer/composer.phar /usr/bin/composer
+
+RUN apt-get update \
+    && : "Python3 and other Zuul cloner dependencies" \
+    && apt-get install -y \
+        python3 \
+        python3-setuptools \
+        python3-pip \
         python3-extras \
         python3-six \
         python3-yaml \
@@ -45,21 +55,28 @@ RUN apt-get update \
     && : "Composer/MediaWiki related dependencies" \
     && apt-get install -y \
         php-apcu \
+        php-ast \
+        php-bcmath \
         php-cli \
         php-curl \
         php-gd \
+        php-gmp \
         php-intl \
+        php-ldap \
         php-mbstring \
         php-mysql \
+        php-pgsql \
         php-sqlite3 \
         php-tidy \
         php-xml \
         php-zip \
+        php-wikidiff2 \
         djvulibre-bin \
         imagemagick \
         libimage-exiftool-perl \
         mariadb-server \
-        nodejs-legacy \
+        nodejs \
+        npm \
         tidy \
     && : "Xvfb" \
     && apt-get install -y \
@@ -68,14 +85,22 @@ RUN apt-get update \
     && apt-get purge -y python3-pip \
     && rm -fR /cache/pip
 
-COPY --from=npm-stretch /usr/local/lib/node_modules/npm/ /usr/local/lib/node_modules/npm/
-# Manually link since COPY copies symlink destination instead of the actual symlink
-RUN ln -s ../lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm
+RUN apt-get update \
+    && : "Chromium and driver" \
+    && apt-get install -y \
+        chromium-driver \
+        chromium
 
 RUN apt-get update \
+    && : "JSDuck and ruby for it" \
     && apt-get install -y \
-        chromedriver \
-        chromium
+        ruby \
+        ruby-dev \
+        build-essential \
+    && gem install --no-rdoc --no-ri --clear-sources jsduck \
+    && rm -fR /var/lib/gems/*/cache/*.gem \
+    && apt -y purge ruby-dev \
+    && apt-get -y autoremove --purge
 
 RUN apt-get autoremove -y --purge \
     && rm -rf /var/lib/apt/lists/*

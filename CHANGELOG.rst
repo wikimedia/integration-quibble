@@ -11,6 +11,8 @@ Features
 * Clone only the target project at first
   Adam Wight
   `T211702 <https://phabricator.wikimedia.org/T211702>`
+* Docker: Migrate local docker to buster/php73/node10
+  James D. Forrester
 
 Misc
 ~~~~
