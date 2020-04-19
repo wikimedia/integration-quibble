@@ -282,7 +282,8 @@ class QunitTestsTest(unittest.TestCase):
 
         mock_check_call.side_effect = check_env_for_no_sandbox
 
-        quibble.commands.QunitTests('/tmp', 'http://192.0.2.1:4321').execute()
+        quibble.commands.QunitTests(
+            '/tmp', 'http://192.0.2.1:4321', 'php').execute()
 
         assert mock_check_call.call_count > 0
 
@@ -306,7 +307,7 @@ class ApiTestingTest(unittest.TestCase):
 
         c = quibble.commands.ApiTesting(
             '/tmp', ['mediawiki/core', 'mediawiki/skins/Vector'],
-            'http://192.0.2.1:4321')
+            'http://192.0.2.1:4321', 'php',)
         c.execute()
 
         mock_check_call.assert_any_call(
@@ -330,7 +331,7 @@ class ApiTestingTest(unittest.TestCase):
 
         c = quibble.commands.ApiTesting(
             '/tmp', ['mediawiki/core', 'mediawiki/skins/Vector'],
-            'http://192.0.2.1:4321')
+            'http://192.0.2.1:4321', 'php')
         c.execute()
 
         mock_check_call.assert_not_called()
@@ -342,7 +343,7 @@ class ApiTestingTest(unittest.TestCase):
                                              mock_check_call):
         c = quibble.commands.ApiTesting(
             '/tmp', ['mediawiki/vendor'],
-            'http://192.0.2.1:4321')
+            'http://192.0.2.1:4321', 'php')
         c.execute()
         mock_check_call.assert_not_called()
 
@@ -365,7 +366,7 @@ class BrowserTestsTest(unittest.TestCase):
 
         c = quibble.commands.BrowserTests(
                 '/tmp', ['mediawiki/core', 'mediawiki/skins/Vector'], ':0',
-                'http://192.0.2.1:4321')
+                'http://192.0.2.1:4321', 'php')
         c.execute()
 
         mock_check_call.assert_any_call(
@@ -392,7 +393,7 @@ class BrowserTestsTest(unittest.TestCase):
 
         c = quibble.commands.BrowserTests(
                 '/tmp', ['mediawiki/core', 'mediawiki/skins/Vector'], ':0',
-                'http://192.0.2.1:4321')
+                'http://192.0.2.1:4321', 'php')
         c.execute()
 
         mock_check_call.assert_not_called()
@@ -404,7 +405,7 @@ class BrowserTestsTest(unittest.TestCase):
                                              mock_check_call):
         c = quibble.commands.BrowserTests(
             '/tmp', ['mediawiki/vendor'], ':0',
-            'http://192.0.2.1:4321')
+            'http://192.0.2.1:4321', 'php')
         c.execute()
         mock_check_call.assert_not_called()
 
@@ -417,7 +418,7 @@ class UserScriptsTest(unittest.TestCase):
     @mock.patch('subprocess.check_call')
     def test_commands(self, mock_check_call, *_):
         quibble.commands.UserScripts(
-            '/tmp', ['true', 'false'], self.url).execute()
+            '/tmp', ['true', 'false'], self.url, 'php').execute()
 
         mock_check_call.assert_has_calls([
             mock.call('true', cwd='/tmp', shell=True),
@@ -427,8 +428,8 @@ class UserScriptsTest(unittest.TestCase):
     def test_commands_raises_exception_on_error(self, *_):
         with self.assertRaises(subprocess.CalledProcessError, msg=''):
             quibble.commands.UserScripts(
-                '/tmp', ['false'], self.url).execute()
+                '/tmp', ['false'], self.url, 'php').execute()
 
         with self.assertRaises(subprocess.CalledProcessError, msg=''):
             quibble.commands.UserScripts(
-                '/tmp', ['true', 'false'], self.url).execute()
+                '/tmp', ['true', 'false'], self.url, 'php').execute()

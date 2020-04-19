@@ -611,14 +611,16 @@ class PhpUnitDatabase(AbstractPhpUnit):
 
 
 class QunitTests:
-    def __init__(self, mw_install_path, web_url):
+    def __init__(self, mw_install_path, web_url, webserver):
         self.mw_install_path = mw_install_path
         self.web_url = web_url
+        self.webserver = webserver
 
     def execute(self):
         with quibble.backend.DevWebServer(
                 mwdir=self.mw_install_path,
-                url=self.web_url):
+                url=self.web_url,
+                webserver=self.webserver):
             self.run_qunit()
 
     def run_qunit(self):
@@ -642,15 +644,17 @@ class QunitTests:
 
 
 class ApiTesting:
-    def __init__(self, mw_install_path, projects, web_url):
+    def __init__(self, mw_install_path, projects, web_url, webserver):
         self.mw_install_path = mw_install_path
         self.projects = projects
         self.web_url = web_url
+        self.webserver = webserver
 
     def execute(self):
         with quibble.backend.DevWebServer(
                 mwdir=self.mw_install_path,
-                url=self.web_url):
+                url=self.web_url,
+                webserver=self.webserver):
             self.run_api_testing()
 
     def run_api_testing(self):
@@ -676,16 +680,18 @@ class ApiTesting:
 
 
 class BrowserTests:
-    def __init__(self, mw_install_path, projects, display, web_url):
+    def __init__(self, mw_install_path, projects, display, web_url, webserver):
         self.mw_install_path = mw_install_path
         self.projects = projects
         self.display = display
         self.web_url = web_url
+        self.webserver = webserver
 
     def execute(self):
         with quibble.backend.DevWebServer(
                 mwdir=self.mw_install_path,
-                url=self.web_url):
+                url=self.web_url,
+                webserver=self.webserver):
             self.run_selenium()
 
     def run_selenium(self):
@@ -730,16 +736,18 @@ class BrowserTests:
 
 
 class UserScripts:
-    def __init__(self, mw_install_path, commands, web_url):
+    def __init__(self, mw_install_path, commands, web_url, webserver):
         self.mw_install_path = mw_install_path
         self.commands = commands
         self.web_url = web_url
+        self.webserver = webserver
 
     def execute(self):
         log.info('User commands')
         with quibble.backend.DevWebServer(
                 mwdir=self.mw_install_path,
-                url=self.web_url):
+                url=self.web_url,
+                webserver=self.webserver):
             log.info('working directory: %s', self.mw_install_path)
 
             for cmd in self.commands:
