@@ -393,13 +393,6 @@ class VendorComposerDependencies:
             'extra.merge-plugin.include', mw_composer_json],
             cwd=vendor_dir)
 
-        # FIXME integration/composer used to be outdated and broke the
-        # autoloader. Since composer 1.0.0-alpha11 the following might not
-        # be needed anymore.
-        subprocess.check_call([
-            'composer', 'dump-autoload', '--optimize'],
-            cwd=vendor_dir)
-
         copylog(mw_composer_json,
                 os.path.join(self.log_dir, 'composer.core.json.txt'))
         copylog(os.path.join(vendor_dir, 'composer.json'),
