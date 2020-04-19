@@ -128,7 +128,6 @@ class QuibbleCmd(object):
     def build_execution_plan(self, args):
         plan = []
 
-        self.args = args
         workspace = args.workspace
         mw_install_path = os.path.join(workspace, 'src')
         log_dir = os.path.join(workspace, args.log_dir)
@@ -291,7 +290,7 @@ class QuibbleCmd(object):
 
         if args.commands:
             plan.append(quibble.commands.UserScripts(
-                mw_install_path, self.args.commands))
+                mw_install_path, args.commands))
 
         return plan
 
