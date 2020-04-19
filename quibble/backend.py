@@ -349,22 +349,29 @@ class ChromeWebDriver(BackendServer):
 class DevWebServer(BackendServer):
 
     def __init__(self, host='127.0.0.1', port=4881, mwdir=None,
-                 router='maintenance/dev/includes/router.php'):
+                 router='maintenance/dev/includes/router.php',
+                 webserver='php'):
         super(DevWebServer, self).__init__()
 
         self.host = host
         self.port = port
         self.mwdir = mwdir
         self.router = router
+        self.webserver = webserver
 
     def start(self):
-        self.log.info('Starting MediaWiki built in webserver')
+        if self.webserver == 'none':
+            self.log.info('Not starting a webserver.')
+            return
 
-        server_cmd = ['php', '-d', 'output_buffering=Off', '-S',
-                      '%s:%s' % (self.host, self.port)]
-        if self.router:
-            server_cmd.append(
-                os.path.join(self.mwdir, self.router))
+        self.log.info('Starting %s webserver', self.webserver)
+
+        if self.webserver == 'php':
+            server_cmd = ['php', '-d', 'output_buffering=Off', '-S',
+                          '%s:%s' % (self.host, self.port)]
+            if self.router:
+                server_cmd.append(
+                    os.path.join(self.mwdir, self.router))
 
         self.server = subprocess.Popen(
             server_cmd,
@@ -382,7 +389,8 @@ class DevWebServer(BackendServer):
         return 'http://%s:%s' % (self.host, self.port)
 
     def __repr__(self):
-        return '<DevWebServer :%s %s>' % (self.port, self.mwdir)
+        return '<%s DevWebServer %s:%s %s>' %\
+            (self.webserver, self.host, self.port, self.mwdir)
 
     def __del__(self):
         self.stop()

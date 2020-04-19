@@ -283,14 +283,14 @@ class QuibbleCmd(object):
 
         if 'qunit' in stages:
             plan.append(quibble.commands.QunitTests(
-                mw_install_path, args.webhost, args.webport))
+                mw_install_path, args.webhost, args.webport, args.webserver))
 
         if 'selenium' in stages:
             plan.append(quibble.commands.BrowserTests(
                 mw_install_path,
                 quibble.util.move_item_to_head(
                     dependencies, zuul_project),
-                display, args.webhost, args.webport))
+                display, args.webhost, args.webport, args.webserver))
 
         if 'api-testing' in stages:
             plan.append(quibble.commands.ApiTesting(
@@ -298,7 +298,8 @@ class QuibbleCmd(object):
                 quibble.util.move_item_to_head(
                     dependencies, zuul_project),
                 args.webhost,
-                args.webport))
+                args.webport,
+                args.webserver))
 
         if 'phpunit' in stages:
             plan.append(quibble.commands.PhpUnitDatabase(
@@ -311,7 +312,8 @@ class QuibbleCmd(object):
                 mw_install_path,
                 self.args.commands,
                 args.webhost,
-                args.webport))
+                args.webport,
+                args.webserver))
 
         return plan
 
@@ -419,6 +421,13 @@ def get_arg_parser():
         '--webport',
         default='9412',
         help='Port number for the web server where MediaWiki can be accessed.')
+    parser.add_argument(
+        '--webserver',
+        choices=['php', 'none'],
+        default='php',
+        help='Web server to use. Default to PHP\'s built-in. '
+             '"none" assumes that the local MediaWiki site can be accessed '
+             'via an already running web server.')
     parser.add_argument(
         '--workspace',
         default='/workspace' if quibble.is_in_docker() else os.getcwd(),
