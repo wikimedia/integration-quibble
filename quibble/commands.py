@@ -14,8 +14,6 @@ import shutil
 import subprocess
 
 log = logging.getLogger(__name__)
-HTTP_HOST = '127.0.0.1'
-HTTP_PORT = 9412
 
 
 def execute_command(command):
@@ -24,8 +22,8 @@ def execute_command(command):
         command.execute()
 
 
-def server_url():
-    return 'http://%s:%s' % (HTTP_HOST, HTTP_PORT)
+def server_url(host, port):
+    return 'http://%s:%s' % (host, port)
 
 
 def npm_install(project_dir):
@@ -427,12 +425,14 @@ class InstallMediaWiki:
     db_backend = None
 
     def __init__(self, mw_install_path, db_engine, db_dir, dump_dir,
-                 log_dir, use_vendor):
+                 host, log_dir, port, use_vendor):
         self.mw_install_path = mw_install_path
         self.db_engine = db_engine
         self.db_dir = db_dir
         self.dump_dir = dump_dir
+        self.host = host
         self.log_dir = log_dir
+        self.port = port
         self.use_vendor = use_vendor
 
     def execute(self):
@@ -446,7 +446,7 @@ class InstallMediaWiki:
         # instantiating the database.
         install_args = [
             '--scriptpath=',
-            '--server=%s' % server_url(),
+            '--server=%s' % server_url(self.host, self.port),
             '--dbtype=%s' % self.db_engine,
             '--dbname=%s' % db.dbname,
         ]
@@ -612,20 +612,22 @@ class PhpUnitDatabase(AbstractPhpUnit):
 
 
 class QunitTests:
-    def __init__(self, mw_install_path):
+    def __init__(self, mw_install_path, host, port):
         self.mw_install_path = mw_install_path
+        self.host = host
+        self.port = port
 
     def execute(self):
         with quibble.backend.DevWebServer(
                 mwdir=self.mw_install_path,
-                host=HTTP_HOST,
-                port=HTTP_PORT):
+                host=self.host,
+                port=self.port):
             self.run_qunit()
 
     def run_qunit(self):
         karma_env = {
              'CHROME_BIN': '/usr/bin/chromium',
-             'MW_SERVER': server_url(),
+             'MW_SERVER': server_url(self.host, self.port),
              'MW_SCRIPT_PATH': '/',
              'FORCE_COLOR': '1',  # for 'supports-color'
              }
@@ -643,15 +645,17 @@ class QunitTests:
 
 
 class ApiTesting:
-    def __init__(self, mw_install_path, projects):
+    def __init__(self, mw_install_path, projects, host, port):
         self.mw_install_path = mw_install_path
         self.projects = projects
+        self.host = host
+        self.port = port
 
     def execute(self):
         with quibble.backend.DevWebServer(
                 mwdir=self.mw_install_path,
-                host=HTTP_HOST,
-                port=HTTP_PORT):
+                host=self.host,
+                port=self.port):
             self.run_api_testing()
 
     def run_api_testing(self):
@@ -677,16 +681,18 @@ class ApiTesting:
 
 
 class BrowserTests:
-    def __init__(self, mw_install_path, projects, display):
+    def __init__(self, mw_install_path, projects, display, host, port):
         self.mw_install_path = mw_install_path
         self.projects = projects
         self.display = display
+        self.host = host
+        self.port = port
 
     def execute(self):
         with quibble.backend.DevWebServer(
                 mwdir=self.mw_install_path,
-                host=HTTP_HOST,
-                port=HTTP_PORT):
+                host=self.host,
+                port=self.port):
             self.run_selenium()
 
     def run_selenium(self):
@@ -710,7 +716,7 @@ class BrowserTests:
         webdriver_env = {}
         webdriver_env.update(os.environ)
         webdriver_env.update({
-            'MW_SERVER': server_url(),
+            'MW_SERVER': server_url(self.host, self.port),
             'MW_SCRIPT_PATH': '/',
             'FORCE_COLOR': '1',  # for 'supports-color'
             'MEDIAWIKI_USER': 'WikiAdmin',
@@ -731,16 +737,18 @@ class BrowserTests:
 
 
 class UserScripts:
-    def __init__(self, mw_install_path, commands):
+    def __init__(self, mw_install_path, commands, host, port):
         self.mw_install_path = mw_install_path
         self.commands = commands
+        self.host = host
+        self.port = port
 
     def execute(self):
         log.info('User commands')
         with quibble.backend.DevWebServer(
                 mwdir=self.mw_install_path,
-                host=HTTP_HOST,
-                port=HTTP_PORT):
+                host=self.host,
+                port=self.port):
             log.info('working directory: %s', self.mw_install_path)
 
             for cmd in self.commands:

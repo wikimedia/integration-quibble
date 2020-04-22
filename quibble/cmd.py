@@ -231,7 +231,9 @@ class QuibbleCmd(object):
                 db_engine=args.db,
                 db_dir=db_dir,
                 dump_dir=dump_dir,
+                host=args.webhost,
                 log_dir=log_dir,
+                port=args.webport,
                 use_vendor=(args.packages_source == 'vendor')))
 
         if not args.skip_deps:
@@ -281,20 +283,22 @@ class QuibbleCmd(object):
 
         if 'qunit' in stages:
             plan.append(quibble.commands.QunitTests(
-                mw_install_path))
+                mw_install_path, args.webhost, args.webport))
 
         if 'selenium' in stages:
             plan.append(quibble.commands.BrowserTests(
                 mw_install_path,
                 quibble.util.move_item_to_head(
                     dependencies, zuul_project),
-                display))
+                display, args.webhost, args.webport))
 
         if 'api-testing' in stages:
             plan.append(quibble.commands.ApiTesting(
                 mw_install_path,
                 quibble.util.move_item_to_head(
-                    dependencies, zuul_project)))
+                    dependencies, zuul_project),
+                args.webhost,
+                args.webport))
 
         if 'phpunit' in stages:
             plan.append(quibble.commands.PhpUnitDatabase(
@@ -304,7 +308,10 @@ class QuibbleCmd(object):
 
         if args.commands:
             plan.append(quibble.commands.UserScripts(
-                mw_install_path, self.args.commands))
+                mw_install_path,
+                self.args.commands,
+                args.webhost,
+                args.webport))
 
         return plan
 
@@ -404,6 +411,14 @@ def get_arg_parser():
               'over --branch if it is provided; may be specified multiple '
               'times.')
         )
+    parser.add_argument(
+        '--webhost',
+        default='127.0.0.1',
+        help='Hostname for the web server where MediaWiki can be accessed.')
+    parser.add_argument(
+        '--webport',
+        default='9412',
+        help='Port number for the web server where MediaWiki can be accessed.')
     parser.add_argument(
         '--workspace',
         default='/workspace' if quibble.is_in_docker() else os.getcwd(),
