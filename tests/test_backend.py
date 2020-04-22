@@ -134,24 +134,18 @@ class TestDevWebServer(unittest.TestCase):
     def test_DevWebServer_listens_on_specific_ip(self):
         # Loopback interface has 127.0.0.1/8, so we can pick any IP address in
         # that range.
-        http_host = '127.0.0.2'
-        http_port = '4880'
-        with DevWebServer(mwdir=PHPDOCROOT,
-                          host=http_host, port=http_port, router=None):
-            self.assertServerRespond(
-                'zend',
-                'http://%s:%s' % (http_host, http_port))
+        url = 'http://127.0.0.2:4880'
+        with DevWebServer(mwdir=PHPDOCROOT, url=url, router=None):
+            self.assertServerRespond('zend', url)
 
     @mark.integration
     def test_server_respond(self):
-        http_port = '4881'
-        with DevWebServer(mwdir=PHPDOCROOT, port=http_port, router=None):
-            self.assertServerRespond('zend', 'http://127.0.0.1:%s' % http_port)
+        url = 'http://127.0.0.1:4881'
+        with DevWebServer(mwdir=PHPDOCROOT, url=url, router=None):
+            self.assertServerRespond('zend', url)
 
     @mark.integration
     def test_has_os_environment_variables(self):
-        http_port = '4885'
-
         with mock.patch.dict('quibble.backend.os.environ',
                              {
                                  'MW_INSTALL_PATH': '/tmp/mw',
@@ -159,8 +153,9 @@ class TestDevWebServer(unittest.TestCase):
                                  'LOG_DIR': '/tmp/log',
                              },
                              clear=True):
-            with DevWebServer(mwdir=PHPDOCROOT, port=http_port, router=None):
-                env_url = 'http://127.0.0.1:%s/env.php' % http_port
+            url = 'http://127.0.0.1:4885'
+            with DevWebServer(mwdir=PHPDOCROOT, url=url, router=None):
+                env_url = url + '/env.php'
                 with urllib.request.urlopen(env_url) as resp:
                     env_resp = resp.read().decode()
                     server_env = json.loads(env_resp)

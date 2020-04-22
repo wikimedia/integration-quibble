@@ -24,6 +24,7 @@ import sys
 import tempfile
 import threading
 import time
+import urllib
 import weakref
 
 import quibble
@@ -348,14 +349,17 @@ class ChromeWebDriver(BackendServer):
 
 class DevWebServer(BackendServer):
 
-    def __init__(self, host='127.0.0.1', port=4881, mwdir=None,
+    def __init__(self, url='http://127.0.0.1:4881', mwdir=None,
                  router='maintenance/dev/includes/router.php'):
         super(DevWebServer, self).__init__()
 
-        self.host = host
-        self.port = port
+        self.url = url
         self.mwdir = mwdir
         self.router = router
+
+        parsed_url = urllib.parse.urlparse(self.url)
+        self.host = parsed_url.hostname
+        self.port = parsed_url.port
 
     def start(self):
         self.log.info('Starting MediaWiki built in webserver')
@@ -380,10 +384,10 @@ class DevWebServer(BackendServer):
         weakref.finalize(self, self.stop)
 
     def __str__(self):
-        return 'http://%s:%s' % (self.host, self.port)
+        return self.url
 
     def __repr__(self):
-        return '<DevWebServer :%s %s>' % (self.port, self.mwdir)
+        return '<DevWebServer %s %s>' % (self.url, self.mwdir)
 
 
 class Xvfb(BackendServer):

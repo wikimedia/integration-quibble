@@ -14,18 +14,12 @@ import shutil
 import subprocess
 
 log = logging.getLogger(__name__)
-HTTP_HOST = '127.0.0.1'
-HTTP_PORT = 9412
 
 
 def execute_command(command):
     '''Shared decorator for execution'''
     with quibble.Chronometer(str(command), log.info):
         command.execute()
-
-
-def server_url():
-    return 'http://%s:%s' % (HTTP_HOST, HTTP_PORT)
 
 
 def npm_install(project_dir):
@@ -431,11 +425,12 @@ class InstallMediaWiki:
     db_backend = None
 
     def __init__(self, mw_install_path, db_engine, db_dir, dump_dir,
-                 log_dir, use_vendor):
+                 web_url, log_dir, use_vendor):
         self.mw_install_path = mw_install_path
         self.db_engine = db_engine
         self.db_dir = db_dir
         self.dump_dir = dump_dir
+        self.web_url = web_url
         self.log_dir = log_dir
         self.use_vendor = use_vendor
 
@@ -450,7 +445,7 @@ class InstallMediaWiki:
         # instantiating the database.
         install_args = [
             '--scriptpath=',
-            '--server=%s' % server_url(),
+            '--server=%s' % self.web_url,
             '--dbtype=%s' % self.db_engine,
             '--dbname=%s' % db.dbname,
         ]
@@ -616,20 +611,20 @@ class PhpUnitDatabase(AbstractPhpUnit):
 
 
 class QunitTests:
-    def __init__(self, mw_install_path):
+    def __init__(self, mw_install_path, web_url):
         self.mw_install_path = mw_install_path
+        self.web_url = web_url
 
     def execute(self):
         with quibble.backend.DevWebServer(
                 mwdir=self.mw_install_path,
-                host=HTTP_HOST,
-                port=HTTP_PORT):
+                url=self.web_url):
             self.run_qunit()
 
     def run_qunit(self):
         karma_env = {
              'CHROME_BIN': '/usr/bin/chromium',
-             'MW_SERVER': server_url(),
+             'MW_SERVER': self.web_url,
              'MW_SCRIPT_PATH': '/',
              'FORCE_COLOR': '1',  # for 'supports-color'
              }
@@ -647,15 +642,15 @@ class QunitTests:
 
 
 class ApiTesting:
-    def __init__(self, mw_install_path, projects):
+    def __init__(self, mw_install_path, projects, web_url):
         self.mw_install_path = mw_install_path
         self.projects = projects
+        self.web_url = web_url
 
     def execute(self):
         with quibble.backend.DevWebServer(
                 mwdir=self.mw_install_path,
-                host=HTTP_HOST,
-                port=HTTP_PORT):
+                url=self.web_url):
             self.run_api_testing()
 
     def run_api_testing(self):
@@ -681,16 +676,16 @@ class ApiTesting:
 
 
 class BrowserTests:
-    def __init__(self, mw_install_path, projects, display):
+    def __init__(self, mw_install_path, projects, display, web_url):
         self.mw_install_path = mw_install_path
         self.projects = projects
         self.display = display
+        self.web_url = web_url
 
     def execute(self):
         with quibble.backend.DevWebServer(
                 mwdir=self.mw_install_path,
-                host=HTTP_HOST,
-                port=HTTP_PORT):
+                url=self.web_url):
             self.run_selenium()
 
     def run_selenium(self):
@@ -714,7 +709,7 @@ class BrowserTests:
         webdriver_env = {}
         webdriver_env.update(os.environ)
         webdriver_env.update({
-            'MW_SERVER': server_url(),
+            'MW_SERVER': self.web_url,
             'MW_SCRIPT_PATH': '/',
             'FORCE_COLOR': '1',  # for 'supports-color'
             'MEDIAWIKI_USER': 'WikiAdmin',
@@ -735,16 +730,16 @@ class BrowserTests:
 
 
 class UserScripts:
-    def __init__(self, mw_install_path, commands):
+    def __init__(self, mw_install_path, commands, web_url):
         self.mw_install_path = mw_install_path
         self.commands = commands
+        self.web_url = web_url
 
     def execute(self):
         log.info('User commands')
         with quibble.backend.DevWebServer(
                 mwdir=self.mw_install_path,
-                host=HTTP_HOST,
-                port=HTTP_PORT):
+                url=self.web_url):
             log.info('working directory: %s', self.mw_install_path)
 
             for cmd in self.commands:

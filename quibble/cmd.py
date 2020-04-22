@@ -217,6 +217,7 @@ class QuibbleCmd(object):
                 db_engine=args.db,
                 db_dir=db_dir,
                 dump_dir=dump_dir,
+                web_url=args.web_url,
                 log_dir=log_dir,
                 use_vendor=(args.packages_source == 'vendor')))
 
@@ -267,20 +268,21 @@ class QuibbleCmd(object):
 
         if 'qunit' in stages:
             plan.append(quibble.commands.QunitTests(
-                mw_install_path))
+                mw_install_path, args.web_url))
 
         if 'selenium' in stages:
             plan.append(quibble.commands.BrowserTests(
                 mw_install_path,
                 quibble.util.move_item_to_head(
                     dependencies, zuul_project),
-                display))
+                display, args.web_url))
 
         if 'api-testing' in stages:
             plan.append(quibble.commands.ApiTesting(
                 mw_install_path,
                 quibble.util.move_item_to_head(
-                    dependencies, zuul_project)))
+                    dependencies, zuul_project),
+                args.web_url))
 
         if 'phpunit' in stages:
             plan.append(quibble.commands.PhpUnitDatabase(
@@ -290,7 +292,9 @@ class QuibbleCmd(object):
 
         if args.commands:
             plan.append(quibble.commands.UserScripts(
-                mw_install_path, args.commands))
+                mw_install_path,
+                args.commands,
+                args.web_url))
 
         return plan
 
@@ -393,6 +397,10 @@ def get_arg_parser():
               'over --branch if it is provided; may be specified multiple '
               'times.')
         )
+    parser.add_argument(
+        '--web-url',
+        default='http://127.0.0.1:9412',
+        help='Base URL where MediaWiki can be accessed.')
     parser.add_argument(
         '--workspace',
         default='/workspace' if quibble.is_in_docker() else os.getcwd(),

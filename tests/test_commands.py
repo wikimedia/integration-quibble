@@ -155,19 +155,17 @@ class InstallMediaWikiTest(unittest.TestCase):
             password='PASS',
             dbserver='SERVER')
         mock_db_factory.return_value = mock.MagicMock(return_value=db)
+        url = 'http://192.0.2.1:4321'
 
         quibble.commands.InstallMediaWiki(
-            '/tmp', 'mysql', '/db', '/dump', '/log', True
+            '/tmp', 'mysql', '/db', '/dump', url, '/log', True
         ).execute()
 
         # TODO: Assert that localsettings is edited correctly.
 
         mock_install_script.assert_called_once_with(
             args=['--scriptpath=',
-                  '--server=http://%s:%s' % (
-                      quibble.commands.HTTP_HOST,
-                      quibble.commands.HTTP_PORT
-                  ),
+                  '--server=%s' % (url, ),
                   '--dbtype=mysql', '--dbname=testwiki',
                   '--dbuser=USER', '--dbpass=PASS', '--dbserver=SERVER'],
             mwdir='/tmp')
@@ -284,7 +282,7 @@ class QunitTestsTest(unittest.TestCase):
 
         mock_check_call.side_effect = check_env_for_no_sandbox
 
-        quibble.commands.QunitTests('/tmp').execute()
+        quibble.commands.QunitTests('/tmp', 'http://192.0.2.1:4321').execute()
 
         assert mock_check_call.call_count > 0
 
@@ -307,7 +305,8 @@ class ApiTestingTest(unittest.TestCase):
         }
 
         c = quibble.commands.ApiTesting(
-            '/tmp', ['mediawiki/core', 'mediawiki/skins/Vector'])
+            '/tmp', ['mediawiki/core', 'mediawiki/skins/Vector'],
+            'http://192.0.2.1:4321')
         c.execute()
 
         mock_check_call.assert_any_call(
@@ -330,7 +329,8 @@ class ApiTestingTest(unittest.TestCase):
         }
 
         c = quibble.commands.ApiTesting(
-            '/tmp', ['mediawiki/core', 'mediawiki/skins/Vector'])
+            '/tmp', ['mediawiki/core', 'mediawiki/skins/Vector'],
+            'http://192.0.2.1:4321')
         c.execute()
 
         mock_check_call.assert_not_called()
@@ -340,7 +340,9 @@ class ApiTestingTest(unittest.TestCase):
     @mock.patch('quibble.backend.ChromeWebDriver')
     def test_project_not_having_package_json(self, mock_driver, mock_server,
                                              mock_check_call):
-        c = quibble.commands.ApiTesting('/tmp', ['mediawiki/vendor'])
+        c = quibble.commands.ApiTesting(
+            '/tmp', ['mediawiki/vendor'],
+            'http://192.0.2.1:4321')
         c.execute()
         mock_check_call.assert_not_called()
 
@@ -362,7 +364,8 @@ class BrowserTestsTest(unittest.TestCase):
         }
 
         c = quibble.commands.BrowserTests(
-                '/tmp', ['mediawiki/core', 'mediawiki/skins/Vector'], ':0')
+                '/tmp', ['mediawiki/core', 'mediawiki/skins/Vector'], ':0',
+                'http://192.0.2.1:4321')
         c.execute()
 
         mock_check_call.assert_any_call(
@@ -388,7 +391,8 @@ class BrowserTestsTest(unittest.TestCase):
         }
 
         c = quibble.commands.BrowserTests(
-                '/tmp', ['mediawiki/core', 'mediawiki/skins/Vector'], ':0')
+                '/tmp', ['mediawiki/core', 'mediawiki/skins/Vector'], ':0',
+                'http://192.0.2.1:4321')
         c.execute()
 
         mock_check_call.assert_not_called()
@@ -398,17 +402,22 @@ class BrowserTestsTest(unittest.TestCase):
     @mock.patch('quibble.backend.ChromeWebDriver')
     def test_project_not_having_package_json(self, mock_driver, mock_server,
                                              mock_check_call):
-        c = quibble.commands.BrowserTests('/tmp', ['mediawiki/vendor'], ':0')
+        c = quibble.commands.BrowserTests(
+            '/tmp', ['mediawiki/vendor'], ':0',
+            'http://192.0.2.1:4321')
         c.execute()
         mock_check_call.assert_not_called()
 
 
 class UserScriptsTest(unittest.TestCase):
 
+    url = 'http://192.0.2.1:4321'
+
     @mock.patch('quibble.backend.DevWebServer')
     @mock.patch('subprocess.check_call')
     def test_commands(self, mock_check_call, *_):
-        quibble.commands.UserScripts('/tmp', ['true', 'false']).execute()
+        quibble.commands.UserScripts(
+            '/tmp', ['true', 'false'], self.url).execute()
 
         mock_check_call.assert_has_calls([
             mock.call('true', cwd='/tmp', shell=True),
@@ -417,7 +426,9 @@ class UserScriptsTest(unittest.TestCase):
     @mock.patch('quibble.backend.DevWebServer')
     def test_commands_raises_exception_on_error(self, *_):
         with self.assertRaises(subprocess.CalledProcessError, msg=''):
-            quibble.commands.UserScripts('/tmp', ['false']).execute()
+            quibble.commands.UserScripts(
+                '/tmp', ['false'], self.url).execute()
 
         with self.assertRaises(subprocess.CalledProcessError, msg=''):
-            quibble.commands.UserScripts('/tmp', ['true', 'false']).execute()
+            quibble.commands.UserScripts(
+                '/tmp', ['true', 'false'], self.url).execute()
