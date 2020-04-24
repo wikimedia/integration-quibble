@@ -424,10 +424,17 @@ class InstallMediaWiki:
 
     db_backend = None
 
-    def __init__(self, mw_install_path, db_engine, db_dir, dump_dir,
-                 host, log_dir, port, use_vendor):
+    def __init__(
+        self, mw_install_path, db_engine, db_host, db_socket, db_name, db_user,
+        db_pass, db_dir, dump_dir, host, log_dir, port, use_vendor
+    ):
         self.mw_install_path = mw_install_path
         self.db_engine = db_engine
+        self.db_host = db_host
+        self.db_name = db_name
+        self.db_socket = db_socket
+        self.db_user = db_user
+        self.db_pass = db_pass
         self.db_dir = db_dir
         self.dump_dir = dump_dir
         self.host = host
@@ -437,7 +444,10 @@ class InstallMediaWiki:
 
     def execute(self):
         dbclass = quibble.backend.getDBClass(engine=self.db_engine)
-        db = dbclass(base_dir=self.db_dir, dump_dir=self.dump_dir)
+        db = dbclass(
+            base_dir=self.db_dir, dump_dir=self.dump_dir,
+            user=self.db_user, password=self.db_pass, dbname=self.db_name,
+            socket=self.db_socket)
         # hold a reference to prevent gc
         InstallMediaWiki.db_backend = db
         db.start()
@@ -447,14 +457,14 @@ class InstallMediaWiki:
         install_args = [
             '--scriptpath=',
             '--server=%s' % server_url(self.host, self.port),
-            '--dbtype=%s' % self.db_engine,
+            '--dbtype=%s' % db.dbtype,
             '--dbname=%s' % db.dbname,
         ]
         if self.db_engine == 'sqlite':
             install_args.extend([
                 '--dbpath=%s' % db.rootdir,
             ])
-        elif self.db_engine in ('mysql', 'postgres'):
+        elif db.dbtype in ('mysql', 'mysqlexternal', 'postgres'):
             install_args.extend([
                 '--dbuser=%s' % db.user,
                 '--dbpass=%s' % db.password,

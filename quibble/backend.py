@@ -191,18 +191,20 @@ class MySQL(DatabaseServer):
         dump_dir=None,
         user='wikiuser',
         password='secret',
-        dbname='wikidb'
+        dbname='wikidb',
+        hostname='localhost'
     ):
         super(MySQL, self).__init__(base_dir, dump_dir)
 
         self.user = user
         self.password = password
         self.dbname = dbname
+        self.dbtype = 'mysql'
 
         self.errorlog = os.path.join(self.rootdir, 'error.log')
         self.pidfile = os.path.join(self.rootdir, 'mysqld.pid')
         self.socket = os.path.join(self.rootdir, 'socket')
-        self.dbserver = 'localhost:' + self.socket
+        self.dbserver = hostname + ':' + self.socket
 
         self._install_db()
 
@@ -287,6 +289,33 @@ class MySQL(DatabaseServer):
 
     def __del__(self):
         self.stop()
+
+
+class MysqlExternal(BackendServer):
+    def __init__(
+        self,
+        base_dir=None,
+        dump_dir=None,
+        user='wikiuser',
+        password='secret',
+        dbname='wikidb',
+        hostname='database',
+        socket=None,
+        port=3306
+    ):
+        super(MysqlExternal, self).__init__()
+
+        self.user = user
+        self.password = password
+        self.dbname = dbname
+        self.dbtype = 'mysql'
+
+        self.dbserver = hostname + ':' + port
+
+    def start(self):
+        pass
+
+    # TODO: def dump
 
 
 class SQLite(DatabaseServer):

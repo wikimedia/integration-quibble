@@ -152,13 +152,15 @@ class InstallMediaWikiTest(unittest.TestCase):
             dbname='testwiki',
             user='USER',
             password='PASS',
-            dbserver='SERVER')
+            dbserver='SERVER',
+            dbtype='mysql')
         mock_db_factory.return_value = mock.MagicMock(return_value=db)
         host = '1.2.3.4'
         port = '4321'
 
         quibble.commands.InstallMediaWiki(
-            '/tmp', 'mysql', '/db', '/dump', host, '/log', port, True
+            '/tmp', 'mysql', '/db', '/dump', None, None,
+            None, None, None, host, '/log', port, True
         ).execute()
 
         # TODO: Assert that localsettings is edited correctly.

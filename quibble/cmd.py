@@ -229,6 +229,12 @@ class QuibbleCmd(object):
             plan.append(quibble.commands.InstallMediaWiki(
                 mw_install_path=mw_install_path,
                 db_engine=args.db,
+                # TODO: inject declarative db connectstrings
+                db_host=args.db_host,
+                db_socket=args.db_socket,
+                db_name=args.db_name,
+                db_user=args.db_user,
+                db_pass=args.db_pass,
                 db_dir=db_dir,
                 dump_dir=dump_dir,
                 host=args.webhost,
@@ -369,9 +375,29 @@ def get_arg_parser():
         help='Do not install MediaWiki')
     parser.add_argument(
         '--db',
-        choices=['sqlite', 'mysql', 'postgres'],
+        choices=['sqlite', 'mysql', 'mysqlexternal', 'postgres'],
         default='mysql',
         help='Database backend to use. Default: mysql')
+    parser.add_argument(
+        '--db-host',
+        default='localhost',
+        help='Database host name')
+    parser.add_argument(
+        '--db-socket',
+        default=None,
+        help='Database socket path')
+    parser.add_argument(
+        '--db-name',
+        default=None,
+        help='Database schema name')
+    parser.add_argument(
+        '--db-user',
+        default=None,
+        help='Database user name')
+    parser.add_argument(
+        '--db-pass',
+        default=None,
+        help='Database passphrase')
     parser.add_argument(
         '--db-dir',
         default=None,
