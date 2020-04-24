@@ -291,7 +291,7 @@ class MySQL(DatabaseServer):
         self.stop()
 
 
-class MysqlExternal(BackendServer):
+class MysqlExternal(DatabaseServer):
     def __init__(
         self,
         base_dir=None,
