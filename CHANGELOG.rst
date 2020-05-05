@@ -1,9 +1,17 @@
 Quibble changelog
 =================
 
-master (UNRELEASED)
+0.0.43 (2020-05-05)
 -------------------
-* …
+
+Misc
+~~~~
+* Remove deprecated dump-autoload
+  Adam Wight
+  `T181940 <https://phabricator.wikimedia.org/T181940>`
+* Wipe repo with non-git commands
+  Adam Wight
+  `T211702 <https://phabricator.wikimedia.org/T211702>`
 
 0.0.42 (2020-04-16)
 -------------------
