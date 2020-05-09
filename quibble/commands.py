@@ -48,6 +48,9 @@ class ReportVersions:
             ['chromedriver', '--version'],
             ['chromium', '--version'],
             ['composer', '--version'],
+            ['mysql', '--version'],
+            ['psql', '--version'],
+            # ['sqlite', '--version'], php-sqlite3 doesn't provide a CLI
             ['node', '--version'],
             ['npm', '--version'],
             ['php', '--version'],
