@@ -1,9 +1,23 @@
 Quibble changelog
 =================
 
-master (UNRELEASED)
+0.0.44 (2020-06-04)
 -------------------
-* …
+
+Misc
+~~~~
+* Output mysql/mariadb and postgresql version
+  Reedy
+* Do not create log directory when building the plan
+  Antoine Musso
+* Revert "Remove deprecated dump-autoload"
+  Adam Wight
+* Revert "Wipe repo with non-git commands"
+  Antoine Musso
+* Revert "Clone only the target project at first"
+  Antoine Musso
+* Revert "Drop --dry-run parameter"
+  Antoine Musso
 
 0.0.43 (2020-05-05)
 -------------------
