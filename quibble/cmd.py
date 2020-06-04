@@ -299,6 +299,9 @@ class QuibbleCmd(object):
         log.debug("Execution plan:")
         for cmd in plan:
             log.debug(cmd)
+        if self.args.dry_run:
+            log.warning("Exiting with execution: --dry-run")
+            return
         for command in plan:
             quibble.commands.execute_command(command)
 
@@ -420,6 +423,11 @@ def get_arg_parser():
     # the "Console Section" plugin which gets confused if a line
     # starts with color code (T236222).
     parser.set_defaults(color=sys.stdin.isatty())
+
+    parser.add_argument(
+        '-n', '--dry-run',
+        action='store_true',
+        help='Stop before executing any commands.')
 
     stages_args = parser.add_argument_group('stages', description=(
         'Quibble runs all test commands (stages) by default. '
