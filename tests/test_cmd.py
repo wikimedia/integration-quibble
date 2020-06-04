@@ -265,14 +265,12 @@ class CmdTest(unittest.TestCase):
         args = cmd.parse_arguments(args=[])
         self.assertEquals([], args.project_branch)
 
-    @mock.patch('os.makedirs')
-    def test_build_execution_plan(self, mock_makedirs):
+    def test_build_execution_plan(self):
         args = cmd.parse_arguments(args=[])
         plan = cmd.QuibbleCmd().build_execution_plan(args)
 
         self.assertIsInstance(plan[0], quibble.commands.ReportVersions)
-        mock_makedirs.assert_any_call(
-            os.path.join(args.workspace, 'log'), exist_ok=True)
+        self.assertIsInstance(plan[1], quibble.commands.EnsureDirectory)
 
     @mock.patch('quibble.is_in_docker', return_value=False)
     def test_build_execution_plan_adds_ZUUL_PROJECT(self, _):

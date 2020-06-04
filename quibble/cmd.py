@@ -137,8 +137,6 @@ class QuibbleCmd(object):
         else:
             db_dir = None
 
-        os.makedirs(log_dir, exist_ok=True)
-
         if args.dump_db_postrun:
             dump_dir = log_dir
         else:
@@ -164,6 +162,8 @@ class QuibbleCmd(object):
             clone_vendor=(args.packages_source == 'vendor'))
 
         plan.append(quibble.commands.ReportVersions())
+
+        plan.append(quibble.commands.EnsureDirectory(log_dir))
 
         if not args.skip_zuul:
             zuul_params = {

@@ -756,6 +756,17 @@ class UserScripts:
         return "User commands: {}".format(", ".join(self.commands))
 
 
+class EnsureDirectory:
+    def __init__(self, directory):
+        self.directory = directory
+
+    def execute(self):
+        os.makedirs(self.directory, exist_ok=True)
+
+    def __str__(self):
+        return "Ensure we have the directory '{}'".format(self.directory)
+
+
 class GitClean:
     def __init__(self, directory):
         self.directory = directory
