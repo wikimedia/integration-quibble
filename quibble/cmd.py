@@ -196,11 +196,8 @@ class QuibbleCmd(object):
                     project_dir, run_composer, run_npm))
 
         if zuul_project != 'mediawiki/core':
-            if args.skip_zuul:
-                plan.append(quibble.commands.GitClean(project_dir))
-            else:
-                plan.append(quibble.commands.WipeClean(
-                    project_dir, mw_install_path))
+            plan.append(quibble.commands.GitClean(
+                project_dir if args.skip_zuul else mw_install_path))
 
         if not args.skip_zuul:
             plan.append(quibble.commands.ZuulClone(

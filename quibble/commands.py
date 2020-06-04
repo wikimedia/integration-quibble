@@ -766,23 +766,6 @@ class GitClean:
         return "Revert to git clean -xqdff in {}".format(self.directory)
 
 
-class WipeClean:
-    def __init__(self, directory, mw_install_path):
-        self.directory = directory
-        self.mw_install_path = mw_install_path
-
-    def execute(self):
-        subprocess.check_call(['rm', '-rf', self.directory])
-        path = self.directory
-        while path != self.mw_install_path:
-            path = os.path.dirname(path)
-            subprocess.check_call(['rmdir', path])
-
-    def __str__(self):
-        return "Remove directory {} and any empty parents until {}"\
-            .format(self.directory, self.mw_install_path)
-
-
 def repo_has_composer_script(project_dir, script_name):
     composer_path = os.path.join(project_dir, 'composer.json')
     return json_has_script(composer_path, script_name)
