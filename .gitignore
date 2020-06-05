@@ -3,9 +3,9 @@
 /.idea/
 /quibble.egg-info/
 /cache/
-/cover/
 /doc/build/
 /dist/
+/htmlcov/
 /ref/
 /.tox
 *.pyc
