@@ -42,7 +42,7 @@ class ExtSkinSubmoduleUpdateTest(unittest.TestCase):
 
                 # There should only be three calls, if there are more then we
                 # must have recursed into a sub-subdirectory.
-                self.assertEquals(
+                self.assertEqual(
                     3, mock_check_call.call_count,
                     "Stopped after the first level directory")
 

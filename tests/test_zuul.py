@@ -47,7 +47,7 @@ class TestClone(unittest.TestCase):
 
         (args, kwargs) = mock_cloner.call_args
         self.assertIn('branch', kwargs)
-        self.assertEquals(kwargs['branch'], 'REL1_42')
+        self.assertEqual(kwargs['branch'], 'REL1_42')
 
     @mock.patch('quibble.zuul.Cloner')
     def test_project_branch(self, mock_cloner):
@@ -59,8 +59,8 @@ class TestClone(unittest.TestCase):
 
         (args, kwargs) = mock_cloner.call_args
         self.assertIn('mediawiki/core', kwargs['project_branches'])
-        self.assertEquals('REL1_42',
-                          kwargs['project_branches']['mediawiki/core'])
+        self.assertEqual('REL1_42',
+                         kwargs['project_branches']['mediawiki/core'])
 
     @mock.patch('quibble.zuul.Cloner')
     def test_multiple_project_branch(self, mock_cloner):
@@ -76,10 +76,10 @@ class TestClone(unittest.TestCase):
         (args, kwargs) = mock_cloner.call_args
         self.assertIn('mediawiki/core', kwargs['project_branches'])
         self.assertIn('mediawiki/vendor', kwargs['project_branches'])
-        self.assertEquals('REL1_42',
-                          kwargs['project_branches']['mediawiki/core'])
-        self.assertEquals('REL1_42',
-                          kwargs['project_branches']['mediawiki/vendor'])
+        self.assertEqual('REL1_42',
+                         kwargs['project_branches']['mediawiki/core'])
+        self.assertEqual('REL1_42',
+                         kwargs['project_branches']['mediawiki/vendor'])
 
     @mock.patch('quibble.zuul.ThreadPoolExecutor')
     @mock.patch('quibble.zuul.Cloner')
@@ -162,8 +162,8 @@ class TestRepoDir(unittest.TestCase):
         self.assertEqual('vendor', quibble.zuul.repo_dir('mediawiki/vendor'))
 
     def test_maps_extensions_to_extensions_directory(self):
-        self.assertEqual('extensions/SomeExt',
-                         quibble.zuul.repo_dir('mediawiki/extensions/SomeExt'))
+        self.assertEqual('extensions/AnExt',
+                         quibble.zuul.repo_dir('mediawiki/extensions/AnExt'))
 
     def test_maps_skins_to_extensions_directory(self):
         self.assertEqual('skins/NiceSkin',

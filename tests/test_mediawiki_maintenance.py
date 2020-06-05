@@ -16,7 +16,7 @@ class TestMediawikiMaintenance(unittest.TestCase):
         env = kwargs.get('env', {})
 
         self.assertIn('BAR', env)
-        self.assertEquals('foo', env['BAR'])
+        self.assertEqual('foo', env['BAR'])
 
     @mock.patch.dict('os.environ', {'LANG': 'C'}, clear=True)
     @mock.patch('subprocess.Popen')
@@ -27,7 +27,7 @@ class TestMediawikiMaintenance(unittest.TestCase):
         (args, kwargs) = mock_popen.call_args
         env = kwargs.get('env', {})
 
-        self.assertEquals({'LANG': 'C.UTF-8'}, env)
+        self.assertEqual({'LANG': 'C.UTF-8'}, env)
 
     @mock.patch.dict('os.environ', {'BAR': 'foo'}, clear=True)
     @mock.patch('subprocess.Popen')
@@ -38,7 +38,7 @@ class TestMediawikiMaintenance(unittest.TestCase):
         (args, kwargs) = mock_popen.call_args
         env = kwargs.get('env', {})
 
-        self.assertEquals({'BAR': 'foo'}, env)
+        self.assertEqual({'BAR': 'foo'}, env)
 
     @mock.patch.dict('os.environ', clear=True)
     @mock.patch('subprocess.Popen')

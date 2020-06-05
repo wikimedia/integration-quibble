@@ -13,9 +13,9 @@ class MultipleChoicesTest(unittest.TestCase):
 
     def test_init(self):
         # It is really just like a list
-        self.assertEquals([], MultipleChoices())
-        self.assertEquals(['a'], MultipleChoices(['a']))
-        self.assertEquals(['a'], MultipleChoices('a'))
+        self.assertEqual([], MultipleChoices())
+        self.assertEqual(['a'], MultipleChoices(['a']))
+        self.assertEqual(['a'], MultipleChoices('a'))
 
     def test_contains_for_a_single_item(self):
         subject = MultipleChoices(['a', 'b'])
@@ -186,30 +186,30 @@ class CmdTest(unittest.TestCase):
         q = cmd.QuibbleCmd()
         args = cmd.parse_arguments(args=[])
         stages = q.stages_to_run(args.run, args.skip, args.commands)
-        self.assertEquals(default_stages, stages,
-                          'must runs all stages by default')
+        self.assertEqual(default_stages, stages,
+                         'must runs all stages by default')
 
     def test_should_run_runall_accepts_all_stages(self):
         q = cmd.QuibbleCmd()
         args = cmd.parse_arguments(args=['--run', 'all'])
         stages = q.stages_to_run(args.run, args.skip, args.commands)
-        self.assertEquals(default_stages, stages,
-                          '--run=all runs all stages')
+        self.assertEqual(default_stages, stages,
+                         '--run=all runs all stages')
 
     def test_should_run_skippall_runs_no_stage(self):
         q = cmd.QuibbleCmd()
         args = cmd.parse_arguments(args=['--skip', 'all'])
         stages = q.stages_to_run(args.run, args.skip, args.commands)
-        self.assertEquals([], stages,
-                          '--skip=all skips all stages')
+        self.assertEqual([], stages,
+                         '--skip=all skips all stages')
 
     @mock.patch('quibble.cmd.default_stages', ['foo', 'phpunit'])
     def test_should_run_skips_a_stage(self):
         q = cmd.QuibbleCmd()
         args = cmd.parse_arguments(args=['--skip', 'phpunit'])
         stages = q.stages_to_run(args.run, args.skip, args.commands)
-        self.assertEquals(['foo'], stages,
-                          '--skip skips the stage')
+        self.assertEqual(['foo'], stages,
+                         '--skip skips the stage')
 
     def test_should_run_runall_and_skip_play_nice(self):
         q = cmd.QuibbleCmd()
@@ -217,53 +217,53 @@ class CmdTest(unittest.TestCase):
         stages = q.stages_to_run(args.run, args.skip, args.commands)
         expected_stages = default_stages.copy()
         expected_stages.remove('phpunit')
-        self.assertEquals(expected_stages, stages,
-                          '--run=all respects --skip')
+        self.assertEqual(expected_stages, stages,
+                         '--run=all respects --skip')
 
     def test_should_run_running_a_single_stage(self):
         q = cmd.QuibbleCmd()
         args = cmd.parse_arguments(args=['--run', 'phpunit'])
         stages = q.stages_to_run(args.run, args.skip, args.commands)
-        self.assertEquals(['phpunit'], stages,
-                          '--run runs exactly the given stage')
+        self.assertEqual(['phpunit'], stages,
+                         '--run runs exactly the given stage')
 
     def test_command_skip_all_stages(self):
         q = cmd.QuibbleCmd()
         args = cmd.parse_arguments(args=['-c', '/bin/true'])
         stages = q.stages_to_run(args.run, args.skip, args.commands)
-        self.assertEquals([], stages,
-                          'User command must skip all stages')
+        self.assertEqual([], stages,
+                         'User command must skip all stages')
 
     def test_run_option_is_comma_separated(self):
         args = cmd.parse_arguments(args=['--run=phpunit,qunit'])
-        self.assertEquals(['phpunit', 'qunit'], args.run)
+        self.assertEqual(['phpunit', 'qunit'], args.run)
 
     def test_run_option_does_not_shallow_next_arg(self):
         args = cmd.parse_arguments(args=['--run', 'phpunit', 'repo'])
-        self.assertEquals(['phpunit'], args.run)
-        self.assertEquals(['repo'], args.projects)
+        self.assertEqual(['phpunit'], args.run)
+        self.assertEqual(['repo'], args.projects)
 
     def test_skip_option_is_comma_separated(self):
         args = cmd.parse_arguments(args=['--skip=phpunit,qunit'])
-        self.assertEquals(['phpunit', 'qunit'], args.skip)
+        self.assertEqual(['phpunit', 'qunit'], args.skip)
 
     def test_skip_option_does_not_shallow_next_arg(self):
         args = cmd.parse_arguments(args=['--skip', 'phpunit', 'repo'])
-        self.assertEquals(['phpunit'], args.skip)
-        self.assertEquals(['repo'], args.projects)
+        self.assertEqual(['phpunit'], args.skip)
+        self.assertEqual(['repo'], args.projects)
 
     def test_command_does_not_shallow_next_arg(self):
         args = cmd.parse_arguments(args=['--command', '/bin/true', 'repo'])
-        self.assertEquals(['/bin/true'], args.commands)
-        self.assertEquals(['repo'], args.projects)
+        self.assertEqual(['/bin/true'], args.commands)
+        self.assertEqual(['repo'], args.projects)
 
     def test_command_used_multiple_times(self):
         args = cmd.parse_arguments(args=['-c', 'true', '-c', 'false'])
-        self.assertEquals(['true', 'false'], args.commands)
+        self.assertEqual(['true', 'false'], args.commands)
 
     def test_project_branch_arg(self):
         args = cmd.parse_arguments(args=[])
-        self.assertEquals([], args.project_branch)
+        self.assertEqual([], args.project_branch)
 
     def test_build_execution_plan(self):
         args = cmd.parse_arguments(args=[])
@@ -281,7 +281,7 @@ class CmdTest(unittest.TestCase):
                 args=['--packages-source=composer'])
             with mock.patch('quibble.commands.ZuulClone') as mock_clone:
                 q.build_execution_plan(args)
-        self.assertEquals(
+        self.assertEqual(
             [
                 'mediawiki/core',  # must be first
                 'mediawiki/extensions/ZuulProjectEnvVar',
@@ -305,7 +305,7 @@ class CmdTest(unittest.TestCase):
                 with mock.patch('quibble.commands.ZuulClone') \
                         as mock_clone:
                     q.build_execution_plan(args)
-            self.assertEquals(
+            self.assertEqual(
                 [
                     'mediawiki/core',  # must be first
                     'mediawiki/skins/Vector',

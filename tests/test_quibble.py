@@ -16,11 +16,11 @@ class QuibbleTest(unittest.TestCase):
         logger.setLevel(initial_level)
 
         with quibble.logginglevel(logger_name, transient_level):
-            self.assertEquals(
+            self.assertEqual(
                 transient_level,
                 logger.getEffectiveLevel(),
                 'logginglevel must set a transient logging level')
-        self.assertEquals(
+        self.assertEqual(
             initial_level,
             logger.getEffectiveLevel(),
             'logginglevel must restore the initial logging level')
