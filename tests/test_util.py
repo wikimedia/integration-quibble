@@ -1,4 +1,4 @@
-from nose.tools import assert_raises
+import pytest
 import quibble.util
 from quibble.util import isCoreOrVendor, isExtOrSkin, move_item_to_head
 
@@ -58,5 +58,5 @@ def test_move_item_to_head_present():
 def test_move_item_to_head_absent():
     orig = ['mediawiki/core', 'bar']
 
-    with assert_raises(ValueError):
+    with pytest.raises(ValueError):
         move_item_to_head(orig, 'extensions/foo')

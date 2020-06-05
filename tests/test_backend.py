@@ -4,7 +4,7 @@ import unittest
 from unittest import mock
 import urllib.request
 
-from nose.plugins.attrib import attr
+from pytest import mark
 from quibble.backend import getDBClass
 from quibble.backend import DatabaseServer
 from quibble.backend import ChromeWebDriver
@@ -130,7 +130,7 @@ class TestDevWebServer(unittest.TestCase):
             self.assertEqual("Built-in %s server reached.\n" % flavor,
                              resp.read().decode())
 
-    @attr('integration')
+    @mark.integration
     def test_DevWebServer_listens_on_specific_ip(self):
         # Loopback interface has 127.0.0.1/8, so we can pick any IP address in
         # that range.
@@ -142,13 +142,13 @@ class TestDevWebServer(unittest.TestCase):
                 'zend',
                 'http://%s:%s' % (http_host, http_port))
 
-    @attr('integration')
+    @mark.integration
     def test_server_respond(self):
         http_port = '4881'
         with DevWebServer(mwdir=PHPDOCROOT, port=http_port, router=None):
             self.assertServerRespond('zend', 'http://127.0.0.1:%s' % http_port)
 
-    @attr('integration')
+    @mark.integration
     def test_has_os_environment_variables(self):
         http_port = '4885'
 

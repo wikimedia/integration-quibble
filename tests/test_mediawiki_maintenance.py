@@ -66,8 +66,8 @@ class TestMediawikiMaintenance(unittest.TestCase):
     @mock.patch('subprocess.Popen')
     def test_update_php_raises_exception_on_bad_exit_code(self, mock_popen):
         mock_popen.return_value.returncode = 42
-        with self.assertRaisesRegexp(Exception,
-                                     'Update failed with exit code: 42'):
+        with self.assertRaisesRegex(Exception,
+                                    'Update failed with exit code: 42'):
             quibble.mediawiki.maintenance.update([], mwdir='test/sources')
 
     @mock.patch('subprocess.Popen')
@@ -96,7 +96,7 @@ class TestMediawikiMaintenance(unittest.TestCase):
         self, mock_popen
     ):
         mock_popen.return_value.returncode = 43
-        with self.assertRaisesRegexp(
+        with self.assertRaisesRegex(
                 Exception,
                 'rebuildLocalisationCache failed with exit code: 43'
         ):
