@@ -101,7 +101,7 @@ class ZuulClone:
         pruned_params = {k: v for k, v in self.__dict__.items()
                          if v is not None and v != []}
         return "Zuul clone with parameters {}".format(
-            json.dumps(pruned_params))
+            json.dumps(pruned_params, sort_keys=True))
 
 
 class ResolveRequires:
