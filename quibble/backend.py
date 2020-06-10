@@ -24,6 +24,7 @@ import sys
 import tempfile
 import threading
 import time
+import weakref
 
 import quibble
 
@@ -164,6 +165,8 @@ class Postgres(DatabaseServer):
                     % self.server.returncode)
             time.sleep(1)
 
+        weakref.finalize(self, self.stop)
+
         with open(self.conffile) as f:
             conf = json.load(f)
 
@@ -178,9 +181,6 @@ class Postgres(DatabaseServer):
         # Send a signal to the hook since it's waiting on one
         os.kill(self.hook_pid, signal.SIGUSR1)
         super(Postgres, self).stop()
-
-    def __del__(self):
-        self.stop()
 
 
 class MySQL(DatabaseServer):
@@ -263,6 +263,9 @@ class MySQL(DatabaseServer):
                     "MySQL died during startup (%s)" % self.server.returncode)
             self.log.info("Waiting for MySQL socket")
             time.sleep(1)
+
+        weakref.finalize(self, self.stop)
+
         self._createwikidb()
         self.log.info('MySQL is ready')
 
@@ -284,9 +287,6 @@ class MySQL(DatabaseServer):
 
     def __str__(self):
         return self.socket
-
-    def __del__(self):
-        self.stop()
 
 
 class SQLite(DatabaseServer):
@@ -377,15 +377,13 @@ class DevWebServer(BackendServer):
         )
         stream_relay(self.server, self.server.stderr, self.log.info)
         tcp_wait(host=self.host, port=self.port, timeout=5)
+        weakref.finalize(self, self.stop)
 
     def __str__(self):
         return 'http://%s:%s' % (self.host, self.port)
 
     def __repr__(self):
         return '<DevWebServer :%s %s>' % (self.port, self.mwdir)
-
-    def __del__(self):
-        self.stop()
 
 
 class Xvfb(BackendServer):
