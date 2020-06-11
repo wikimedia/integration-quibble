@@ -294,11 +294,11 @@ class QuibbleCmd(object):
 
         return plan
 
-    def execute(self, plan):
+    def execute(self, plan, dry_run=False):
         log.debug("Execution plan:")
         for cmd in plan:
             log.debug(cmd)
-        if self.args.dry_run:
+        if dry_run:
             log.warning("Exiting with execution: --dry-run")
             return
         for command in plan:
@@ -485,7 +485,7 @@ def main():
 
     cmd = QuibbleCmd()
     plan = cmd.build_execution_plan(args)
-    cmd.execute(plan)
+    cmd.execute(plan, dry_run=args.dry_run)
 
 
 if __name__ == '__main__':

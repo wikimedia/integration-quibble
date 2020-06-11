@@ -272,6 +272,21 @@ class CmdTest(unittest.TestCase):
         self.assertIsInstance(plan[0], quibble.commands.ReportVersions)
         self.assertIsInstance(plan[1], quibble.commands.EnsureDirectory)
 
+    @mock.patch('quibble.commands.execute_command')
+    def test_main_execute_build_plan_without_dry_run(self, execute_command):
+        with mock.patch('sys.argv', ['quibble']):
+            cmd.main()
+
+        self.assertGreater(
+            execute_command.call_count, 2,
+            'execute_command must have been called')
+
+    @mock.patch('quibble.commands.execute_command')
+    def test_main_execute_build_plan_with_dry_run(self, execute_command):
+        with mock.patch('sys.argv', ['quibble', '--dry-run']):
+            cmd.main()
+        execute_command.assert_not_called()
+
     @mock.patch('quibble.is_in_docker', return_value=False)
     def test_build_execution_plan_adds_ZUUL_PROJECT(self, _):
         env = {'ZUUL_PROJECT': 'mediawiki/extensions/ZuulProjectEnvVar'}
