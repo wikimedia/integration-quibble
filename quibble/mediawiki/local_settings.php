@@ -104,3 +104,15 @@ $wgSecretKey = 'supercalifragilisticexpialidocious';
 
 // Hack to support Extension:FileImporter browser tests, T190829
 $wgEnableUploads = true;
+
+// Hack to support testing Parsoid as an extension, while overriding
+// the composer library included with core. (T227352)
+$wgParsoidInstallDir = getenv( 'MW_INSTALL_PATH' ) . '/services/parsoid';
+if ( is_dir( $wgParsoidInstallDir ) ) {
+	AutoLoader::$psr4Namespaces += [
+		// Keep this in sync with the "autoload" clause in
+		// $PARSOID_INSTALL_DIR/composer.json
+		'Wikimedia\\Parsoid\\' => "$wgParsoidInstallDir/src",
+	];
+	wfLoadExtension( 'Parsoid', "$wgParsoidInstallDir/extension.json" );
+}
