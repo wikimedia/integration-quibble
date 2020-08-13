@@ -40,21 +40,13 @@ putenv( "MW_LOG_DIR=$quibbleLogDir" );
 require_once "$IP/includes/DevelopmentSettings.php";
 
 /**
- * Experimental settings
+ * CI-specific settings and hacks
  *
- * Stricter configurations we're trying out by enforcing in CI first,
- * before they become defaults in MediaWiki core
+ * Do not add "experimental" or "strict" settings here.
+ * Settings that are useful during development or that may become
+ * the default one day, should go to DevelopmentSettings.php
+ * in MediaWiki core instead.
  */
-
-// Be strict about class name letter-case.
-$wgAutoloadAttemptLowercase = false;
-
-/**
- * Settings specifically for testing purposes.
- */
-
-// Enables [[Special:JavaScriptTest]] for QUnit tests.
-$wgEnableJavaScriptTest = true;
 
 // This is a horrrrible hack to let extensions (such as Wikibase) behave
 // differently when being run on Wikimedia Jenkins CI.  That is more or less
@@ -68,7 +60,7 @@ $wgDjvuRenderer = '/usr/bin/ddjvu';
 $wgDjvuToXML = '/usr/bin/djvutoxml';
 $wgDjvuTxt = '/usr/bin/djvutxt';
 
-# Set cache directory
+// Set cache directory
 $wgCacheDirectory = getenv( 'TMPDIR' );
 
 // Enables the experimental REST API for testing, T235564
@@ -77,7 +69,7 @@ $wgEnableRestAPI = true;
 // Parsoid does not yet work in Quibble; set Flow's default content format to wikitext to reduce logspam.
 $wgFlowContentFormat = 'wikitext';
 
-require_once( __DIR__ . '/LocalSettings-installer.php' );
+require_once __DIR__ . '/LocalSettings-installer.php';
 
 # Force secret key. This key can be shared with the configuration
 # of testing tools, to allow them to perform privileged actions,
@@ -89,12 +81,13 @@ $wgEnableUploads = true;
 
 // Hack to support testing Parsoid as an extension, while overriding
 // the composer library included with core. (T227352)
-$wgParsoidInstallDir = getenv( 'MW_INSTALL_PATH' ) . '/services/parsoid';
-if ( is_dir( $wgParsoidInstallDir ) ) {
+$parsoidDir = getenv( 'MW_INSTALL_PATH' ) . '/services/parsoid';
+if ( is_dir( $parsoidDir ) ) {
 	AutoLoader::$psr4Namespaces += [
 		// Keep this in sync with the "autoload" clause in
 		// $PARSOID_INSTALL_DIR/composer.json
-		'Wikimedia\\Parsoid\\' => "$wgParsoidInstallDir/src",
+		'Wikimedia\\Parsoid\\' => "$parsoidDir/src",
 	];
-	wfLoadExtension( 'Parsoid', "$wgParsoidInstallDir/extension.json" );
+	wfLoadExtension( 'Parsoid', "$parsoidDir/extension.json" );
 }
+unset( $parsoidDir );
