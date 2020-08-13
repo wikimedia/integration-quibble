@@ -32,30 +32,12 @@ if ( !getenv( 'MW_INSTALL_PATH' ) ) {
 /**
  * Development settings
  */
-if ( is_file( "$IP/includes/DevelopmentSettings.php" ) ) {
-	putenv( "MW_LOG_DIR=$quibbleLogDir" );
-	require_once "$IP/includes/DevelopmentSettings.php";
-} else {
-	// Support: Mediawiki 1.30 and earlier
-	error_reporting( -1 );
-	ini_set( 'display_errors', 1 );
-	$wgDevelopmentWarnings = true;
-	$wgShowDBErrorBacktrace = true;
-	$wgShowExceptionDetails = true;
-	$wgShowSQLErrors = true;
-	$wgDebugRawPage = true;
-	if ( $wgCommandLineMode ) {
-		$wgDebugLogFile = "$quibbleLogDir/mw-debug-cli.log";
-	} else {
-		$wgDebugLogFile = "$quibbleLogDir/mw-debug-www.log";
-	}
-	$wgDebugTimestamps = true;
-	$wgDBerrorLog = "$quibbleLogDir/mw-dberror.log";
-	$wgDebugLogGroups['ratelimit'] = "$quibbleLogDir/mw-ratelimit.log";
-	$wgDebugLogGroups['exception'] = "$quibbleLogDir/mw-exception.log";
-	$wgDebugLogGroups['error'] = "$quibbleLogDir/mw-error.log";
-	$wgRateLimitLog = $wgDebugLogGroups['ratelimit'];
-}
+
+// MW_LOG_DIR is used by DevelopmentSettings.php
+putenv( "MW_LOG_DIR=$quibbleLogDir" );
+
+// Use MediaWiki's development setting
+require_once "$IP/includes/DevelopmentSettings.php";
 
 /**
  * Experimental settings
