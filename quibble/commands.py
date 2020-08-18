@@ -67,9 +67,9 @@ class ReportVersions:
             for line in message.split('\n'):
                 log.info(line)
         except subprocess.CalledProcessError:
-            log.error('Failed to run command: %s', ' '.join(cmd))
+            log.warning('Failed to run command: %s', ' '.join(cmd))
         except FileNotFoundError:
-            log.error('Command not found: %s', ' '.join(cmd))
+            log.warning('Command not found: %s', ' '.join(cmd))
 
     def __str__(self):
         return 'Report package versions'
