@@ -1,6 +1,6 @@
 """Encapsulates each step of a job"""
 
-from contextlib import contextmanager, ExitStack
+import contextlib
 import json
 import logging
 import os
@@ -439,7 +439,7 @@ class StartBackends:
     def _service_names(self):
         return " ".join([str(backend) for backend in self.backends])
 
-    @contextmanager
+    @contextlib.contextmanager
     def _exit(self):
         """List which backends will be shut down.  This is run before the other
         shutdown tasks.
@@ -631,19 +631,11 @@ class PhpUnitDatabase(AbstractPhpUnit):
 
 
 class QunitTests:
-    def __init__(self, mw_install_path, web_url, webserver):
+    def __init__(self, mw_install_path, web_url):
         self.mw_install_path = mw_install_path
         self.web_url = web_url
-        self.webserver = webserver
 
     def execute(self):
-        with quibble.backend.DevWebServer(
-                mwdir=self.mw_install_path,
-                url=self.web_url,
-                webserver=self.webserver):
-            self.run_qunit()
-
-    def run_qunit(self):
         karma_env = {
              'CHROME_BIN': '/usr/bin/chromium',
              'MW_SERVER': self.web_url,
@@ -664,20 +656,11 @@ class QunitTests:
 
 
 class ApiTesting:
-    def __init__(self, mw_install_path, projects, web_url, webserver):
+    def __init__(self, mw_install_path, projects):
         self.mw_install_path = mw_install_path
         self.projects = projects
-        self.web_url = web_url
-        self.webserver = webserver
 
     def execute(self):
-        with quibble.backend.DevWebServer(
-                mwdir=self.mw_install_path,
-                url=self.web_url,
-                webserver=self.webserver):
-            self.run_api_testing()
-
-    def run_api_testing(self):
         quibble_testing_config = {
             "API_TESTING_CONFIG_FILE": self.mw_install_path
             + "/tests/api-testing/.api-testing-quibble.json"
@@ -700,35 +683,19 @@ class ApiTesting:
 
 
 class BrowserTests:
-    def __init__(self, mw_install_path, projects, display, web_url, webserver):
+    def __init__(self, mw_install_path, projects, display, web_url):
         self.mw_install_path = mw_install_path
         self.projects = projects
         self.display = display
         self.web_url = web_url
-        self.webserver = webserver
 
     def execute(self):
-        with quibble.backend.DevWebServer(
-                mwdir=self.mw_install_path,
-                url=self.web_url,
-                webserver=self.webserver):
-            self.run_selenium()
-
-    def run_selenium(self):
-        with ExitStack() as stack:
-            if not self.display:
-                self.display = ':94'  # XXX racy when run concurrently!
-                log.info("No DISPLAY, using Xvfb.")
-                stack.enter_context(
-                    quibble.backend.Xvfb(display=self.display))
-
-            with quibble.backend.ChromeWebDriver(display=self.display):
-                for project in self.projects:
-                    project_dir = os.path.normpath(os.path.join(
-                        self.mw_install_path,
-                        quibble.zuul.repo_dir(project)))
-                    if repo_has_npm_script(project_dir, 'selenium-test'):
-                        self.run_webdriver(project_dir)
+        for project in self.projects:
+            project_dir = os.path.normpath(os.path.join(
+                self.mw_install_path,
+                quibble.zuul.repo_dir(project)))
+            if repo_has_npm_script(project_dir, 'selenium-test'):
+                self.run_webdriver(project_dir)
 
     def run_webdriver(self, project_dir):
         log.info('Running webdriver test in %s', project_dir)
@@ -750,30 +717,21 @@ class BrowserTests:
             env=webdriver_env)
 
     def __str__(self):
-        return "Browser tests using DISPLAY={}, for projects {}".format(
-            self.display or "Xvfb",
-            ", ".join(self.projects))
+        return "Browser tests for projects {}".format(", ".join(self.projects))
 
 
 class UserScripts:
-    def __init__(self, mw_install_path, commands, web_url, webserver):
+    def __init__(self, mw_install_path, commands):
         self.mw_install_path = mw_install_path
         self.commands = commands
-        self.web_url = web_url
-        self.webserver = webserver
 
     def execute(self):
-        log.info('User commands')
-        with quibble.backend.DevWebServer(
-                mwdir=self.mw_install_path,
-                url=self.web_url,
-                webserver=self.webserver):
-            log.info('working directory: %s', self.mw_install_path)
+        log.info('User commands, working directory: %s', self.mw_install_path)
 
-            for cmd in self.commands:
-                log.info(cmd)
-                subprocess.check_call(
-                    cmd, shell=True, cwd=self.mw_install_path)
+        for cmd in self.commands:
+            log.info(cmd)
+            subprocess.check_call(
+                cmd, shell=True, cwd=self.mw_install_path)
 
     def __str__(self):
         return "User commands: {}".format(", ".join(self.commands))

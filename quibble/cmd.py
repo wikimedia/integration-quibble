@@ -276,24 +276,39 @@ class QuibbleCmd(object):
                 composer=run_composer,
                 npm=run_npm))
 
-        display = os.environ.get('DISPLAY', None)
+        if set(['qunit', 'selenium', 'api-testing']) & set(stages) \
+                or args.commands:
+            web_backend = quibble.backend.DevWebServer(
+                mwdir=mw_install_path,
+                url=args.web_url,
+                webserver=args.web_backend)
+
+            backends = [web_backend]
+
+            display = os.environ.get('DISPLAY', None)
+
+            if not display:
+                display = ':94'
+                backends.append(quibble.backend.Xvfb(display))
+
+            backends.append(quibble.backend.ChromeWebDriver(display))
+
+            plan.append(quibble.commands.StartBackends(
+                self.context_stack, backends))
 
         if 'qunit' in stages:
             plan.append(quibble.commands.QunitTests(
-                mw_install_path, args.web_url, args.web_backend))
+                mw_install_path, args.web_url))
 
         if 'selenium' in stages:
             plan.append(quibble.commands.BrowserTests(
                 mw_install_path,
                 dependencies_with_project_first,
-                display, args.web_url, args.web_backend))
+                display, args.web_url))
 
         if 'api-testing' in stages:
             plan.append(quibble.commands.ApiTesting(
-                mw_install_path,
-                dependencies_with_project_first,
-                args.web_url,
-                args.web_backend))
+                mw_install_path, dependencies_with_project_first))
 
         if 'phpunit' in stages:
             plan.append(quibble.commands.PhpUnitDatabase(
@@ -304,9 +319,7 @@ class QuibbleCmd(object):
         if args.commands:
             plan.append(quibble.commands.UserScripts(
                 mw_install_path,
-                args.commands,
-                args.web_url,
-                args.web_backend))
+                args.commands))
 
         return plan
 
