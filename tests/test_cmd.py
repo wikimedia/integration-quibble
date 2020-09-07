@@ -326,3 +326,13 @@ class CmdTest(unittest.TestCase):
                     'mediawiki/skins/Vector',
                 ],
                 mock_clone.call_args[1]['projects'])
+
+    def test_execute(self):
+        q = cmd.QuibbleCmd()
+
+        with self.assertLogs(level='DEBUG') as log:
+            q.execute([])
+
+        self.assertRegex(
+            log.output[0],
+            "DEBUG:quibble.cmd:Execution plan:")

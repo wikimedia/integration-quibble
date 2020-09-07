@@ -25,7 +25,6 @@ import tempfile
 import threading
 import time
 import urllib
-import weakref
 
 import quibble
 
@@ -179,8 +178,6 @@ class Postgres(DatabaseServer):
                     % self.server.returncode)
             time.sleep(1)
 
-        weakref.finalize(self, self.stop)
-
         with open(self.conffile) as f:
             conf = json.load(f)
 
@@ -280,8 +277,6 @@ class MySQL(DatabaseServer):
                     "MySQL died during startup (%s)" % self.server.returncode)
             self.log.info("Waiting for MySQL socket")
             time.sleep(1)
-
-        weakref.finalize(self, self.stop)
 
         self._createwikidb()
         self.log.info('MySQL is ready')
@@ -405,7 +400,6 @@ class DevWebServer(BackendServer):
         )
         stream_relay(self.server, self.server.stderr, self.log.info)
         tcp_wait(host=self.host, port=self.port, timeout=5)
-        weakref.finalize(self, self.stop)
 
     def __str__(self):
         return '<%s DevWebServer %s %s>' %\

@@ -26,6 +26,7 @@ plan:
  -  "Ensure we have the directory '/WORKSPACE/log'"
  -  'Zuul clone with parameters {"cache_dir": "/var/cache/git", "projects": ["mediawiki/core", "mediawiki/skins/Vector", "mediawiki/vendor"], "workers": 4, "workspace": "/WORKSPACE/src"}'
  -  'Extension and skin submodule update under MediaWiki root /WORKSPACE/src'
+ -  'Start backends, <mysql (no socket)>'
  -  'Install MediaWiki, db=<mysql (no socket)> vendor=True'
  -  'Install composer dev-requires for vendor.git'
  -  'npm install in /WORKSPACE/src'

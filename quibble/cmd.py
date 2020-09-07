@@ -17,6 +17,7 @@
 #     limitations under the License.
 
 import argparse
+import contextlib
 import logging
 import os
 import sys
@@ -50,6 +51,9 @@ class MultipleChoices(list):
 
 
 class QuibbleCmd(object):
+
+    def __init__(self):
+        self.context_stack = contextlib.ExitStack()
 
     def setup_environment(self, workspace, mw_install_path, log_dir):
         """
@@ -225,6 +229,9 @@ class QuibbleCmd(object):
             database_backend = quibble.backend.getDatabase(
                 args.db, db_dir, dump_dir)
 
+            plan.append(quibble.commands.StartBackends(
+                self.context_stack, [database_backend]))
+
             plan.append(quibble.commands.InstallMediaWiki(
                 mw_install_path=mw_install_path,
                 db=database_backend,
@@ -308,10 +315,12 @@ class QuibbleCmd(object):
         for cmd in plan:
             log.debug(cmd)
         if dry_run:
-            log.warning("Exiting with execution: --dry-run")
+            log.warning("Exiting without execution: --dry-run")
             return
-        for command in plan:
-            quibble.commands.execute_command(command)
+
+        with self.context_stack:
+            for command in plan:
+                quibble.commands.execute_command(command)
 
 
 def parse_arguments(args):
@@ -505,6 +514,7 @@ def main():
 
     cmd = QuibbleCmd()
     plan = cmd.build_execution_plan(args)
+
     cmd.execute(plan, dry_run=args.dry_run)
 
 

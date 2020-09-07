@@ -1,6 +1,6 @@
 """Encapsulates each step of a job"""
 
-from contextlib import ExitStack
+from contextlib import contextmanager, ExitStack
 import json
 import logging
 import os
@@ -423,6 +423,34 @@ class NpmInstall:
         return "npm install in {}".format(self.directory)
 
 
+class StartBackends:
+    """Start backends and add to a global context stack, to be destroyed in
+    reverse order before application exit.
+    """
+    def __init__(self, context_stack, backends):
+        self.context_stack = context_stack
+        self.backends = backends
+
+    def execute(self):
+        """Atomically start each backend and add it to the shutdown stack."""
+        for context in self.backends + [self._exit()]:
+            self.context_stack.enter_context(context)
+
+    def _service_names(self):
+        return " ".join([str(backend) for backend in self.backends])
+
+    @contextmanager
+    def _exit(self):
+        """List which backends will be shut down.  This is run before the other
+        shutdown tasks.
+        """
+        yield
+        log.info("Shutting down backends: %s", self._service_names())
+
+    def __str__(self):
+        return "Start backends, {}".format(self._service_names())
+
+
 class InstallMediaWiki:
 
     def __init__(self, mw_install_path, db, web_url, log_dir, use_vendor):
@@ -433,8 +461,6 @@ class InstallMediaWiki:
         self.use_vendor = use_vendor
 
     def execute(self):
-        self.db.start()
-
         # TODO: Better if we can calculate the install args before
         # instantiating the database.
         install_args = [

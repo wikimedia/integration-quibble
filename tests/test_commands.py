@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+import contextlib
+import logging
 import subprocess
 import unittest
 from unittest import mock
@@ -135,6 +137,28 @@ class VendorComposerDependenciesTest(unittest.TestCase):
             ['composer', 'require', '--dev', '--ansi', '--no-progress',
              '--prefer-dist', '-v', 'justinrainbow/jsonschema=^1.2.3'],
             cwd='/tmp/vendor')
+
+
+class StartBackendsTest(unittest.TestCase):
+    def test_execute(self):
+        context_stack = contextlib.ExitStack()
+
+        @contextlib.contextmanager
+        def mock_backend():
+            log = logging.getLogger('quibble.commands')
+            log.info("Started mock.")
+            yield
+            log.info("Stopped mock.")
+
+        cmd = quibble.commands.StartBackends(context_stack, [mock_backend()])
+
+        with self.assertLogs(level='DEBUG') as log, \
+                context_stack:
+            cmd.execute()
+
+        self.assertRegex(log.output[0], "Started mock.")
+        self.assertRegex(log.output[1], "Shutting down backends:.*contextlib")
+        self.assertRegex(log.output[2], "Stopped mock.")
 
 
 class InstallMediaWikiTest(unittest.TestCase):
