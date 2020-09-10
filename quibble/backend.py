@@ -360,6 +360,9 @@ class ChromeWebDriver(BackendServer):
             elif prev_display is None and self.display:
                 del(os.environ['DISPLAY'])
 
+    def __str__(self):
+        return "<ChromeWebDriver {}>".format(self.display)
+
 
 class DevWebServer(BackendServer):
 
@@ -405,9 +408,6 @@ class DevWebServer(BackendServer):
         weakref.finalize(self, self.stop)
 
     def __str__(self):
-        return self.url
-
-    def __repr__(self):
         return '<%s DevWebServer %s %s>' %\
             (self.webserver, self.url, self.mwdir)
 
@@ -427,3 +427,6 @@ class Xvfb(BackendServer):
             '-nolisten', 'tcp',
             '-nolisten', 'unix',
             ])
+
+    def __str__(self):
+        return "<Xvfb {}>".format(self.display)
