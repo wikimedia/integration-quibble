@@ -212,11 +212,12 @@ class QuibbleCmd(object):
                 mw_install_path))
 
         if not args.skip_install:
+            database_backend = quibble.backend.getDatabase(
+                args.db, db_dir, dump_dir)
+
             plan.append(quibble.commands.InstallMediaWiki(
                 mw_install_path=mw_install_path,
-                db_engine=args.db,
-                db_dir=db_dir,
-                dump_dir=dump_dir,
+                db=database_backend,
                 web_url=args.web_url,
                 log_dir=log_dir,
                 use_vendor=(args.packages_source == 'vendor')))

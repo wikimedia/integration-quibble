@@ -66,6 +66,14 @@ def getDBClass(engine):
     raise Exception('Backend database engine not supported: %s' % engine)
 
 
+def getDatabase(engine, db_dir, dump_dir):
+    '''Set up a database backend, without starting it.'''
+    dbclass = getDBClass(engine)
+    db = dbclass(base_dir=db_dir, dump_dir=dump_dir)
+    db.type = engine
+    return db
+
+
 def stream_relay(process, stream, log_function):
     thread = threading.Thread(
         target=stream_to_log,
@@ -116,8 +124,8 @@ class DatabaseServer(BackendServer):
 
     def __init__(self, base_dir=None, dump_dir=None):
         super(DatabaseServer, self).__init__()
+        self.base_dir = base_dir
         self.dump_dir = dump_dir
-        self._init_rootdir(base_dir)
 
     def _init_rootdir(self, base_dir):
         # Create a temporary data directory
@@ -132,6 +140,9 @@ class DatabaseServer(BackendServer):
             dir=base_dir, prefix=prefix)
         self.rootdir = self._tmpdir.name
         self.log.debug('Root dir: %s', self.rootdir)
+
+    def start(self):
+        self._init_rootdir(self.base_dir)
 
     def stop(self):
         if self.dump_dir:
@@ -148,10 +159,12 @@ class Postgres(DatabaseServer):
     def __init__(self, base_dir=None, dump_dir=None):
         super(Postgres, self).__init__(base_dir, dump_dir)
 
+    def start(self):
+        super(Postgres, self).start()
+
         self.conffile = os.path.join(self.rootdir, 'conf')
         self.socket = os.path.join(self.rootdir, 'socket')
 
-    def start(self):
         # Start pg_virtualenv and save configuration settings
         self.server = subprocess.Popen([
             'pg_virtualenv',
@@ -199,13 +212,7 @@ class MySQL(DatabaseServer):
         self.user = user
         self.password = password
         self.dbname = dbname
-
-        self.errorlog = os.path.join(self.rootdir, 'error.log')
-        self.pidfile = os.path.join(self.rootdir, 'mysqld.pid')
-        self.socket = os.path.join(self.rootdir, 'socket')
-        self.dbserver = 'localhost:' + self.socket
-
-        self._install_db()
+        self.socket = None
 
     def _install_db(self):
         self.log.info('Initializing MySQL data directory')
@@ -244,6 +251,15 @@ class MySQL(DatabaseServer):
 
     def start(self):
         self.log.info('Starting MySQL')
+        super(MySQL, self).start()
+
+        self.errorlog = os.path.join(self.rootdir, 'error.log')
+        self.pidfile = os.path.join(self.rootdir, 'mysqld.pid')
+        self.socket = os.path.join(self.rootdir, 'socket')
+        self.dbserver = 'localhost:' + self.socket
+
+        self._install_db()
+
         self.server = subprocess.Popen([
             '/usr/sbin/mysqld',  # fixme drop path
             '--skip-networking',
@@ -287,7 +303,9 @@ class MySQL(DatabaseServer):
         ).wait()
 
     def __str__(self):
-        return self.socket
+        return "<{} {}>".format(
+            self.type,
+            self.socket if self.socket else "(no socket)")
 
 
 class SQLite(DatabaseServer):
@@ -296,10 +314,6 @@ class SQLite(DatabaseServer):
         super(SQLite, self).__init__(base_dir, dump_dir)
 
         self.dbname = dbname
-
-    def start(self):
-        # Created by MediaWiki
-        pass
 
 
 class ChromeWebDriver(BackendServer):

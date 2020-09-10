@@ -5,7 +5,7 @@ from unittest import mock
 import urllib.request
 
 from pytest import mark
-from quibble.backend import getDBClass
+from quibble.backend import getDatabase, getDBClass
 from quibble.backend import DatabaseServer
 from quibble.backend import ChromeWebDriver
 from quibble.backend import DevWebServer
@@ -36,20 +36,23 @@ class TestGetDBClass(unittest.TestCase):
                                     '^Backend database engine not supported'):
             getDBClass('fakeDBengine')
 
+    def test_getDatabase(self):
+        getDatabase('mysql', '/tmp/db', '/tmp/dump')
+
 
 class TestDatabaseServer(unittest.TestCase):
 
     @mock.patch('quibble.backend.os.makedirs')
     @mock.patch('quibble.backend.tempfile.TemporaryDirectory')
     def test_creates_basedir(self, mock_makedirs, _):
-        DatabaseServer(base_dir='/tmp/booo')
+        DatabaseServer(base_dir='/tmp/booo').start()
         self.assertTrue(mock_makedirs.called,
                         'Must try to create the database base directory')
 
     @mock.patch('quibble.backend.os.makedirs')
     @mock.patch('quibble.backend.tempfile.TemporaryDirectory')
     def test_honor_basedir_and_prefix(self, mock_makedirs, _):
-        DatabaseServer(base_dir='/tmp/booo')
+        DatabaseServer(base_dir='/tmp/booo').start()
         (args, kwargs) = mock_makedirs.call_args
         self.assertEqual({
             'dir': '/tmp/booo',
@@ -59,7 +62,7 @@ class TestDatabaseServer(unittest.TestCase):
     @mock.patch('quibble.backend.os.makedirs')
     @mock.patch('quibble.backend.tempfile.TemporaryDirectory')
     def test_basedir_is_made_absolute(self, mock_makedirs, _):
-        DatabaseServer(base_dir='data')
+        DatabaseServer(base_dir='data').start()
         (args, kwargs) = mock_makedirs.call_args
         self.assertEqual(
             os.path.join(os.getcwd(), 'data'),

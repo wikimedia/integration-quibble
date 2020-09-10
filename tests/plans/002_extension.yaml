@@ -8,7 +8,7 @@ plan:
  -  'Zuul clone with parameters {"cache_dir": "/var/cache/git", "projects": ["mediawiki/core", "mediawiki/extensions/Foobar", "mediawiki/skins/Vector", "mediawiki/vendor"], "workers": 4, "workspace": "/WORKSPACE/src", "zuul_project": "mediawiki/extensions/Foobar"}'
  -  'Extension and skin submodule update under MediaWiki root /WORKSPACE/src'
  -  'Extension and skin tests: composer, npm'
- -  'Install MediaWiki, db=mysql db_dir=None vendor=True'
+ -  'Install MediaWiki, db=<mysql (no socket)> vendor=True'
  -  'Install composer dev-requires for vendor.git'
  -  'npm install in /WORKSPACE/src'
  -  'PHPUnit unit tests'

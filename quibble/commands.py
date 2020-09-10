@@ -422,45 +422,36 @@ class NpmInstall:
 
 class InstallMediaWiki:
 
-    db_backend = None
-
-    def __init__(self, mw_install_path, db_engine, db_dir, dump_dir,
-                 web_url, log_dir, use_vendor):
+    def __init__(self, mw_install_path, db, web_url, log_dir, use_vendor):
         self.mw_install_path = mw_install_path
-        self.db_engine = db_engine
-        self.db_dir = db_dir
-        self.dump_dir = dump_dir
+        self.db = db
         self.web_url = web_url
         self.log_dir = log_dir
         self.use_vendor = use_vendor
 
     def execute(self):
-        dbclass = quibble.backend.getDBClass(engine=self.db_engine)
-        db = dbclass(base_dir=self.db_dir, dump_dir=self.dump_dir)
-        # hold a reference to prevent gc
-        InstallMediaWiki.db_backend = db
-        db.start()
+        self.db.start()
 
         # TODO: Better if we can calculate the install args before
         # instantiating the database.
         install_args = [
             '--scriptpath=',
             '--server=%s' % self.web_url,
-            '--dbtype=%s' % self.db_engine,
-            '--dbname=%s' % db.dbname,
+            '--dbtype=%s' % self.db.type,
+            '--dbname=%s' % self.db.dbname,
         ]
-        if self.db_engine == 'sqlite':
+        if self.db.type == 'sqlite':
             install_args.extend([
-                '--dbpath=%s' % db.rootdir,
+                '--dbpath=%s' % self.db.rootdir,
             ])
-        elif self.db_engine in ('mysql', 'postgres'):
+        elif self.db.type in ('mysql', 'postgres'):
             install_args.extend([
-                '--dbuser=%s' % db.user,
-                '--dbpass=%s' % db.password,
-                '--dbserver=%s' % db.dbserver,
+                '--dbuser=%s' % self.db.user,
+                '--dbpass=%s' % self.db.password,
+                '--dbserver=%s' % self.db.dbserver,
             ])
         else:
-            raise Exception('Unsupported database: %s' % self.db_engine)
+            raise Exception('Unsupported database: %s' % self.db.type)
 
         quibble.mediawiki.maintenance.install(
             args=install_args,
@@ -507,8 +498,8 @@ class InstallMediaWiki:
             lang=['en'], mwdir=self.mw_install_path)
 
     def __str__(self):
-        return "Install MediaWiki, db={} db_dir={} vendor={}".format(
-            self.db_engine, self.db_dir, self.use_vendor)
+        return "Install MediaWiki, db={} vendor={}".format(
+            self.db, self.use_vendor)
 
 
 class AbstractPhpUnit:
