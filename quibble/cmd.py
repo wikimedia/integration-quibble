@@ -170,6 +170,9 @@ class QuibbleCmd(object):
 
         repo_path = quibble.zuul.repo_dir(zuul_project)
 
+        run_composer = 'composer-test' in stages
+        run_npm = 'npm-test' in stages
+
         plan = []
         plan.append(quibble.commands.ReportVersions())
 
@@ -206,8 +209,6 @@ class QuibbleCmd(object):
                 mw_install_path))
 
         if not is_core:
-            run_composer = 'composer-test' in stages
-            run_npm = 'npm-test' in stages
             if run_composer or run_npm:
                 project_dir = os.path.join(mw_install_path, repo_path)
 
@@ -265,8 +266,8 @@ class QuibbleCmd(object):
         if is_core:
             plan.append(quibble.commands.CoreNpmComposerTest(
                 mw_install_path,
-                composer='composer-test' in stages,
-                npm='npm-test' in stages))
+                composer=run_composer,
+                npm=run_npm))
 
         display = os.environ.get('DISPLAY', None)
 
