@@ -168,6 +168,8 @@ class QuibbleCmd(object):
         dependencies_with_project_first = quibble.util.move_item_to_head(
             dependencies, zuul_project)
 
+        repo_path = quibble.zuul.repo_dir(zuul_project)
+
         plan = []
         plan.append(quibble.commands.ReportVersions())
 
@@ -207,9 +209,7 @@ class QuibbleCmd(object):
             run_composer = 'composer-test' in stages
             run_npm = 'npm-test' in stages
             if run_composer or run_npm:
-                project_dir = os.path.join(
-                    mw_install_path,
-                    quibble.zuul.repo_dir(zuul_project))
+                project_dir = os.path.join(mw_install_path, repo_path)
 
                 plan.append(quibble.commands.ExtSkinComposerNpmTest(
                     project_dir, run_composer, run_npm))
@@ -260,11 +260,7 @@ class QuibbleCmd(object):
 
         if('phpunit-standalone' in stages and not is_core):
             plan.append(quibble.commands.PhpUnitStandalone(
-                mw_install_path,
-                None,
-                log_dir,
-                repo_path=quibble.zuul.repo_dir(zuul_project)
-                ))
+                mw_install_path, None, log_dir, repo_path))
 
         if is_core:
             plan.append(quibble.commands.CoreNpmComposerTest(
