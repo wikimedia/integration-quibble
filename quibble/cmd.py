@@ -126,8 +126,6 @@ class QuibbleCmd(object):
         return stages
 
     def build_execution_plan(self, args):
-        plan = []
-
         workspace = args.workspace
         mw_install_path = os.path.join(workspace, 'src')
         log_dir = os.path.join(workspace, args.log_dir)
@@ -160,6 +158,7 @@ class QuibbleCmd(object):
             zuul_project=zuul_project,
             clone_vendor=(args.packages_source == 'vendor'))
 
+        plan = []
         plan.append(quibble.commands.ReportVersions())
 
         plan.append(quibble.commands.EnsureDirectory(log_dir))
