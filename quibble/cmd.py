@@ -143,9 +143,6 @@ class QuibbleCmd(object):
         else:
             dump_dir = None
 
-        stages = self.stages_to_run(args.run, args.skip, args.commands)
-        log.debug('Running stages: %s', ', '.join(stages))
-
         self.setup_environment(workspace, mw_install_path, log_dir)
 
         zuul_project = os.environ.get('ZUUL_PROJECT', None)
@@ -173,6 +170,9 @@ class QuibbleCmd(object):
             dependencies, zuul_project)
 
         repo_path = quibble.zuul.repo_dir(zuul_project)
+
+        stages = self.stages_to_run(args.run, args.skip, args.commands)
+        log.debug('Running stages: %s', ', '.join(stages))
 
         run_composer = 'composer-test' in stages
         run_npm = 'npm-test' in stages
