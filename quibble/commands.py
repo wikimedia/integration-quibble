@@ -12,6 +12,7 @@ import quibble.mediawiki.registry
 import quibble.zuul
 import shutil
 import subprocess
+import sys
 
 log = logging.getLogger(__name__)
 
@@ -38,6 +39,8 @@ def npm_install(project_dir):
 
 class ReportVersions:
     def execute(self):
+        log.info("Python version: %s", sys.version)
+
         commands = [
             ['chromedriver', '--version'],
             ['chromium', '--version'],
