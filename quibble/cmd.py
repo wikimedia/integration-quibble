@@ -165,6 +165,9 @@ class QuibbleCmd(object):
             zuul_project=zuul_project,
             clone_vendor=use_vendor)
 
+        dependencies_with_project_first = quibble.util.move_item_to_head(
+            dependencies, zuul_project)
+
         plan = []
         plan.append(quibble.commands.ReportVersions())
 
@@ -278,15 +281,13 @@ class QuibbleCmd(object):
         if 'selenium' in stages:
             plan.append(quibble.commands.BrowserTests(
                 mw_install_path,
-                quibble.util.move_item_to_head(
-                    dependencies, zuul_project),
+                dependencies_with_project_first,
                 display, args.web_url, args.web_backend))
 
         if 'api-testing' in stages:
             plan.append(quibble.commands.ApiTesting(
                 mw_install_path,
-                quibble.util.move_item_to_head(
-                    dependencies, zuul_project),
+                dependencies_with_project_first,
                 args.web_url,
                 args.web_backend))
 
