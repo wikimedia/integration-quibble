@@ -259,15 +259,11 @@ class QuibbleCmd(object):
             phpunit_testsuite = 'skins'
 
         if 'phpunit-unit' in stages:
-            plan.append(quibble.commands.PhpUnitUnit(
-                mw_install_path,
-                log_dir))
+            plan.append(quibble.commands.PhpUnitUnit(mw_install_path, log_dir))
 
         if 'phpunit' in stages:
             plan.append(quibble.commands.PhpUnitDatabaseless(
-                mw_install_path,
-                phpunit_testsuite,
-                log_dir))
+                mw_install_path, phpunit_testsuite, log_dir))
 
         if('phpunit-standalone' in stages and (is_extension or is_skin)):
             plan.append(quibble.commands.PhpUnitStandalone(
@@ -310,9 +306,7 @@ class QuibbleCmd(object):
 
         if 'phpunit' in stages:
             plan.append(quibble.commands.PhpUnitDatabase(
-                mw_install_path,
-                phpunit_testsuite,
-                log_dir))
+                mw_install_path, phpunit_testsuite, log_dir))
 
         if args.commands:
             plan.append(quibble.commands.UserScripts(
