@@ -153,6 +153,10 @@ class QuibbleCmd(object):
         else:
             log.debug("ZUUL_PROJECT=%s", zuul_project)
 
+        is_core = zuul_project == 'mediawiki/core'
+        is_extension = zuul_project.startswith('mediawiki/extensions/')
+        is_skin = zuul_project.startswith('mediawiki/skins/')
+
         dependencies = self.repos_to_clone(
             projects=args.projects,
             zuul_project=zuul_project,
@@ -193,7 +197,7 @@ class QuibbleCmd(object):
             plan.append(quibble.commands.ExtSkinSubmoduleUpdate(
                 mw_install_path))
 
-        if quibble.util.isExtOrSkin(zuul_project):
+        if not is_core:
             run_composer = 'composer-test' in stages
             run_npm = 'npm-test' in stages
             if run_composer or run_npm:
@@ -232,9 +236,9 @@ class QuibbleCmd(object):
         phpunit_testsuite = None
         if args.phpunit_testsuite:
             phpunit_testsuite = args.phpunit_testsuite
-        elif zuul_project.startswith('mediawiki/extensions/'):
+        elif is_extension:
             phpunit_testsuite = 'extensions'
-        elif zuul_project.startswith('mediawiki/skins/'):
+        elif is_skin:
             phpunit_testsuite = 'skins'
 
         if 'phpunit-unit' in stages:
@@ -248,9 +252,7 @@ class QuibbleCmd(object):
                 phpunit_testsuite,
                 log_dir))
 
-        if('phpunit-standalone' in stages
-           and quibble.util.isExtOrSkin(zuul_project)
-           ):
+        if('phpunit-standalone' in stages and not is_core):
             plan.append(quibble.commands.PhpUnitStandalone(
                 mw_install_path,
                 None,
@@ -258,7 +260,7 @@ class QuibbleCmd(object):
                 repo_path=quibble.zuul.repo_dir(zuul_project)
                 ))
 
-        if zuul_project == 'mediawiki/core':
+        if is_core:
             plan.append(quibble.commands.CoreNpmComposerTest(
                 mw_install_path,
                 composer='composer-test' in stages,
