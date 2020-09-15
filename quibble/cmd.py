@@ -157,10 +157,13 @@ class QuibbleCmd(object):
         is_extension = zuul_project.startswith('mediawiki/extensions/')
         is_skin = zuul_project.startswith('mediawiki/skins/')
 
+        use_composer = args.packages_source == 'composer'
+        use_vendor = args.packages_source == 'vendor'
+
         dependencies = self.repos_to_clone(
             projects=args.projects,
             zuul_project=zuul_project,
-            clone_vendor=(args.packages_source == 'vendor'))
+            clone_vendor=use_vendor)
 
         plan = []
         plan.append(quibble.commands.ReportVersions())
@@ -208,7 +211,7 @@ class QuibbleCmd(object):
                 plan.append(quibble.commands.ExtSkinComposerNpmTest(
                     project_dir, run_composer, run_npm))
 
-        if not args.skip_deps and args.packages_source == 'composer':
+        if not args.skip_deps and use_composer:
             plan.append(quibble.commands.CreateComposerLocal(
                 mw_install_path, dependencies))
             plan.append(quibble.commands.NativeComposerDependencies(
@@ -223,10 +226,10 @@ class QuibbleCmd(object):
                 db=database_backend,
                 web_url=args.web_url,
                 log_dir=log_dir,
-                use_vendor=(args.packages_source == 'vendor')))
+                use_vendor=use_vendor))
 
         if not args.skip_deps:
-            if args.packages_source == 'vendor':
+            if use_vendor:
                 plan.append(quibble.commands.VendorComposerDependencies(
                     mw_install_path, log_dir))
 
