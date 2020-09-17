@@ -1,10 +1,62 @@
 Quibble changelog
 =================
 
-master (UNRELEASED)
+0.0.45 (2020-09-18)
 -------------------
-* …
+* Fix database dumping `--dump-db-postrun`.
+  `T239396 <https://phabricator.wikimedia.org/T239396>`
+  Antoine Musso
+* Load mediawiki/services/parsoid as an extension.
+  `T227352 <https://phabricator.wikimedia.org/T227352>`
+  C. Scott Ananian
+* Remove hardcoded MediaWiki settings which were kept to support MediaWiki
+  before 1.30 and cleanup settings that are now the default.
+  Timo Tijhof
+* Add support to point to an existing webserver instead of relying on the
+  internally PHP built-in web server. Can be enabled with
+  `--web-server=external`. The web host and port are configurable by passing
+  the URL to `--web-url`.
+  `T225218 <https://phabricator.wikimedia.org/T225218>`
+  Adam Wight
+* Report python version.
+  Adam Wight
 
+Packaging
+~~~~~~~~~
+* Define python modules dependencies in setup.cfg instead of requirements.txt.
+  `T235118 <https://phabricator.wikimedia.org/T235118>`
+  Antoine Musso
+* Updated releasing documentation (`RELEASING.rst`).
+  Antoine Musso
+
+Internal
+~~~~~~~~
+* Delay database initialization until it is actually started.
+  Adam Wight
+* General cleanups in `QuibbleCmd.build_execution_plan` grouping all variables
+  at the top of the method, using variables to avoid repeating methods calls.
+  Adam Wight
+* Manage database and web backends outside of commands. They are now in an
+  ExitStack() context manager which is entered just before executing the plan.
+  `T225218 <https://phabricator.wikimedia.org/T225218>`
+  Adam Wight
+
+Testing
+~~~~~~~
+* Migrate the internal testsuite from Nose to pytest
+  Antoine Musso
+  `T254610 <https://phabricator.wikimedia.org/T254610>`
+* Add high level tests for building the execution plan which would have helped
+  caught two reverts we did in 0.0.44. See `tests/plans/` which can then be run
+  using: `tox -e unit -- tests/tests_plans.py`.
+  Antoine Musso
+  `T211702 <https://phabricator.wikimedia.org/T211702>`
+* Add an entry point for CI to run Quibble: `utils/ci-fullrun.sh`.
+  `T235118 <https://phabricator.wikimedia.org/T235118>`
+  Antoine Musso
+* Run tests in CI with python 3.5, 3.6, 3.7 and describe all tox virtualenv.
+  The `unit` virtualenv has been renamed `py3-unit`.
+  Antoine Musso
 
 0.0.44 (2020-06-04)
 -------------------
