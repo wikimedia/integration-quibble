@@ -1,6 +1,10 @@
 Quibble changelog
 =================
 
+master (UNRELEASED)
+-------------------
+* …
+
 0.0.45 (2020-09-18)
 -------------------
 * Fix database dumping `--dump-db-postrun`.
