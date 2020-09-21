@@ -297,7 +297,7 @@ class PhpUnitUnitTest(unittest.TestCase):
 class QunitTestsTest(unittest.TestCase):
 
     @mock.patch.dict('os.environ', {'somevar': '42'}, clear=True)
-    @mock.patch('quibble.backend.DevWebServer')
+    @mock.patch('quibble.backend.PhpWebserver')
     @mock.patch('quibble.is_in_docker', return_value=True)
     @mock.patch('subprocess.check_call')
     def test_execute(self, mock_check_call, *_):
@@ -319,7 +319,7 @@ class ApiTestingTest(unittest.TestCase):
     @mock.patch('builtins.open', mock.mock_open())
     @mock.patch('json.load')
     @mock.patch('subprocess.check_call')
-    @mock.patch('quibble.backend.DevWebServer')
+    @mock.patch('quibble.backend.PhpWebserver')
     @mock.patch('quibble.backend.ChromeWebDriver')
     def test_project_api_testing(self, mock_driver, mock_server,
                                  mock_check_call, mock_load,
@@ -342,7 +342,7 @@ class ApiTestingTest(unittest.TestCase):
     @mock.patch('builtins.open', mock.mock_open())
     @mock.patch('json.load')
     @mock.patch('subprocess.check_call')
-    @mock.patch('quibble.backend.DevWebServer')
+    @mock.patch('quibble.backend.PhpWebserver')
     @mock.patch('quibble.backend.ChromeWebDriver')
     def test_project_missing_api_testing(self, mock_driver, mock_server,
                                          mock_check_call, mock_load,
@@ -360,7 +360,7 @@ class ApiTestingTest(unittest.TestCase):
         mock_check_call.assert_not_called()
 
     @mock.patch('subprocess.check_call')
-    @mock.patch('quibble.backend.DevWebServer')
+    @mock.patch('quibble.backend.PhpWebserver')
     @mock.patch('quibble.backend.ChromeWebDriver')
     def test_project_not_having_package_json(self, mock_driver, mock_server,
                                              mock_check_call):
@@ -375,7 +375,7 @@ class BrowserTestsTest(unittest.TestCase):
     @mock.patch('builtins.open', mock.mock_open())
     @mock.patch('json.load')
     @mock.patch('subprocess.check_call')
-    @mock.patch('quibble.backend.DevWebServer')
+    @mock.patch('quibble.backend.PhpWebserver')
     @mock.patch('quibble.backend.ChromeWebDriver')
     def test_project_selenium(self, mock_driver, mock_server, mock_check_call,
                               mock_load, mock_path_exists):
@@ -401,7 +401,7 @@ class BrowserTestsTest(unittest.TestCase):
     @mock.patch('builtins.open', mock.mock_open())
     @mock.patch('json.load')
     @mock.patch('subprocess.check_call')
-    @mock.patch('quibble.backend.DevWebServer')
+    @mock.patch('quibble.backend.PhpWebserver')
     @mock.patch('quibble.backend.ChromeWebDriver')
     def test_project_missing_selenium(self, mock_driver, mock_server,
                                       mock_check_call, mock_load,
@@ -420,7 +420,7 @@ class BrowserTestsTest(unittest.TestCase):
         mock_check_call.assert_not_called()
 
     @mock.patch('subprocess.check_call')
-    @mock.patch('quibble.backend.DevWebServer')
+    @mock.patch('quibble.backend.PhpWebserver')
     @mock.patch('quibble.backend.ChromeWebDriver')
     def test_project_not_having_package_json(self, mock_driver, mock_server,
                                              mock_check_call):
@@ -433,7 +433,7 @@ class BrowserTestsTest(unittest.TestCase):
 
 class UserScriptsTest(unittest.TestCase):
 
-    @mock.patch('quibble.backend.DevWebServer')
+    @mock.patch('quibble.backend.PhpWebserver')
     @mock.patch('subprocess.check_call')
     def test_commands(self, mock_check_call, *_):
         quibble.commands.UserScripts(
@@ -443,7 +443,7 @@ class UserScriptsTest(unittest.TestCase):
             mock.call('true', cwd='/tmp', shell=True),
             mock.call('false', cwd='/tmp', shell=True)])
 
-    @mock.patch('quibble.backend.DevWebServer')
+    @mock.patch('quibble.backend.PhpWebserver')
     def test_commands_raises_exception_on_error(self, *_):
         with self.assertRaises(subprocess.CalledProcessError, msg=''):
             quibble.commands.UserScripts(

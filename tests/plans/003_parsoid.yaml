@@ -12,7 +12,7 @@ plan:
  - 'npm install in /WORKSPACE/src'
  - 'PHPUnit unit tests'
  - 'PHPUnit default suite (without database or standalone)'
- - 'Start backends, <php DevWebServer http://127.0.0.1:9412 /WORKSPACE/src> <Xvfb :94> <ChromeWebDriver :94>'
+ - 'Start backends, <PhpWebserver http://127.0.0.1:9412 /WORKSPACE/src> <Xvfb :94> <ChromeWebDriver :94>'
  - 'Run Qunit tests'
  - 'Browser tests for projects mediawiki/services/parsoid, mediawiki/core, mediawiki/skins/Vector, mediawiki/vendor'
  - 'Run API-Testing'
