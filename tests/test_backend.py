@@ -8,7 +8,7 @@ from pytest import mark
 from quibble.backend import getDatabase, get_backend
 from quibble.backend import DatabaseServer
 from quibble.backend import ChromeWebDriver
-from quibble.backend import DevWebServer
+from quibble.backend import PhpWebserver
 from quibble.backend import MySQL
 
 FIXTURES_DIR = os.path.join(os.path.dirname(__file__), 'fixtures')
@@ -119,7 +119,7 @@ class TestChromeWebDriver(unittest.TestCase):
         self.assertEqual(os.environ['DISPLAY'], ':30')
 
 
-class TestDevWebServer(unittest.TestCase):
+class TestPhpWebserver(unittest.TestCase):
 
     def assertServerRespond(self, flavor, url):
         with urllib.request.urlopen(url) as resp:
@@ -127,17 +127,17 @@ class TestDevWebServer(unittest.TestCase):
                              resp.read().decode())
 
     @mark.integration
-    def test_DevWebServer_listens_on_specific_ip(self):
+    def test_PhpWebserver_listens_on_specific_ip(self):
         # Loopback interface has 127.0.0.1/8, so we can pick any IP address in
         # that range.
         url = 'http://127.0.0.2:4880'
-        with DevWebServer(mwdir=PHPDOCROOT, url=url, router=None):
+        with PhpWebserver(mwdir=PHPDOCROOT, url=url, router=None):
             self.assertServerRespond('zend', url)
 
     @mark.integration
     def test_server_respond(self):
         url = 'http://127.0.0.1:4881'
-        with DevWebServer(mwdir=PHPDOCROOT, url=url, router=None):
+        with PhpWebserver(mwdir=PHPDOCROOT, url=url, router=None):
             self.assertServerRespond('zend', url)
 
     @mark.integration
@@ -150,7 +150,7 @@ class TestDevWebServer(unittest.TestCase):
                              },
                              clear=True):
             url = 'http://127.0.0.1:4885'
-            with DevWebServer(mwdir=PHPDOCROOT, url=url, router=None):
+            with PhpWebserver(mwdir=PHPDOCROOT, url=url, router=None):
                 env_url = url + '/env.php'
                 with urllib.request.urlopen(env_url) as resp:
                     env_resp = resp.read().decode()

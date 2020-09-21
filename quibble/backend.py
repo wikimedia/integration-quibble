@@ -77,6 +77,10 @@ def get_backend(interface, key):
     raise Exception('Backend %s not supported: %s' % (interface, key))
 
 
+def web_backend(key):
+    return backend(WebserverEngine, key)
+
+
 def db_backend(key):
     return backend(DatabaseServer, key)
 
@@ -87,6 +91,12 @@ def getDatabase(engine, db_dir, dump_dir):
     db = dbclass(base_dir=db_dir, dump_dir=dump_dir)
     db.type = engine
     return db
+
+
+def getWebserver(engine, mw_install_path, web_url):
+    webclass = get_backend(WebserverEngine, engine)
+    backend = webclass(mwdir=mw_install_path, url=web_url)
+    return backend
 
 
 def stream_relay(process, stream, log_function):
@@ -378,36 +388,21 @@ class ChromeWebDriver(BackendServer):
         return "<ChromeWebDriver {}>".format(self.display)
 
 
-class DevWebServer(BackendServer):
+class WebserverEngine(BackendServer):
 
     def __init__(self, url='http://127.0.0.1:4881', mwdir=None,
-                 router='maintenance/dev/includes/router.php',
-                 webserver='php'):
-        super(DevWebServer, self).__init__()
+                 router='maintenance/dev/includes/router.php'):
+        super(WebserverEngine, self).__init__()
 
         self.url = url
         self.mwdir = mwdir
         self.router = router
-        self.webserver = webserver
 
         parsed_url = urllib.parse.urlparse(self.url)
         self.host = parsed_url.hostname
         self.port = parsed_url.port
 
-    def start(self):
-        if self.webserver == 'none':
-            self.log.info('Not starting a webserver.')
-            return
-
-        self.log.info('Starting %s webserver', self.webserver)
-
-        if self.webserver == 'php':
-            server_cmd = ['php', '-d', 'output_buffering=Off', '-S',
-                          '%s:%s' % (self.host, self.port)]
-            if self.router:
-                server_cmd.append(
-                    os.path.join(self.mwdir, self.router))
-
+    def _start(self, server_cmd):
         self.server = subprocess.Popen(
             server_cmd,
             cwd=self.mwdir,
@@ -420,9 +415,30 @@ class DevWebServer(BackendServer):
         stream_relay(self.server, self.server.stderr, self.log.info)
         tcp_wait(host=self.host, port=self.port, timeout=5)
 
+
+@web_backend('external')
+class ExternalWebserver(WebserverEngine):
+    def start(self):
+        self.log.info('Not starting a webserver.')
+
     def __str__(self):
-        return '<%s DevWebServer %s %s>' %\
-            (self.webserver, self.url, self.mwdir)
+        return '<ExternalWebserver %s %s>' % (self.url, self.mwdir)
+
+
+@web_backend('php')
+class PhpWebserver(WebserverEngine):
+    def start(self):
+        server_cmd = ['php', '-d', 'output_buffering=Off', '-S',
+                      '%s:%s' % (self.host, self.port)]
+
+        if self.router:
+            server_cmd.append(
+                os.path.join(self.mwdir, self.router))
+
+        super(PhpWebserver, self)._start(server_cmd)
+
+    def __str__(self):
+        return '<PhpWebserver %s %s>' % (self.url, self.mwdir)
 
 
 class Xvfb(BackendServer):

@@ -278,10 +278,8 @@ class QuibbleCmd(object):
 
         if set(['qunit', 'selenium', 'api-testing']) & set(stages) \
                 or args.commands:
-            web_backend = quibble.backend.DevWebServer(
-                mwdir=mw_install_path,
-                url=args.web_url,
-                webserver=args.web_backend)
+            web_backend = quibble.backend.getWebserver(
+                args.web_backend, mw_install_path, args.web_url)
 
             backends = [web_backend]
 
