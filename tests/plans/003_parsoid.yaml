@@ -1,0 +1,19 @@
+env:
+    ZUUL_PROJECT: mediawiki/services/parsoid
+args: ['--git-cache=/var/cache/git', '--workspace=/WORKSPACE']
+plan:
+ - 'Report package versions'
+ - "Ensure we have the directory '/WORKSPACE/log'"
+ - 'Zuul clone with parameters {"cache_dir": "/var/cache/git", "projects": ["mediawiki/core", "mediawiki/services/parsoid", "mediawiki/skins/Vector", "mediawiki/vendor"], "workers": 4, "workspace": "/WORKSPACE/src", "zuul_project": "mediawiki/services/parsoid"}'
+ - 'Extension and skin submodule update under MediaWiki root /WORKSPACE/src'
+ - 'Start backends, <mysql (no socket)>'
+ - 'Install MediaWiki, db=<mysql (no socket)> vendor=True'
+ - 'Install composer dev-requires for vendor.git'
+ - 'npm install in /WORKSPACE/src'
+ - 'PHPUnit unit tests'
+ - 'PHPUnit default suite (without database or standalone)'
+ - 'Start backends, <php DevWebServer http://127.0.0.1:9412 /WORKSPACE/src> <Xvfb :94> <ChromeWebDriver :94>'
+ - 'Run Qunit tests'
+ - 'Browser tests for projects mediawiki/services/parsoid, mediawiki/core, mediawiki/skins/Vector, mediawiki/vendor'
+ - 'Run API-Testing'
+ - 'PHPUnit default suite (with database)'

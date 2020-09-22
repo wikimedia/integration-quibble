@@ -212,7 +212,7 @@ class QuibbleCmd(object):
             plan.append(quibble.commands.ExtSkinSubmoduleUpdate(
                 mw_install_path))
 
-        if not is_core:
+        if is_extension or is_skin:
             if run_composer or run_npm:
                 project_dir = os.path.join(mw_install_path, repo_path)
 
@@ -266,7 +266,7 @@ class QuibbleCmd(object):
                 phpunit_testsuite,
                 log_dir))
 
-        if('phpunit-standalone' in stages and not is_core):
+        if('phpunit-standalone' in stages and (is_extension or is_skin)):
             plan.append(quibble.commands.PhpUnitStandalone(
                 mw_install_path, None, log_dir, repo_path))
 
