@@ -5,7 +5,7 @@ from unittest import mock
 import urllib.request
 
 from pytest import mark
-from quibble.backend import getDatabase, getDBClass
+from quibble.backend import getDatabase, get_backend
 from quibble.backend import DatabaseServer
 from quibble.backend import ChromeWebDriver
 from quibble.backend import DevWebServer
@@ -15,26 +15,19 @@ FIXTURES_DIR = os.path.join(os.path.dirname(__file__), 'fixtures')
 PHPDOCROOT = os.path.join(FIXTURES_DIR, 'phpdocroot')
 
 
-class TestGetDBClass(unittest.TestCase):
+class TestBackendRegistry(unittest.TestCase):
 
     def test_recognizes_mysql(self):
-        getDBClass('mysql')
-        getDBClass('MySQL')
+        get_backend(DatabaseServer, 'mysql')
+        get_backend(DatabaseServer, 'MySQL')
 
     def test_recognizes_sqlite(self):
-        getDBClass('sqlite')
-
-    def test_raises_an_exception_on_non_db_backendb(self):
-        with self.assertRaisesRegex(
-            Exception, '^Requested database engine "BackendServer" '
-            'is not a database server'
-        ):
-            getDBClass('BackendServer')
+        get_backend(DatabaseServer, 'sqlite')
 
     def test_raises_an_exception_on_unknown_db(self):
-        with self.assertRaisesRegex(Exception,
-                                    '^Backend database engine not supported'):
-            getDBClass('fakeDBengine')
+        with self.assertRaisesRegex(Exception, "^Backend .*DatabaseServer.*"
+                                    + "not supported: fakedbengine"):
+            get_backend(DatabaseServer, 'fakeDBengine')
 
     def test_getDatabase(self):
         getDatabase('mysql', '/tmp/db', '/tmp/dump')

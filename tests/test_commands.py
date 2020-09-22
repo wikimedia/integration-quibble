@@ -168,7 +168,7 @@ class InstallMediaWikiTest(unittest.TestCase):
     @mock.patch('quibble.mediawiki.maintenance.rebuildLocalisationCache')
     @mock.patch('quibble.util.copylog')
     @mock.patch('subprocess.check_call')
-    @mock.patch('quibble.backend.getDBClass')
+    @mock.patch('quibble.backend.get_backend')
     @mock.patch('quibble.mediawiki.maintenance.install')
     @mock.patch('quibble.mediawiki.maintenance.update')
     def test_execute(self, mock_update, mock_install_script,
