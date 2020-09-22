@@ -20,13 +20,14 @@ import pwd
 import signal
 import socket
 import subprocess
-import sys
 import tempfile
 import threading
 import time
 import urllib
 
 import quibble
+
+backend_registry = {}
 
 
 def tcp_wait(host, port, timeout=3):
@@ -52,22 +53,37 @@ def tcp_wait(host, port, timeout=3):
             'Could not connect to port %s after %s seconds' % (port, timeout))
 
 
-def getDBClass(engine):
-    this_module = sys.modules[__name__]
-    for attr in dir(this_module):
-        if engine.lower() == attr.lower():
-            engine_class = getattr(this_module, attr)
-            if not issubclass(engine_class, DatabaseServer):
-                raise Exception(
-                    'Requested database engine "%s" '
-                    'is not a database server' % engine)
-            return engine_class
-    raise Exception('Backend database engine not supported: %s' % engine)
+def backend(interface, key):
+    """Register a backend by name."""
+    def wrap(backend_class):
+        if not issubclass(backend_class, interface):
+            raise Exception('Registered backend "%s" does not extend %s'
+                            % (backend_class, interface))
+        interface_name = str(interface)
+        if interface_name not in backend_registry:
+            backend_registry[interface_name] = {}
+        backend_registry[interface_name][key] = backend_class
+
+        return backend_class
+    return wrap
+
+
+def get_backend(interface, key):
+    key = key.lower()
+    interface = str(interface)
+    if key in backend_registry[interface]:
+        return backend_registry[interface][key]
+
+    raise Exception('Backend %s not supported: %s' % (interface, key))
+
+
+def db_backend(key):
+    return backend(DatabaseServer, key)
 
 
 def getDatabase(engine, db_dir, dump_dir):
     '''Set up a database backend, without starting it.'''
-    dbclass = getDBClass(engine)
+    dbclass = get_backend(DatabaseServer, engine)
     db = dbclass(base_dir=db_dir, dump_dir=dump_dir)
     db.type = engine
     return db
@@ -153,6 +169,7 @@ class DatabaseServer(BackendServer):
                          self.__class__.__name__)
 
 
+@db_backend('postgres')
 class Postgres(DatabaseServer):
 
     def __init__(self, base_dir=None, dump_dir=None):
@@ -194,6 +211,7 @@ class Postgres(DatabaseServer):
         super(Postgres, self).stop()
 
 
+@db_backend('mysql')
 class MySQL(DatabaseServer):
 
     def __init__(
@@ -303,6 +321,7 @@ class MySQL(DatabaseServer):
             self.socket if self.socket else "(no socket)")
 
 
+@db_backend('sqlite')
 class SQLite(DatabaseServer):
 
     def __init__(self, base_dir=None, dump_dir=None, dbname='wikidb'):
