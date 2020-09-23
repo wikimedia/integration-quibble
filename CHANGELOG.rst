@@ -8,10 +8,10 @@ master (UNRELEASED)
 0.0.45 (2020-09-18)
 -------------------
 * Fix database dumping `--dump-db-postrun`.
-  `T239396 <https://phabricator.wikimedia.org/T239396>`
+  `T239396 <https://phabricator.wikimedia.org/T239396>`_
   Antoine Musso
 * Load mediawiki/services/parsoid as an extension.
-  `T227352 <https://phabricator.wikimedia.org/T227352>`
+  `T227352 <https://phabricator.wikimedia.org/T227352>`_
   C. Scott Ananian
 * Remove hardcoded MediaWiki settings which were kept to support MediaWiki
   before 1.30 and cleanup settings that are now the default.
@@ -20,7 +20,7 @@ master (UNRELEASED)
   internally PHP built-in web server. Can be enabled with
   `--web-server=external`. The web host and port are configurable by passing
   the URL to `--web-url`.
-  `T225218 <https://phabricator.wikimedia.org/T225218>`
+  `T225218 <https://phabricator.wikimedia.org/T225218>`_
   Adam Wight
 * Report python version.
   Adam Wight
@@ -28,7 +28,7 @@ master (UNRELEASED)
 Packaging
 ~~~~~~~~~
 * Define python modules dependencies in setup.cfg instead of requirements.txt.
-  `T235118 <https://phabricator.wikimedia.org/T235118>`
+  `T235118 <https://phabricator.wikimedia.org/T235118>`_
   Antoine Musso
 * Updated releasing documentation (`RELEASING.rst`).
   Antoine Musso
@@ -42,21 +42,21 @@ Internal
   Adam Wight
 * Manage database and web backends outside of commands. They are now in an
   ExitStack() context manager which is entered just before executing the plan.
-  `T225218 <https://phabricator.wikimedia.org/T225218>`
+  `T225218 <https://phabricator.wikimedia.org/T225218>`_
   Adam Wight
 
 Testing
 ~~~~~~~
 * Migrate the internal testsuite from Nose to pytest
   Antoine Musso
-  `T254610 <https://phabricator.wikimedia.org/T254610>`
+  `T254610 <https://phabricator.wikimedia.org/T254610>`_
 * Add high level tests for building the execution plan which would have helped
   caught two reverts we did in 0.0.44. See `tests/plans/` which can then be run
   using: `tox -e unit -- tests/tests_plans.py`.
   Antoine Musso
-  `T211702 <https://phabricator.wikimedia.org/T211702>`
+  `T211702 <https://phabricator.wikimedia.org/T211702>`_
 * Add an entry point for CI to run Quibble: `utils/ci-fullrun.sh`.
-  `T235118 <https://phabricator.wikimedia.org/T235118>`
+  `T235118 <https://phabricator.wikimedia.org/T235118>`_
   Antoine Musso
 * Run tests in CI with python 3.5, 3.6, 3.7 and describe all tox virtualenv.
   The `unit` virtualenv has been renamed `py3-unit`.
@@ -87,10 +87,10 @@ Misc
 ~~~~
 * Remove deprecated dump-autoload
   Adam Wight
-  `T181940 <https://phabricator.wikimedia.org/T181940>`
+  `T181940 <https://phabricator.wikimedia.org/T181940>`_
 * Wipe repo with non-git commands
   Adam Wight
-  `T211702 <https://phabricator.wikimedia.org/T211702>`
+  `T211702 <https://phabricator.wikimedia.org/T211702>`_
 
 0.0.42 (2020-04-16)
 -------------------
@@ -101,7 +101,7 @@ Features
   James D. Forrester
 * Clone only the target project at first
   Adam Wight
-  `T211702 <https://phabricator.wikimedia.org/T211702>`
+  `T211702 <https://phabricator.wikimedia.org/T211702>`_
 * Docker: Migrate local docker to buster/php73/node10
   James D. Forrester
 
@@ -129,10 +129,10 @@ Features
 ~~~~~~~~
 * Prefer 'npm ci' instead of 'npm prune' + 'npm install'
   Timo Tijhof
-  `T234738 <https://phabricator.wikimedia.org/T234738>`
+  `T234738 <https://phabricator.wikimedia.org/T234738>`_
 * Add phpunit-standalone, for phpunit --group Standalone
   James D. Forrester
-  `T225068 <https://phabricator.wikimedia.org/T225068>`
+  `T225068 <https://phabricator.wikimedia.org/T225068>`_
 
 Misc
 ~~~~
@@ -148,22 +148,22 @@ Features
 ~~~~~~~~
 * Disable color codes around log level words in CI
   Timo Tijhof
-  `T236222 <https://phabricator.wikimedia.org/T236222`
+  `T236222 <https://phabricator.wikimedia.org/T236222>`_
 * Update Quibble to use api-testing npm package
   Clara Andrew-Wani
-  `T236680 <https://phabricator.wikimedia.org/T236680`
+  `T236680 <https://phabricator.wikimedia.org/T236680>`_
 * phpunit: Drop --debug-tests command, killed off in PHPUnit 8
   James D. Forrester
-  `T192167 <https://phabricator.wikimedia.org/T192167`
+  `T192167 <https://phabricator.wikimedia.org/T192167>`_
 
 Misc
 ~~~~
 * Chronometer emits folding markers
   Adam Wight
-  `T220586 <https://phabricator.wikimedia.org/T220586`
+  `T220586 <https://phabricator.wikimedia.org/T220586>`_
 * Drop HHVM support
   Adam Wight
-  `T236019 <https://phabricator.wikimedia.org/T236019`
+  `T236019 <https://phabricator.wikimedia.org/T236019>`_
 * Drop --dry-run parameter
   Adam Wight
 
