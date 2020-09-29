@@ -100,8 +100,6 @@ RUN apt-get update \
     && rm -fR /var/lib/gems/*/cache/*.gem \
     && apt -y purge ruby-dev \
     && apt-get -y autoremove --purge
-
-RUN apt-get autoremove -y --purge \
     && rm -rf /var/lib/apt/lists/*
 
 COPY . /opt/quibble
