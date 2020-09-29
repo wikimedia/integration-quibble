@@ -177,6 +177,12 @@ class QuibbleCmd(object):
         run_composer = 'composer-test' in stages
         run_npm = 'npm-test' in stages
 
+        database_backend = quibble.backend.getDatabase(
+            args.db, db_dir, dump_dir)
+
+        web_backend = quibble.backend.getWebserver(
+            args.web_backend, mw_install_path, args.web_url)
+
         plan = []
         plan.append(quibble.commands.ReportVersions())
 
@@ -226,16 +232,13 @@ class QuibbleCmd(object):
                 mw_install_path))
 
         if not args.skip_install:
-            database_backend = quibble.backend.getDatabase(
-                args.db, db_dir, dump_dir)
-
             plan.append(quibble.commands.StartBackends(
                 self.context_stack, [database_backend]))
 
             plan.append(quibble.commands.InstallMediaWiki(
                 mw_install_path=mw_install_path,
                 db=database_backend,
-                web_url=args.web_url,
+                web_url=web_backend.url,
                 log_dir=log_dir,
                 use_vendor=use_vendor))
 
@@ -278,9 +281,6 @@ class QuibbleCmd(object):
 
         if set(['qunit', 'selenium', 'api-testing']) & set(stages) \
                 or args.commands:
-            web_backend = quibble.backend.getWebserver(
-                args.web_backend, mw_install_path, args.web_url)
-
             backends = [web_backend]
 
             display = os.environ.get('DISPLAY', None)
@@ -296,13 +296,13 @@ class QuibbleCmd(object):
 
         if 'qunit' in stages:
             plan.append(quibble.commands.QunitTests(
-                mw_install_path, args.web_url))
+                mw_install_path, web_backend.url))
 
         if 'selenium' in stages:
             plan.append(quibble.commands.BrowserTests(
                 mw_install_path,
                 dependencies_with_project_first,
-                display, args.web_url))
+                display, web_backend.url))
 
         if 'api-testing' in stages:
             plan.append(quibble.commands.ApiTesting(
@@ -424,7 +424,6 @@ def get_arg_parser():
         )
     parser.add_argument(
         '--web-url',
-        default='http://127.0.0.1:9412',
         help='Base URL where MediaWiki can be accessed.')
     parser.add_argument(
         '--web-backend',

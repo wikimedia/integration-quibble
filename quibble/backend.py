@@ -389,12 +389,13 @@ class ChromeWebDriver(BackendServer):
 
 
 class WebserverEngine(BackendServer):
+    default_url = None
 
-    def __init__(self, url='http://127.0.0.1:4881', mwdir=None,
+    def __init__(self, url=None, mwdir=None,
                  router='maintenance/dev/includes/router.php'):
         super(WebserverEngine, self).__init__()
 
-        self.url = url
+        self.url = url or self.default_url
         self.mwdir = mwdir
         self.router = router
 
@@ -421,6 +422,8 @@ class ExternalWebserver(WebserverEngine):
 
 @web_backend('php')
 class PhpWebserver(WebserverEngine):
+    default_url = 'http://127.0.0.1:9412'
+
     def start(self):
         server_cmd = ['php', '-d', 'output_buffering=Off', '-S',
                       '%s:%s' % (self.host, self.port)]
