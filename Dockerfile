@@ -70,12 +70,18 @@ RUN apt-get update \
         php-xml \
         php-zip \
         php-wikidiff2 \
+        php-fpm \
         djvulibre-bin \
         imagemagick \
         libimage-exiftool-perl \
         mariadb-server \
         nodejs \
         npm \
+        supervisor \
+        apache2 \
+        python \
+        ffmpeg \
+        build-essential \
         tidy \
     && : "Xvfb" \
     && apt-get install -y \
@@ -108,8 +114,30 @@ RUN cd /opt/quibble && \
     python3 setup.py install && \
     rm -fR /opt/quibble /cache/pip
 
-# Unprivileged
+# Tell Apache how to process PHP files.
+RUN a2enmod proxy_fcgi \
+  && a2enmod mpm_event \
+  && a2enmod rewrite \
+  && a2enmod http2 \
+  && a2enmod cache
+COPY ./docker/php-fpm/php-fpm.conf /etc/php/7.3/fpm/php-fpm.conf
+COPY ./docker/php-fpm/www.conf /etc/php/7.3/fpm/pool.d/www.conf
+RUN mkdir /tmp/php && chown -R nobody:nogroup /tmp/php
+RUN touch /tmp/php7.3-fpm.log /tmp/php/php7.3-fpm.pid \
+  && chown nobody:nogroup /tmp/php7.3-fpm.log /tmp/php/php7.3-fpm.pid
+
+COPY ./docker/php-fpm/php.ini /etc/php/7.3/fpm/php.ini
+COPY ./docker/apache/ports.conf /etc/apache2/ports.conf
+COPY ./docker/apache/000-default.conf /etc/apache2/sites-available/000-default.conf
+COPY ./docker/apache/apache2.conf /etc/apache2/apache2.conf
+COPY ./docker/apache/envvars /etc/apache2/envvars
+COPY ./docker/entrypoint.sh /entrypoint.sh
+COPY ./docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
 RUN install --directory /workspace --owner=nobody --group=nogroup
+
+# Unprivileged
 USER nobody
 WORKDIR /workspace
-ENTRYPOINT ["/usr/local/bin/quibble"]
+
+ENTRYPOINT ["/entrypoint.sh"]
