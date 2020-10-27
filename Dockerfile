@@ -14,7 +14,6 @@
 #     See the License for the specific language governing permissions and
 #     limitations under the License.
 
-FROM docker-registry.wikimedia.org/releng/node10:latest as node10
 FROM docker-registry.wikimedia.org/releng/ci-buster:latest
 
 ARG DEBIAN_FRONTEND=noninteractive
