@@ -54,18 +54,21 @@ def tcp_wait(host, port, timeout=3):
 
 
 def backend(interface, key):
-    """Register a backend by name."""
-    def wrap(backend_class):
+    """Register a backend class by name, for a given interface class."""
+
+    def _register_backend(backend_class):
         if not issubclass(backend_class, interface):
             raise Exception('Registered backend "%s" does not extend %s'
                             % (backend_class, interface))
+
         interface_name = str(interface)
         if interface_name not in backend_registry:
             backend_registry[interface_name] = {}
         backend_registry[interface_name][key] = backend_class
 
         return backend_class
-    return wrap
+
+    return _register_backend
 
 
 def get_backend(interface, key):
