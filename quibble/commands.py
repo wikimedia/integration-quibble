@@ -23,8 +23,8 @@ def execute_command(command):
         command.execute()
 
 
-def npm_install(project_dir):
-    if repo_has_npm_lock(project_dir):
+def _npm_install(project_dir):
+    if _repo_has_npm_lock(project_dir):
         subprocess.check_call(
             ['npm', 'ci'],
             cwd=project_dir)
@@ -53,9 +53,9 @@ class ReportVersions:
             ['php', '--version'],
         ]
         for cmd in commands:
-            self.logged_call(cmd)
+            self._logged_call(cmd)
 
-    def logged_call(self, cmd):
+    def _logged_call(self, cmd):
         try:
             res = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
             message = '{}: {}'.format(
@@ -124,7 +124,7 @@ class ResolveRequires:
     def execute(self):
         ext_cloned = set(filter(isExtOrSkin, self.projects))
         with quibble.logginglevel('zuul.CloneMapper', logging.WARNING):
-            required = self.clone_requires(ext_cloned, ext_cloned)
+            required = self._clone_requires(ext_cloned, ext_cloned)
         extras = set(required) - set(self.projects)
 
         msg = 'Found extra requirements: %s' % ', '.join(extras)
@@ -133,7 +133,7 @@ class ResolveRequires:
         else:
             log.warning(msg)
 
-    def clone_requires(self, new_projects, cloned):
+    def _clone_requires(self, new_projects, cloned):
         to_be_cloned = new_projects - cloned
         if to_be_cloned:
             log.info('Cloning: %s', ', '.join(to_be_cloned))
@@ -159,7 +159,7 @@ class ResolveRequires:
 
         if found:
             log.info('Found requirement(s): %s', ', '.join(found))
-            return found.union(self.clone_requires(found, cloned))
+            return found.union(self._clone_requires(found, cloned))
 
     def __str__(self):
         return (
@@ -243,15 +243,15 @@ class ExtSkinComposerNpmTest:
     def execute(self):
         tasks = []
         if self.composer:
-            tasks.append((self.run_extskin_composer, ))
+            tasks.append((self._run_extskin_composer, ))
         if self.npm:
-            tasks.append((self.run_extskin_npm, ))
+            tasks.append((self._run_extskin_npm, ))
 
         # TODO: Split these tasks and move parallelism into calling logic.
         parallel_run(tasks)
         GitClean(self.directory).execute()
 
-    def run_extskin_composer(self):
+    def _run_extskin_composer(self):
         project_name = os.path.basename(self.directory)
 
         if not os.path.exists(os.path.join(self.directory, 'composer.json')):
@@ -268,16 +268,16 @@ class ExtSkinComposerNpmTest:
         for cmd in cmds:
             subprocess.check_call(cmd, cwd=self.directory)
 
-    def run_extskin_npm(self):
+    def _run_extskin_npm(self):
         project_name = os.path.basename(self.directory)
 
         # TODO: Detect test existence in an earlier phase.
-        if not repo_has_npm(self.directory):
+        if not _repo_has_npm(self.directory):
             log.warning("%s lacks a package.json", project_name)
             return
 
         log.info('Running "npm test" for %s', project_name)
-        npm_install(self.directory)
+        _npm_install(self.directory)
         subprocess.check_call(['npm', 'test'], cwd=self.directory)
 
     def __str__(self):
@@ -298,14 +298,14 @@ class CoreNpmComposerTest:
     def execute(self):
         tasks = []
         if self.composer:
-            tasks.append((self.run_composer_test, ))
+            tasks.append((self._run_composer_test, ))
         if self.npm:
-            tasks.append((self.run_npm_test, ))
+            tasks.append((self._run_npm_test, ))
 
         # TODO: Split these tasks and move parallelism into calling logic.
         parallel_run(tasks)
 
-    def run_composer_test(self):
+    def _run_composer_test(self):
         files = []
         changed = GitChangedInHead([], cwd=self.mw_install_path).changedFiles()
         if 'composer.json' in changed or '.phpcs.xml' in changed:
@@ -333,7 +333,7 @@ class CoreNpmComposerTest:
             subprocess.check_call(
                 composer_test_cmd, cwd=self.mw_install_path, env=env)
 
-    def run_npm_test(self):
+    def _run_npm_test(self):
         log.info("Running npm test")
         subprocess.check_call(['npm', 'test'], cwd=self.mw_install_path)
 
@@ -417,7 +417,7 @@ class NpmInstall:
         self.directory = directory
 
     def execute(self):
-        npm_install(self.directory)
+        _npm_install(self.directory)
 
     def __str__(self):
         return "npm install in {}".format(self.directory)
@@ -532,7 +532,7 @@ class InstallMediaWiki:
 
 
 class AbstractPhpUnit:
-    def run_phpunit(self, group=[], exclude_group=[], cmd=None):
+    def _run_phpunit(self, group=[], exclude_group=[], cmd=None):
         log.info(self)
 
         always_excluded = ['Broken', 'ParserFuzz', 'Stub']
@@ -570,7 +570,7 @@ class PhpUnitDatabaseless(AbstractPhpUnit):
         # other tests.
         # XXX some mediawiki/core smoke PHPunit tests should probably
         # be run as well.
-        self.run_phpunit(exclude_group=['Database', 'Standalone'])
+        self._run_phpunit(exclude_group=['Database', 'Standalone'])
 
     def __str__(self):
         return "PHPUnit {} suite (without database or standalone)".format(
@@ -586,7 +586,7 @@ class PhpUnitStandalone(AbstractPhpUnit):
         self.junit_file = os.path.join(self.log_dir, 'junit-standalone.xml')
 
     def execute(self):
-        self.run_phpunit(
+        self._run_phpunit(
             group=['Standalone'],
             # Have to run custom entry point to run the in repo path
             cmd=['php', 'tests/phpunit/phpunit.php', self.repo_path])
@@ -605,8 +605,8 @@ class PhpUnitUnit(AbstractPhpUnit):
         self.junit_file = os.path.join(self.log_dir, 'junit-unit.xml')
 
     def execute(self):
-        if repo_has_composer_script(self.mw_install_path, 'phpunit:unit'):
-            self.run_phpunit(cmd=['composer', 'phpunit:unit', '--'])
+        if _repo_has_composer_script(self.mw_install_path, 'phpunit:unit'):
+            self._run_phpunit(cmd=['composer', 'phpunit:unit', '--'])
         else:
             log.debug('skipping phpunit:unit stage, script is not present')
             return
@@ -623,7 +623,7 @@ class PhpUnitDatabase(AbstractPhpUnit):
         self.junit_file = os.path.join(self.log_dir, 'junit-db.xml')
 
     def execute(self):
-        self.run_phpunit(group=['Database'], exclude_group=['Standalone'])
+        self._run_phpunit(group=['Database'], exclude_group=['Standalone'])
 
     def __str__(self):
         return "PHPUnit {} suite (with database)".format(
@@ -671,8 +671,8 @@ class ApiTesting:
             project_dir = os.path.normpath(os.path.join(
                 self.mw_install_path,
                 quibble.zuul.repo_dir(project)))
-            if repo_has_npm_script(project_dir, 'api-testing'):
-                npm_install(project_dir)
+            if _repo_has_npm_script(project_dir, 'api-testing'):
+                _npm_install(project_dir)
                 subprocess.check_call(
                     ['npm', 'run', 'api-testing'],
                     cwd=project_dir,
@@ -694,10 +694,10 @@ class BrowserTests:
             project_dir = os.path.normpath(os.path.join(
                 self.mw_install_path,
                 quibble.zuul.repo_dir(project)))
-            if repo_has_npm_script(project_dir, 'selenium-test'):
-                self.run_webdriver(project_dir)
+            if _repo_has_npm_script(project_dir, 'selenium-test'):
+                self._run_webdriver(project_dir)
 
-    def run_webdriver(self, project_dir):
+    def _run_webdriver(self, project_dir):
         log.info('Running webdriver test in %s', project_dir)
         webdriver_env = {}
         webdriver_env.update(os.environ)
@@ -710,7 +710,7 @@ class BrowserTests:
             'DISPLAY': self.display,
         })
 
-        npm_install(project_dir)
+        _npm_install(project_dir)
         subprocess.check_call(
             ['npm', 'run', 'selenium-test'],
             cwd=project_dir,
@@ -759,27 +759,27 @@ class GitClean:
         return "Revert to git clean -xqdf in {}".format(self.directory)
 
 
-def repo_has_composer_script(project_dir, script_name):
+def _repo_has_composer_script(project_dir, script_name):
     composer_path = os.path.join(project_dir, 'composer.json')
-    return json_has_script(composer_path, script_name)
+    return _json_has_script(composer_path, script_name)
 
 
-def repo_has_npm(project_dir):
+def _repo_has_npm(project_dir):
     lock_path = os.path.join(project_dir, 'package.json')
     return os.path.exists(lock_path)
 
 
-def repo_has_npm_lock(project_dir):
+def _repo_has_npm_lock(project_dir):
     lock_path = os.path.join(project_dir, 'package-lock.json')
     return os.path.exists(lock_path)
 
 
-def repo_has_npm_script(project_dir, script_name):
+def _repo_has_npm_script(project_dir, script_name):
     package_path = os.path.join(project_dir, 'package.json')
-    return json_has_script(package_path, script_name)
+    return _json_has_script(package_path, script_name)
 
 
-def json_has_script(json_file, script_name):
+def _json_has_script(json_file, script_name):
     if not os.path.exists(json_file):
         return False
     with open(json_file) as f:
