@@ -53,9 +53,9 @@ class MultipleChoices(list):
 class QuibbleCmd(object):
 
     def __init__(self):
-        self.context_stack = contextlib.ExitStack()
+        self._context_stack = contextlib.ExitStack()
 
-    def setup_environment(self, workspace, mw_install_path, log_dir):
+    def _setup_environment(self, workspace, mw_install_path, log_dir):
         """
         Set and get needed environment variables.
         """
@@ -79,7 +79,7 @@ class QuibbleCmd(object):
             '%s env variable is deprecated. '
             'Instead pass projects as arguments.', var)
 
-    def repos_to_clone(self, projects, zuul_project, clone_vendor):
+    def _repos_to_clone(self, projects, zuul_project, clone_vendor):
         """
         Find repos to clone basedon passed arguments and environment
         """
@@ -116,7 +116,7 @@ class QuibbleCmd(object):
 
         return dependencies
 
-    def stages_to_run(self, run, skip, commands):
+    def _stages_to_run(self, run, skip, commands):
         if commands or 'all' in skip:
             return []
 
@@ -143,7 +143,7 @@ class QuibbleCmd(object):
         else:
             dump_dir = None
 
-        self.setup_environment(workspace, mw_install_path, log_dir)
+        self._setup_environment(workspace, mw_install_path, log_dir)
 
         zuul_project = os.environ.get('ZUUL_PROJECT', None)
         if zuul_project is None:
@@ -161,7 +161,7 @@ class QuibbleCmd(object):
         use_composer = args.packages_source == 'composer'
         use_vendor = args.packages_source == 'vendor'
 
-        dependencies = self.repos_to_clone(
+        dependencies = self._repos_to_clone(
             projects=args.projects,
             zuul_project=zuul_project,
             clone_vendor=use_vendor)
@@ -171,7 +171,7 @@ class QuibbleCmd(object):
 
         repo_path = quibble.zuul.repo_dir(zuul_project)
 
-        stages = self.stages_to_run(args.run, args.skip, args.commands)
+        stages = self._stages_to_run(args.run, args.skip, args.commands)
         log.debug('Running stages: %s', ', '.join(stages))
 
         run_composer = 'composer-test' in stages
@@ -233,7 +233,7 @@ class QuibbleCmd(object):
 
         if not args.skip_install:
             plan.append(quibble.commands.StartBackends(
-                self.context_stack, [database_backend]))
+                self._context_stack, [database_backend]))
 
             plan.append(quibble.commands.InstallMediaWiki(
                 mw_install_path=mw_install_path,
@@ -288,7 +288,7 @@ class QuibbleCmd(object):
             backends.append(quibble.backend.ChromeWebDriver(display))
 
             plan.append(quibble.commands.StartBackends(
-                self.context_stack, backends))
+                self._context_stack, backends))
 
         if 'qunit' in stages:
             plan.append(quibble.commands.QunitTests(
@@ -323,12 +323,12 @@ class QuibbleCmd(object):
             log.warning("Exiting without execution: --dry-run")
             return
 
-        with self.context_stack:
+        with self._context_stack:
             for command in plan:
                 quibble.commands.execute_command(command)
 
 
-def parse_arguments(args):
+def _parse_arguments(args):
     return get_arg_parser().parse_args(args)
 
 
@@ -511,7 +511,7 @@ def main():
     logging.basicConfig(level=logging.INFO)
     logging.getLogger('quibble').setLevel(logging.DEBUG)
 
-    args = parse_arguments(sys.argv[1:])
+    args = _parse_arguments(sys.argv[1:])
 
     if args.color:
         quibble.colored_logging()

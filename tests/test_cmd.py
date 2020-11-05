@@ -46,7 +46,7 @@ class CmdTest(unittest.TestCase):
     def test_projects_to_clone(self):
         q = cmd.QuibbleCmd()
         self.assertEqual(
-            q.repos_to_clone(
+            q._repos_to_clone(
                 projects=[], zuul_project=None, clone_vendor=False),
             ['mediawiki/core', 'mediawiki/skins/Vector'],
             'Incorrect repos to clone')
@@ -55,7 +55,7 @@ class CmdTest(unittest.TestCase):
     def test_projects_to_clone_with_vendor(self):
         q = cmd.QuibbleCmd()
         self.assertEqual(
-            q.repos_to_clone(
+            q._repos_to_clone(
                 projects=[], zuul_project=None, clone_vendor=True),
             ['mediawiki/core', 'mediawiki/skins/Vector', 'mediawiki/vendor'],
             'Incorrect repos to clone')
@@ -64,7 +64,7 @@ class CmdTest(unittest.TestCase):
     def test_projects_to_clone_appends_projects(self):
         q = cmd.QuibbleCmd()
         self.assertEqual(
-            q.repos_to_clone(
+            q._repos_to_clone(
                 projects=[
                     'mediawiki/extensions/BoilerPlate',
                     'mediawiki/extensions/Example',
@@ -80,7 +80,7 @@ class CmdTest(unittest.TestCase):
     def test_projects_to_clone_deduplicates(self):
         q = cmd.QuibbleCmd()
         self.assertEqual(
-            q.repos_to_clone(
+            q._repos_to_clone(
                 projects=[
                     'mediawiki/extensions/BoilerPlate',
                     'mediawiki/extensions/Example',
@@ -106,8 +106,8 @@ class CmdTest(unittest.TestCase):
                 'mediawiki/extensions/Two',
                 'mediawiki/skins/Monobook',
                 'mediawiki/skins/Vector',
-                ], q.repos_to_clone(projects=[], zuul_project=None,
-                                    clone_vendor=False))
+                ], q._repos_to_clone(projects=[], zuul_project=None,
+                                     clone_vendor=False))
 
     def test_env_dependencies_log_a_warning(self):
         env = {
@@ -117,8 +117,8 @@ class CmdTest(unittest.TestCase):
         with mock.patch.dict('os.environ', env, clear=True):
             with self.assertLogs('quibble.cmd', level='WARNING') as log:
                 q = cmd.QuibbleCmd()
-                q.repos_to_clone(projects=[], zuul_project=None,
-                                 clone_vendor=False)
+                q._repos_to_clone(projects=[], zuul_project=None,
+                                  clone_vendor=False)
 
         self.assertRegex(
             log.output[0],
@@ -129,7 +129,7 @@ class CmdTest(unittest.TestCase):
 
     @mock.patch('quibble.is_in_docker', return_value=False)
     def test_args_defaults(self, _):
-        args = cmd.parse_arguments([])
+        args = cmd._parse_arguments([])
 
         self.assertEqual('ref', args.git_cache)
         self.assertEqual(os.getcwd(), args.workspace)
@@ -137,7 +137,7 @@ class CmdTest(unittest.TestCase):
 
     @mock.patch('quibble.is_in_docker', return_value=True)
     def test_args_defaults_in_docker(self, _):
-        args = cmd.parse_arguments([])
+        args = cmd._parse_arguments([])
 
         self.assertEqual('/srv/git', args.git_cache)
         self.assertEqual('/workspace', args.workspace)
@@ -148,25 +148,25 @@ class CmdTest(unittest.TestCase):
 
         with mock.patch('quibble.is_in_docker', return_value=True):
             # In Docker we always use self.workspace
-            q.setup_environment(
+            q._setup_environment(
                 workspace='/testworkspace', mw_install_path='', log_dir='')
             self.assertEqual(os.environ['WORKSPACE'], '/testworkspace')
             with mock.patch.dict(os.environ, {'WORKSPACE': '/fromenv'},
                                  clear=True):
                 # In Docker, ignore $WORKSPACE
-                q.setup_environment(
+                q._setup_environment(
                     workspace='/testworkspace', mw_install_path='', log_dir='')
                 self.assertEqual(os.environ['WORKSPACE'], '/testworkspace')
 
         with mock.patch('quibble.is_in_docker', return_value=False):
-            q.setup_environment(
+            q._setup_environment(
                 workspace='/testworkspace', mw_install_path='', log_dir='')
             self.assertEqual(os.environ['WORKSPACE'], '/testworkspace')
 
             with mock.patch.dict(os.environ, {'WORKSPACE': '/fromenv'},
                                  clear=True):
                 # When not in Docker, we honor $WORKSPACE
-                q.setup_environment(
+                q._setup_environment(
                     workspace='/testworkspace', mw_install_path='', log_dir='')
                 self.assertEqual(os.environ['WORKSPACE'], '/fromenv')
 
@@ -174,8 +174,8 @@ class CmdTest(unittest.TestCase):
     def test_setup_environment_has_log_directories(self):
         q = cmd.QuibbleCmd()
 
-        q.setup_environment(workspace='/workspace', mw_install_path='',
-                            log_dir='/mylog')
+        q._setup_environment(workspace='/workspace', mw_install_path='',
+                             log_dir='/mylog')
 
         self.assertIn('LOG_DIR', os.environ)
         self.assertIn('MW_LOG_DIR', os.environ)
@@ -184,37 +184,37 @@ class CmdTest(unittest.TestCase):
 
     def test_should_run_accepts_all_stages_by_default(self):
         q = cmd.QuibbleCmd()
-        args = cmd.parse_arguments(args=[])
-        stages = q.stages_to_run(args.run, args.skip, args.commands)
+        args = cmd._parse_arguments(args=[])
+        stages = q._stages_to_run(args.run, args.skip, args.commands)
         self.assertEqual(default_stages, stages,
                          'must runs all stages by default')
 
     def test_should_run_runall_accepts_all_stages(self):
         q = cmd.QuibbleCmd()
-        args = cmd.parse_arguments(args=['--run', 'all'])
-        stages = q.stages_to_run(args.run, args.skip, args.commands)
+        args = cmd._parse_arguments(args=['--run', 'all'])
+        stages = q._stages_to_run(args.run, args.skip, args.commands)
         self.assertEqual(default_stages, stages,
                          '--run=all runs all stages')
 
     def test_should_run_skippall_runs_no_stage(self):
         q = cmd.QuibbleCmd()
-        args = cmd.parse_arguments(args=['--skip', 'all'])
-        stages = q.stages_to_run(args.run, args.skip, args.commands)
+        args = cmd._parse_arguments(args=['--skip', 'all'])
+        stages = q._stages_to_run(args.run, args.skip, args.commands)
         self.assertEqual([], stages,
                          '--skip=all skips all stages')
 
     @mock.patch('quibble.cmd.default_stages', ['foo', 'phpunit'])
     def test_should_run_skips_a_stage(self):
         q = cmd.QuibbleCmd()
-        args = cmd.parse_arguments(args=['--skip', 'phpunit'])
-        stages = q.stages_to_run(args.run, args.skip, args.commands)
+        args = cmd._parse_arguments(args=['--skip', 'phpunit'])
+        stages = q._stages_to_run(args.run, args.skip, args.commands)
         self.assertEqual(['foo'], stages,
                          '--skip skips the stage')
 
     def test_should_run_runall_and_skip_play_nice(self):
         q = cmd.QuibbleCmd()
-        args = cmd.parse_arguments(args=['--run', 'all', '--skip', 'phpunit'])
-        stages = q.stages_to_run(args.run, args.skip, args.commands)
+        args = cmd._parse_arguments(args=['--run', 'all', '--skip', 'phpunit'])
+        stages = q._stages_to_run(args.run, args.skip, args.commands)
         expected_stages = default_stages.copy()
         expected_stages.remove('phpunit')
         self.assertEqual(expected_stages, stages,
@@ -222,51 +222,51 @@ class CmdTest(unittest.TestCase):
 
     def test_should_run_running_a_single_stage(self):
         q = cmd.QuibbleCmd()
-        args = cmd.parse_arguments(args=['--run', 'phpunit'])
-        stages = q.stages_to_run(args.run, args.skip, args.commands)
+        args = cmd._parse_arguments(args=['--run', 'phpunit'])
+        stages = q._stages_to_run(args.run, args.skip, args.commands)
         self.assertEqual(['phpunit'], stages,
                          '--run runs exactly the given stage')
 
     def test_command_skip_all_stages(self):
         q = cmd.QuibbleCmd()
-        args = cmd.parse_arguments(args=['-c', '/bin/true'])
-        stages = q.stages_to_run(args.run, args.skip, args.commands)
+        args = cmd._parse_arguments(args=['-c', '/bin/true'])
+        stages = q._stages_to_run(args.run, args.skip, args.commands)
         self.assertEqual([], stages,
                          'User command must skip all stages')
 
     def test_run_option_is_comma_separated(self):
-        args = cmd.parse_arguments(args=['--run=phpunit,qunit'])
+        args = cmd._parse_arguments(args=['--run=phpunit,qunit'])
         self.assertEqual(['phpunit', 'qunit'], args.run)
 
     def test_run_option_does_not_shallow_next_arg(self):
-        args = cmd.parse_arguments(args=['--run', 'phpunit', 'repo'])
+        args = cmd._parse_arguments(args=['--run', 'phpunit', 'repo'])
         self.assertEqual(['phpunit'], args.run)
         self.assertEqual(['repo'], args.projects)
 
     def test_skip_option_is_comma_separated(self):
-        args = cmd.parse_arguments(args=['--skip=phpunit,qunit'])
+        args = cmd._parse_arguments(args=['--skip=phpunit,qunit'])
         self.assertEqual(['phpunit', 'qunit'], args.skip)
 
     def test_skip_option_does_not_shallow_next_arg(self):
-        args = cmd.parse_arguments(args=['--skip', 'phpunit', 'repo'])
+        args = cmd._parse_arguments(args=['--skip', 'phpunit', 'repo'])
         self.assertEqual(['phpunit'], args.skip)
         self.assertEqual(['repo'], args.projects)
 
     def test_command_does_not_shallow_next_arg(self):
-        args = cmd.parse_arguments(args=['--command', '/bin/true', 'repo'])
+        args = cmd._parse_arguments(args=['--command', '/bin/true', 'repo'])
         self.assertEqual(['/bin/true'], args.commands)
         self.assertEqual(['repo'], args.projects)
 
     def test_command_used_multiple_times(self):
-        args = cmd.parse_arguments(args=['-c', 'true', '-c', 'false'])
+        args = cmd._parse_arguments(args=['-c', 'true', '-c', 'false'])
         self.assertEqual(['true', 'false'], args.commands)
 
     def test_project_branch_arg(self):
-        args = cmd.parse_arguments(args=[])
+        args = cmd._parse_arguments(args=[])
         self.assertEqual([], args.project_branch)
 
     def test_build_execution_plan(self):
-        args = cmd.parse_arguments(args=[])
+        args = cmd._parse_arguments(args=[])
         plan = cmd.QuibbleCmd().build_execution_plan(args)
 
         self.assertIsInstance(plan[0], quibble.commands.ReportVersions)
@@ -292,7 +292,7 @@ class CmdTest(unittest.TestCase):
         env = {'ZUUL_PROJECT': 'mediawiki/extensions/ZuulProjectEnvVar'}
         with mock.patch.dict('os.environ', env, clear=True):
             q = cmd.QuibbleCmd()
-            args = cmd.parse_arguments(
+            args = cmd._parse_arguments(
                 args=['--packages-source=composer'])
             with mock.patch('quibble.commands.ZuulClone') as mock_clone:
                 q.build_execution_plan(args)
@@ -313,7 +313,7 @@ class CmdTest(unittest.TestCase):
 
         for repo in hardcoded_repos:
             q = cmd.QuibbleCmd()
-            args = cmd.parse_arguments(
+            args = cmd._parse_arguments(
                 args=['--packages-source=composer'])
             with mock.patch.dict('os.environ', {'ZUUL_PROJECT': repo},
                                  clear=True):
