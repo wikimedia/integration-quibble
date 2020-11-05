@@ -54,19 +54,19 @@ class TestRead(unittest.TestCase):
     def test_read_with_a_json_file(self):
         self.assertIn(
             'requires',
-            quibble.mediawiki.registry.read(
+            quibble.mediawiki.registry._read(
                 os.path.join(FIXTURES_DIR, 'extension.json')))
 
     def test_read_with_an_unexisting_file(self):
         with self.assertRaises(FileNotFoundError):
-            quibble.mediawiki.registry.read('')
+            quibble.mediawiki.registry._read('')
 
 
 class TestParse(unittest.TestCase):
 
     def test_without_requires(self):
         self.assertSetEqual(
-            set(), quibble.mediawiki.registry.parse({}))
+            set(), quibble.mediawiki.registry._parse({}))
 
     def test_skin_requirement(self):
         subject = {
@@ -75,7 +75,7 @@ class TestParse(unittest.TestCase):
         }
         self.assertSetEqual(
             {'mediawiki/skins/FakeSkin'},
-            quibble.mediawiki.registry.parse(subject))
+            quibble.mediawiki.registry._parse(subject))
 
     def test_extension_requirement(self):
         subject = {
@@ -84,7 +84,7 @@ class TestParse(unittest.TestCase):
         }
         self.assertSetEqual(
             {'mediawiki/extensions/FakeExtension'},
-            quibble.mediawiki.registry.parse(subject))
+            quibble.mediawiki.registry._parse(subject))
 
 
 class TestMediaWikiExtensionRegistration(unittest.TestCase):

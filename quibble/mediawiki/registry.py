@@ -26,12 +26,12 @@ def from_path(path):
         return ExtensionRegistration(skin_json)
 
 
-def read(json_file):
+def _read(json_file):
     with open(json_file) as f:
         return json.load(f)
 
 
-def parse(reg_data):
+def _parse(reg_data):
     """
     Returns a `set` of requirements
     """
@@ -52,8 +52,8 @@ class ExtensionRegistration:
         self._requires = set()
         if not json_file:
             return
-        self._raw_json = read(json_file)
-        self._requires = parse(self._raw_json)
+        self._raw_json = _read(json_file)
+        self._requires = _parse(self._raw_json)
 
     def getRequiredRepos(self):
         return self._requires
