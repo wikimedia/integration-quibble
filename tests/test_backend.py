@@ -66,7 +66,8 @@ class TestDatabaseServer(unittest.TestCase):
 class TestChromeWebDriver(unittest.TestCase):
 
     def setUp(self):
-        patcher = mock.patch('quibble.backend.stream_relay', return_value=True)
+        patcher = mock.patch(
+            'quibble.backend._stream_relay', return_value=True)
         self.addCleanup(patcher.stop)
         patcher.start()
 
@@ -127,10 +128,10 @@ class TestExternalWebserverEngine(unittest.TestCase):
         ExternalWebserver().start()
         mock_popen.assert_not_called()
 
-    @mock.patch('quibble.backend.tcp_wait')
-    def test_start_does_not_uses_tcp_wait(self, tcp_wait):
+    @mock.patch('quibble.backend._tcp_wait')
+    def test_start_does_not_uses_tcp_wait(self, _tcp_wait):
         ExternalWebserver().start()
-        tcp_wait.assert_not_called()
+        _tcp_wait.assert_not_called()
 
 
 class TestPhpWebserver(unittest.TestCase):

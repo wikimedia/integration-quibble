@@ -30,7 +30,7 @@ import quibble
 backend_registry = {}
 
 
-def tcp_wait(host, port, timeout=3):
+def _tcp_wait(host, port, timeout=3):
     step = 0
     delay = 0.1  # seconds
     socket_timeout = 1  # seconds
@@ -102,15 +102,15 @@ def getWebserver(engine, mw_install_path, web_url):
     return backend
 
 
-def stream_relay(process, stream, log_function):
+def _stream_relay(process, stream, log_function):
     thread = threading.Thread(
-        target=stream_to_log,
+        target=_stream_to_log,
         args=(process, stream, log_function))
     thread.start()
     return thread
 
 
-def stream_to_log(process, stream, log_function):
+def _stream_to_log(process, stream, log_function):
     while True:
         line = stream.readline()
         if not line:
@@ -379,7 +379,7 @@ class ChromeWebDriver(BackendServer):
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.PIPE,
             )
-            stream_relay(self.server, self.server.stderr, self.log.warning)
+            _stream_relay(self.server, self.server.stderr, self.log.warning)
 
         finally:
             if prev_display:
@@ -406,10 +406,10 @@ class WebserverEngine(BackendServer):
 
     def start(self):
         if self.server:
-            stream_relay(self.server, self.server.stderr, self.log.info)
+            _stream_relay(self.server, self.server.stderr, self.log.info)
 
         if self.host and self.port:
-            tcp_wait(host=self.host, port=self.port, timeout=5)
+            _tcp_wait(host=self.host, port=self.port, timeout=5)
 
 
 @web_backend('external')
