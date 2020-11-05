@@ -26,7 +26,7 @@ def copylog(src, dest):
     copyfile(src, dest)
 
 
-def task_wrapper(args):
+def _task_wrapper(args):
     """
     Helper for multiprocessing.Pool.imap_unordered.
 
@@ -54,7 +54,7 @@ def parallel_run(tasks):
     with Pool(processes=workers) as pool:
         # As soon as any one task fails, the `all()` drops us out of the Pool's
         # context manager, and any remaining threads are terminated.
-        return all(pool.imap_unordered(task_wrapper, tasks))
+        return all(pool.imap_unordered(_task_wrapper, tasks))
 
 
 def isCoreOrVendor(project):
