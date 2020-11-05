@@ -64,9 +64,9 @@ class GitChangedInHead:
             self.path_args.append('.{}'.format(arg))
 
     def changedFiles(self):
-        return [f for f in self.get_changed_files()]
+        return [f for f in self._get_changed_files()]
 
-    def get_changed_files(self):
+    def _get_changed_files(self):
         # Some explanations for the git command below:
         # HEAD^ will not exist for an initial commit, we thus need `git show`
         # --name-only: strip patch payload, only report the file being altered
