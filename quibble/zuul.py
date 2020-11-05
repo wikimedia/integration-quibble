@@ -92,7 +92,7 @@ def clone(branch, cache_dir, project_branch, projects, workers, workspace,
 
     with ThreadPoolExecutor(max_workers=workers) as executor:
         futures = [
-            executor.submit(clone_worker, can_run, zuul_cloner, project, dest)
+            executor.submit(_clone_worker, can_run, zuul_cloner, project, dest)
             for project, dest in dests.items()]
         # Consume results
         for future in as_completed(futures):
@@ -101,7 +101,7 @@ def clone(branch, cache_dir, project_branch, projects, workers, workspace,
     log.info("Prepared all repositories")
 
 
-def clone_worker(can_run, cloner, project, dest):
+def _clone_worker(can_run, cloner, project, dest):
     if not can_run.is_set():
         return
 

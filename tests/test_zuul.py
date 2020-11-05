@@ -111,7 +111,7 @@ class TestClone(unittest.TestCase):
         for expected_repo in repos_to_clone:
             expected_calls.append(
                 mock.call().__enter__().submit(
-                    quibble.zuul.clone_worker,
+                    quibble.zuul._clone_worker,
                     mock.ANY,  # can_run
                     mock.ANY,  # zuul_cloner
                     expected_repo,
