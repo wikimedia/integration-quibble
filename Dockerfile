@@ -99,7 +99,7 @@ RUN apt-get update \
     && gem install --no-rdoc --no-ri --clear-sources jsduck \
     && rm -fR /var/lib/gems/*/cache/*.gem \
     && apt -y purge ruby-dev \
-    && apt-get -y autoremove --purge
+    && apt-get -y autoremove --purge \
     && rm -rf /var/lib/apt/lists/*
 
 COPY . /opt/quibble
