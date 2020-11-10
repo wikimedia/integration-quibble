@@ -87,7 +87,9 @@ def chromium_flags():
 
 
 def is_in_docker():
-    return os.path.exists('/.dockerenv')
+    # Note: Also check for the "container" environment variable if running
+    # under podman. It injects the environment variable since v0.3.4
+    return os.path.exists('/.dockerenv') or os.getenv('container')
 
 
 @contextmanager
