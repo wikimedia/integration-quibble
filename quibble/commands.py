@@ -656,14 +656,25 @@ class QunitTests:
 
 
 class ApiTesting:
-    def __init__(self, mw_install_path, projects):
+    def __init__(self, mw_install_path, projects, url):
         self.mw_install_path = mw_install_path
         self.projects = projects
+        self.url = url
 
     def execute(self):
-        quibble_testing_config = {
-            "API_TESTING_CONFIG_FILE": self.mw_install_path
+        settings_in_path = self.mw_install_path \
             + "/tests/api-testing/.api-testing-quibble.json"
+        settings_out_path = self.mw_install_path + "/api-testing-quibble.json"
+        with open(settings_in_path) as settings_in:
+            api_settings = json.load(settings_in)
+
+        api_settings['base_uri'] = self.url + "/"
+
+        with open(settings_out_path, "w") as settings_out:
+            json.dump(api_settings, settings_out)
+        quibble_testing_config = {
+            "API_TESTING_CONFIG_FILE":
+                self.mw_install_path + "/api-testing-quibble.json"
         }
         quibble_testing_config.update(os.environ)
 

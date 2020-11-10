@@ -302,7 +302,8 @@ class QuibbleCmd(object):
 
         if 'api-testing' in stages:
             plan.append(quibble.commands.ApiTesting(
-                mw_install_path, dependencies_with_project_first))
+                mw_install_path, dependencies_with_project_first,
+                web_backend.url))
 
         if 'phpunit' in stages:
             plan.append(quibble.commands.PhpUnitDatabase(

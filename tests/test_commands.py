@@ -315,14 +315,15 @@ class QunitTestsTest(unittest.TestCase):
 
 class ApiTestingTest(unittest.TestCase):
 
-    @mock.patch('os.path.exists', return_value=True)
     @mock.patch('builtins.open', mock.mock_open())
+    @mock.patch('os.path.exists', return_value=True)
     @mock.patch('json.load')
+    @mock.patch('json.dump')
     @mock.patch('subprocess.check_call')
     @mock.patch('quibble.backend.PhpWebserver')
     @mock.patch('quibble.backend.ChromeWebDriver')
     def test_project_api_testing(self, mock_driver, mock_server,
-                                 mock_check_call, mock_load,
+                                 mock_check_call, mock_dump, mock_load,
                                  mock_path_exists):
         mock_load.return_value = {
             'scripts': {
@@ -331,7 +332,8 @@ class ApiTestingTest(unittest.TestCase):
         }
 
         c = quibble.commands.ApiTesting(
-            '/tmp', ['mediawiki/core', 'mediawiki/skins/Vector'])
+            '/tmp', ['mediawiki/core', 'mediawiki/skins/Vector'],
+            'http://192.0.2.1:4321')
         c.execute()
 
         mock_check_call.assert_any_call(
@@ -341,11 +343,12 @@ class ApiTestingTest(unittest.TestCase):
     @mock.patch('os.path.exists', return_value=True)
     @mock.patch('builtins.open', mock.mock_open())
     @mock.patch('json.load')
+    @mock.patch('json.dump')
     @mock.patch('subprocess.check_call')
     @mock.patch('quibble.backend.PhpWebserver')
     @mock.patch('quibble.backend.ChromeWebDriver')
     def test_project_missing_api_testing(self, mock_driver, mock_server,
-                                         mock_check_call, mock_load,
+                                         mock_check_call, mock_dump, mock_load,
                                          mock_path_exists):
         mock_load.return_value = {
             'scripts': {
@@ -354,17 +357,25 @@ class ApiTestingTest(unittest.TestCase):
         }
 
         c = quibble.commands.ApiTesting(
-            '/tmp', ['mediawiki/core', 'mediawiki/skins/Vector'])
+            '/tmp', ['mediawiki/core', 'mediawiki/skins/Vector'],
+            'http://192.0.2.1:4321')
         c.execute()
 
         mock_check_call.assert_not_called()
 
+    @mock.patch('builtins.open', mock.mock_open())
+    @mock.patch('json.load')
+    @mock.patch('json.dump')
     @mock.patch('subprocess.check_call')
     @mock.patch('quibble.backend.PhpWebserver')
     @mock.patch('quibble.backend.ChromeWebDriver')
     def test_project_not_having_package_json(self, mock_driver, mock_server,
-                                             mock_check_call):
-        c = quibble.commands.ApiTesting('/tmp', ['mediawiki/vendor'])
+                                             mock_check_call, mock_dump,
+                                             mock_load):
+        mock_load.return_value = {}
+
+        c = quibble.commands.ApiTesting('/tmp', ['mediawiki/vendor'],
+                                        'http://192.0.2.1:4321')
         c.execute()
         mock_check_call.assert_not_called()
 
