@@ -26,11 +26,11 @@ plan:
  -  "Ensure we have the directory '/WORKSPACE/log'"
  -  'Zuul clone with parameters {"cache_dir": "/var/cache/git", "projects": ["mediawiki/core", "mediawiki/skins/Vector", "mediawiki/vendor"], "workers": 4, "workspace": "/WORKSPACE/src"}'
  -  'Extension and skin submodule update under MediaWiki root /WORKSPACE/src'
+ -  'Install composer dev-requires for vendor.git'
+ -  'PHPUnit unit tests'
  -  'Start backends, <mysql (no socket)>'
  -  'Install MediaWiki, db=<mysql (no socket)> vendor=True'
- -  'Install composer dev-requires for vendor.git'
  -  'npm install in /WORKSPACE/src'
- -  'PHPUnit unit tests'
  -  'PHPUnit default suite (without database or standalone)'
  -  'Run tests in mediawiki/core: composer, npm'
  -  'Start backends, <PhpWebserver http://127.0.0.1:9412 /WORKSPACE/src> <ChromeWebDriver :0>'

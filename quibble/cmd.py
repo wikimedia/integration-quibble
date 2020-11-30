@@ -231,6 +231,18 @@ class QuibbleCmd(object):
             plan.append(quibble.commands.NativeComposerDependencies(
                 mw_install_path))
 
+        if not args.skip_deps:
+            # NPM install is done after MediaWiki installation, since it
+            # takes a while and the phpunit-unit phase below may fail.
+            if use_vendor:
+                plan.append(quibble.commands.VendorComposerDependencies(
+                    mw_install_path, log_dir))
+
+        # phpunit-unit does not need the database populated or
+        # LocalSettings.php in order to run.
+        if 'phpunit-unit' in stages:
+            plan.append(quibble.commands.PhpUnitUnit(mw_install_path, log_dir))
+
         if not args.skip_install:
             plan.append(quibble.commands.StartBackends(
                 self._context_stack, [database_backend]))
@@ -243,10 +255,6 @@ class QuibbleCmd(object):
                 use_vendor=use_vendor))
 
         if not args.skip_deps:
-            if use_vendor:
-                plan.append(quibble.commands.VendorComposerDependencies(
-                    mw_install_path, log_dir))
-
             plan.append(quibble.commands.NpmInstall(
                 mw_install_path))
 
@@ -257,9 +265,6 @@ class QuibbleCmd(object):
             phpunit_testsuite = 'extensions'
         elif is_skin:
             phpunit_testsuite = 'skins'
-
-        if 'phpunit-unit' in stages:
-            plan.append(quibble.commands.PhpUnitUnit(mw_install_path, log_dir))
 
         if 'phpunit' in stages:
             plan.append(quibble.commands.PhpUnitDatabaseless(
