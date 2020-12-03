@@ -718,9 +718,11 @@ class BrowserTests:
 
     def execute(self):
         for project in self.projects:
+            with quibble.logginglevel('zuul.CloneMapper', logging.WARNING):
+                repo_dir = quibble.zuul.repo_dir(project)
             project_dir = os.path.normpath(os.path.join(
                 self.mw_install_path,
-                quibble.zuul.repo_dir(project)))
+                repo_dir))
             if _repo_has_npm_script(project_dir, 'selenium-test'):
                 self._run_webdriver(project_dir)
 
