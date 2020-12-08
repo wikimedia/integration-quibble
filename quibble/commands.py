@@ -24,16 +24,13 @@ def execute_command(command):
 
 def _npm_install(project_dir):
     if _repo_has_npm_lock(project_dir):
-        subprocess.check_call(
-            ['npm', 'ci'],
-            cwd=project_dir)
+        subprocess.check_call(['npm', 'ci'], cwd=project_dir)
     else:
-        subprocess.check_call(
-            ['npm', 'prune'],
-            cwd=project_dir)
+        subprocess.check_call(['npm', 'prune'], cwd=project_dir)
         subprocess.check_call(
             ['npm', 'install', '--no-progress', '--prefer-offline'],
-            cwd=project_dir)
+            cwd=project_dir,
+        )
 
 
 class ReportVersions:
@@ -58,8 +55,8 @@ class ReportVersions:
         try:
             res = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
             message = '{}: {}'.format(
-                ' '.join(cmd),
-                res.strip().decode('utf-8'))
+                ' '.join(cmd), res.strip().decode('utf-8')
+            )
             for line in message.split('\n'):
                 log.info(line)
         except subprocess.CalledProcessError:
@@ -72,9 +69,20 @@ class ReportVersions:
 
 
 class ZuulClone:
-    def __init__(self, branch, cache_dir, project_branch, projects, workers,
-                 workspace, zuul_branch, zuul_newrev, zuul_project, zuul_ref,
-                 zuul_url):
+    def __init__(
+        self,
+        branch,
+        cache_dir,
+        project_branch,
+        projects,
+        workers,
+        workspace,
+        zuul_branch,
+        zuul_newrev,
+        zuul_project,
+        zuul_ref,
+        zuul_url,
+    ):
         self.branch = branch
         self.cache_dir = cache_dir
         self.project_branch = project_branch
@@ -89,22 +97,35 @@ class ZuulClone:
 
     def execute(self):
         quibble.zuul.clone(
-            self.branch, self.cache_dir, self.project_branch, self.projects,
-            self.workers, self.workspace, self.zuul_branch, self.zuul_newrev,
-            self.zuul_project, self.zuul_ref, self.zuul_url)
+            self.branch,
+            self.cache_dir,
+            self.project_branch,
+            self.projects,
+            self.workers,
+            self.workspace,
+            self.zuul_branch,
+            self.zuul_newrev,
+            self.zuul_project,
+            self.zuul_ref,
+            self.zuul_url,
+        )
 
     def __str__(self):
-        pruned_params = {k: v for k, v in self.__dict__.items()
-                         if v is not None and v != []}
+        pruned_params = {
+            k: v for k, v in self.__dict__.items() if v is not None and v != []
+        }
         return "Zuul clone with parameters {}".format(
-            json.dumps(pruned_params, sort_keys=True))
+            json.dumps(pruned_params, sort_keys=True)
+        )
 
 
 class ResolveRequires:
-
     def __init__(
-        self, mw_install_path, projects, zuul_params,
-        fail_on_extra_requires=False
+        self,
+        mw_install_path,
+        projects,
+        zuul_params,
+        fail_on_extra_requires=False,
     ):
         """
         mw_install_path: root dir of MediaWiki
@@ -117,7 +138,7 @@ class ResolveRequires:
         self.projects = projects
         self.zuul_params = zuul_params
         if 'projects' in self.zuul_params:
-            del(self.zuul_params['projects'])
+            del self.zuul_params['projects']
         self.fail_on_extra_requires = fail_on_extra_requires
 
     def execute(self):
@@ -136,24 +157,24 @@ class ResolveRequires:
         to_be_cloned = new_projects - cloned
         if to_be_cloned:
             log.info('Cloning: %s', ', '.join(to_be_cloned))
-            execute_command(ZuulClone(
-                projects=to_be_cloned,
-                **self.zuul_params
-            ))
+            execute_command(
+                ZuulClone(projects=to_be_cloned, **self.zuul_params)
+            )
 
         found = set()
         for project in sorted(new_projects):
             log.info('Looking for requirements of %s', project)
 
             project_dir = os.path.join(
-                self.mw_install_path,
-                quibble.zuul.repo_dir(project))
+                self.mw_install_path, quibble.zuul.repo_dir(project)
+            )
             deps = quibble.mediawiki.registry.from_path(project_dir)
             found.update(deps.getRequiredRepos())
 
         if not found:
-            log.debug('No additional requirements from %s',
-                      ', '.join(new_projects))
+            log.debug(
+                'No additional requirements from %s', ', '.join(new_projects)
+            )
             return set()
 
         if found:
@@ -163,7 +184,8 @@ class ResolveRequires:
     def __str__(self):
         return (
             'Recursively process registration dependencies. '
-            'Fails on extra requires: %s' % self.fail_on_extra_requires)
+            'Fails on extra requires: %s' % self.fail_on_extra_requires
+        )
 
 
 class ExtSkinSubmoduleUpdate:
@@ -179,8 +201,10 @@ class ExtSkinSubmoduleUpdate:
             ['git', 'submodule', 'status'],
         ]
 
-        tops = [os.path.join(self.mw_install_path, top)
-                for top in ['extensions', 'skins']]
+        tops = [
+            os.path.join(self.mw_install_path, top)
+            for top in ['extensions', 'skins']
+        ]
 
         for top in tops:
             for dirpath, dirnames, filenames in os.walk(top):
@@ -195,15 +219,16 @@ class ExtSkinSubmoduleUpdate:
                         subprocess.check_call(cmd, cwd=dirpath)
                     except subprocess.CalledProcessError as e:
                         log.error(
-                            "Failed to process git submodules for %s",
-                            dirpath)
+                            "Failed to process git submodules for %s", dirpath
+                        )
                         raise e
 
     def __str__(self):
         # TODO: Would be nicer to extract the directory crawl into a subroutine
         # and print the analysis here.
-        return "Extension and skin submodule update under MediaWiki root {}"\
-            .format(self.mw_install_path)
+        return (
+            "Extension and skin submodule update under MediaWiki root {}"
+        ).format(self.mw_install_path)
 
 
 # Used to be bin/mw-create-composer-local.py
@@ -214,23 +239,23 @@ class CreateComposerLocal:
 
     def execute(self):
         log.info('composer.local.json for merge plugin')
-        extensions = [ext.strip()[len('mediawiki/'):] + '/composer.json'
-                      for ext in self.dependencies
-                      if ext.strip().startswith('mediawiki/extensions/')]
-        out = {
-            'extra': {
-                'merge-plugin': {'include': extensions}
-                }
-            }
-        composer_local = os.path.join(self.mw_install_path,
-                                      'composer.local.json')
+        extensions = [
+            ext.strip()[len('mediawiki/') :] + '/composer.json'
+            for ext in self.dependencies
+            if ext.strip().startswith('mediawiki/extensions/')
+        ]
+        out = {'extra': {'merge-plugin': {'include': extensions}}}
+        composer_local = os.path.join(
+            self.mw_install_path, 'composer.local.json'
+        )
         with open(composer_local, 'w') as f:
             json.dump(out, f)
         log.info('Created composer.local.json')
 
     def __str__(self):
         return "Create composer.local.json with dependencies {}".format(
-            self.dependencies)
+            self.dependencies
+        )
 
 
 class ExtSkinComposerNpmTest:
@@ -242,9 +267,9 @@ class ExtSkinComposerNpmTest:
     def execute(self):
         tasks = []
         if self.composer:
-            tasks.append((self._run_extskin_composer, ))
+            tasks.append((self._run_extskin_composer,))
         if self.npm:
-            tasks.append((self._run_extskin_npm, ))
+            tasks.append((self._run_extskin_npm,))
 
         # TODO: Split these tasks and move parallelism into calling logic.
         parallel_run(tasks)
@@ -260,8 +285,15 @@ class ExtSkinComposerNpmTest:
         log.info('Running "composer test" for %s', project_name)
         cmds = [
             ['composer', '--ansi', 'validate', '--no-check-publish'],
-            ['composer', '--ansi', 'install', '--no-progress',
-             '--prefer-dist', '--profile', '-v'],
+            [
+                'composer',
+                '--ansi',
+                'install',
+                '--no-progress',
+                '--prefer-dist',
+                '--profile',
+                '-v',
+            ],
             ['composer', '--ansi', 'test'],
         ]
         for cmd in cmds:
@@ -297,9 +329,9 @@ class CoreNpmComposerTest:
     def execute(self):
         tasks = []
         if self.composer:
-            tasks.append((self._run_composer_test, ))
+            tasks.append((self._run_composer_test,))
         if self.npm:
-            tasks.append((self._run_npm_test, ))
+            tasks.append((self._run_npm_test,))
 
         # TODO: Split these tasks and move parallelism into calling logic.
         parallel_run(tasks)
@@ -308,15 +340,13 @@ class CoreNpmComposerTest:
         files = []
         changed = GitChangedInHead([], cwd=self.mw_install_path).changedFiles()
         if 'composer.json' in changed or '.phpcs.xml' in changed:
-            log.info(
-                'composer.json or .phpcs.xml changed: linting "."')
+            log.info('composer.json or .phpcs.xml changed: linting "."')
             # '.' is passed to composer lint which then pass it
             # to parallel-lint and phpcs
             files = ['.']
         else:
             files = GitChangedInHead(
-                ['php', 'php5', 'inc', 'sample'],
-                cwd=self.mw_install_path
+                ['php', 'php5', 'inc', 'sample'], cwd=self.mw_install_path
             ).changedFiles()
 
         if not files:
@@ -330,7 +360,8 @@ class CoreNpmComposerTest:
             composer_test_cmd = ['composer', 'test']
             composer_test_cmd.extend(files)
             subprocess.check_call(
-                composer_test_cmd, cwd=self.mw_install_path, env=env)
+                composer_test_cmd, cwd=self.mw_install_path, env=env
+            )
 
     def _run_npm_test(self):
         log.info("Running npm test")
@@ -351,10 +382,15 @@ class NativeComposerDependencies:
 
     def execute(self):
         log.info('Running "composer update" for mediawiki/core')
-        cmd = ['composer', 'update',
-               '--ansi', '--no-progress', '--prefer-dist',
-               '--profile', '-v',
-               ]
+        cmd = [
+            'composer',
+            'update',
+            '--ansi',
+            '--no-progress',
+            '--prefer-dist',
+            '--profile',
+            '-v',
+        ]
         subprocess.check_call(cmd, cwd=self.mw_install_path)
 
     def __str__(self):
@@ -367,19 +403,27 @@ class VendorComposerDependencies:
         self.log_dir = log_dir
 
     def execute(self):
-        log.info('vendor.git used. '
-                 'Requiring composer dev dependencies')
+        log.info('vendor.git used. ' 'Requiring composer dev dependencies')
         mw_composer_json = os.path.join(self.mw_install_path, 'composer.json')
         vendor_dir = os.path.join(self.mw_install_path, 'vendor')
         with open(mw_composer_json, 'r') as f:
             composer = json.load(f)
 
-        reqs = ['='.join([dependency, version])
-                for dependency, version in composer['require-dev'].items()]
+        reqs = [
+            '='.join([dependency, version])
+            for dependency, version in composer['require-dev'].items()
+        ]
 
         log.debug('composer require %s', ' '.join(reqs))
-        composer_require = ['composer', 'require', '--dev', '--ansi',
-                            '--no-progress', '--prefer-dist', '-v']
+        composer_require = [
+            'composer',
+            'require',
+            '--dev',
+            '--ansi',
+            '--no-progress',
+            '--prefer-dist',
+            '-v',
+        ]
         composer_require.extend(reqs)
 
         subprocess.check_call(composer_require, cwd=vendor_dir)
@@ -388,24 +432,35 @@ class VendorComposerDependencies:
         # That let us easily merge autoload-dev section and thus complete
         # the autoloader.
         # T158674
-        subprocess.check_call([
-            'composer', 'config',
-            'extra.merge-plugin.include', mw_composer_json],
-            cwd=vendor_dir)
+        subprocess.check_call(
+            [
+                'composer',
+                'config',
+                'extra.merge-plugin.include',
+                mw_composer_json,
+            ],
+            cwd=vendor_dir,
+        )
 
         # FIXME integration/composer used to be outdated and broke the
         # autoloader. Since composer 1.0.0-alpha11 the following might not
         # be needed anymore.
-        subprocess.check_call([
-            'composer', 'dump-autoload', '--optimize'],
-            cwd=vendor_dir)
+        subprocess.check_call(
+            ['composer', 'dump-autoload', '--optimize'], cwd=vendor_dir
+        )
 
-        copylog(mw_composer_json,
-                os.path.join(self.log_dir, 'composer.core.json.txt'))
-        copylog(os.path.join(vendor_dir, 'composer.json'),
-                os.path.join(self.log_dir, 'composer.vendor.json.txt'))
-        copylog(os.path.join(vendor_dir, 'composer/autoload_files.php'),
-                os.path.join(self.log_dir, 'composer.autoload_files.php.txt'))
+        copylog(
+            mw_composer_json,
+            os.path.join(self.log_dir, 'composer.core.json.txt'),
+        )
+        copylog(
+            os.path.join(vendor_dir, 'composer.json'),
+            os.path.join(self.log_dir, 'composer.vendor.json.txt'),
+        )
+        copylog(
+            os.path.join(vendor_dir, 'composer/autoload_files.php'),
+            os.path.join(self.log_dir, 'composer.autoload_files.php.txt'),
+        )
 
     def __str__(self):
         return "Install composer dev-requires for vendor.git"
@@ -426,6 +481,7 @@ class StartBackends:
     """Start backends and add to a global context stack, to be destroyed in
     reverse order before application exit.
     """
+
     def __init__(self, context_stack, backends):
         self.context_stack = context_stack
         self.backends = backends
@@ -451,9 +507,9 @@ class StartBackends:
 
 
 class InstallMediaWiki:
-
-    def __init__(self, mw_install_path, db, web_url, log_dir, tmp_dir,
-                 use_vendor):
+    def __init__(
+        self, mw_install_path, db, web_url, log_dir, tmp_dir, use_vendor
+    ):
         self.mw_install_path = mw_install_path
         self.db = db
         self.web_url = web_url
@@ -471,28 +527,33 @@ class InstallMediaWiki:
             '--dbname=%s' % self.db.dbname,
         ]
         if self.db.type == 'sqlite':
-            install_args.extend([
-                '--dbpath=%s' % self.db.rootdir,
-            ])
+            install_args.extend(
+                [
+                    '--dbpath=%s' % self.db.rootdir,
+                ]
+            )
         elif self.db.type in ('mysql', 'postgres'):
-            install_args.extend([
-                '--dbuser=%s' % self.db.user,
-                '--dbpass=%s' % self.db.password,
-                '--dbserver=%s' % self.db.dbserver,
-            ])
+            install_args.extend(
+                [
+                    '--dbuser=%s' % self.db.user,
+                    '--dbpass=%s' % self.db.password,
+                    '--dbserver=%s' % self.db.dbserver,
+                ]
+            )
         else:
             raise Exception('Unsupported database: %s' % self.db.type)
 
         quibble.mediawiki.maintenance.install(
-            args=install_args,
-            mwdir=self.mw_install_path
+            args=install_args, mwdir=self.mw_install_path
         )
 
         localsettings = os.path.join(self.mw_install_path, 'LocalSettings.php')
-        localsettings_installer = \
-            os.path.join(self.mw_install_path, 'LocalSettings-installer.php')
+        localsettings_installer = os.path.join(
+            self.mw_install_path, 'LocalSettings-installer.php'
+        )
         quibblesettings = pkg_resources.resource_filename(
-            __name__, 'mediawiki/local_settings.php.tpl')
+            __name__, 'mediawiki/local_settings.php.tpl'
+        )
 
         # Wire variables into settings template.
         with open(quibblesettings, "r") as f:
@@ -505,19 +566,22 @@ class InstallMediaWiki:
                 "const {} = '{}';".format(key, value)
                 for (key, value) in params.items()
             )
-            customsettings = f.read()\
-                .replace('{{params-declaration}}', params_declaration)
+            customsettings = f.read().replace(
+                '{{params-declaration}}', params_declaration
+            )
 
         os.rename(localsettings, localsettings_installer)
         with open(localsettings, "w") as f:
             f.write(customsettings)
 
-        copylog(localsettings,
-                os.path.join(self.log_dir, 'LocalSettings.php'))
-        copylog(localsettings_installer,
-                os.path.join(self.log_dir, 'LocalSettings-installer.php'))
+        copylog(localsettings, os.path.join(self.log_dir, 'LocalSettings.php'))
+        copylog(
+            localsettings_installer,
+            os.path.join(self.log_dir, 'LocalSettings-installer.php'),
+        )
         subprocess.check_call(
-            ['php', '-l', localsettings, localsettings_installer])
+            ['php', '-l', localsettings, localsettings_installer]
+        )
 
         update_args = []
         if self.use_vendor:
@@ -531,20 +595,22 @@ class InstallMediaWiki:
             # core.
             #
             # T88211
-            log.info('mediawiki/vendor used. '
-                     'Skipping external dependencies')
+            log.info(
+                'mediawiki/vendor used. ' 'Skipping external dependencies'
+            )
             update_args.append('--skip-external-dependencies')
 
         quibble.mediawiki.maintenance.update(
-            args=update_args,
-            mwdir=self.mw_install_path
+            args=update_args, mwdir=self.mw_install_path
         )
         quibble.mediawiki.maintenance.rebuildLocalisationCache(
-            lang=['en'], mwdir=self.mw_install_path)
+            lang=['en'], mwdir=self.mw_install_path
+        )
 
     def __str__(self):
         return "Install MediaWiki, db={} vendor={}".format(
-            self.db, self.use_vendor)
+            self.db, self.use_vendor
+        )
 
 
 class AbstractPhpUnit:
@@ -560,8 +626,9 @@ class AbstractPhpUnit:
         if group:
             cmd.extend(['--group', ','.join(group)])
 
-        cmd.extend(['--exclude-group',
-                    ','.join(always_excluded + exclude_group)])
+        cmd.extend(
+            ['--exclude-group', ','.join(always_excluded + exclude_group)]
+        )
 
         if self.junit_file:
             cmd.extend(['--log-junit', self.junit_file])
@@ -590,7 +657,8 @@ class PhpUnitDatabaseless(AbstractPhpUnit):
 
     def __str__(self):
         return "PHPUnit {} suite (without database or standalone)".format(
-            self.testsuite or 'default')
+            self.testsuite or 'default'
+        )
 
 
 class PhpUnitStandalone(AbstractPhpUnit):
@@ -605,12 +673,13 @@ class PhpUnitStandalone(AbstractPhpUnit):
         self._run_phpunit(
             group=['Standalone'],
             # Have to run custom entry point to run the in repo path
-            cmd=['php', 'tests/phpunit/phpunit.php', self.repo_path])
+            cmd=['php', 'tests/phpunit/phpunit.php', self.repo_path],
+        )
 
     def __str__(self):
         return "PHPUnit {} standalone suite on {}".format(
-            self.testsuite or 'default',
-            self.repo_path)
+            self.testsuite or 'default', self.repo_path
+        )
 
 
 class PhpUnitUnit(AbstractPhpUnit):
@@ -643,7 +712,8 @@ class PhpUnitDatabase(AbstractPhpUnit):
 
     def __str__(self):
         return "PHPUnit {} suite (with database)".format(
-            self.testsuite or 'default')
+            self.testsuite or 'default'
+        )
 
 
 class QunitTests:
@@ -653,11 +723,11 @@ class QunitTests:
 
     def execute(self):
         karma_env = {
-             'CHROME_BIN': '/usr/bin/chromium',
-             'MW_SERVER': self.web_url,
-             'MW_SCRIPT_PATH': '/',
-             'FORCE_COLOR': '1',  # for 'supports-color'
-             }
+            'CHROME_BIN': '/usr/bin/chromium',
+            'MW_SERVER': self.web_url,
+            'MW_SCRIPT_PATH': '/',
+            'FORCE_COLOR': '1',  # for 'supports-color'
+        }
         karma_env.update(os.environ)
         karma_env.update({'CHROMIUM_FLAGS': quibble.chromium_flags()})
 
@@ -678,8 +748,10 @@ class ApiTesting:
         self.url = url
 
     def execute(self):
-        settings_in_path = self.mw_install_path \
+        settings_in_path = (
+            self.mw_install_path
             + "/tests/api-testing/.api-testing-quibble.json"
+        )
         settings_out_path = self.mw_install_path + "/api-testing-quibble.json"
         with open(settings_in_path) as settings_in:
             api_settings = json.load(settings_in)
@@ -689,21 +761,24 @@ class ApiTesting:
         with open(settings_out_path, "w") as settings_out:
             json.dump(api_settings, settings_out)
         quibble_testing_config = {
-            "API_TESTING_CONFIG_FILE":
-                self.mw_install_path + "/api-testing-quibble.json"
+            "API_TESTING_CONFIG_FILE": self.mw_install_path
+            + "/api-testing-quibble.json"
         }
         quibble_testing_config.update(os.environ)
 
         for project in self.projects:
-            project_dir = os.path.normpath(os.path.join(
-                self.mw_install_path,
-                quibble.zuul.repo_dir(project)))
+            project_dir = os.path.normpath(
+                os.path.join(
+                    self.mw_install_path, quibble.zuul.repo_dir(project)
+                )
+            )
             if _repo_has_npm_script(project_dir, 'api-testing'):
                 _npm_install(project_dir)
                 subprocess.check_call(
                     ['npm', 'run', 'api-testing'],
                     cwd=project_dir,
-                    env=quibble_testing_config)
+                    env=quibble_testing_config,
+                )
 
     def __str__(self):
         return "Run API-Testing"
@@ -720,9 +795,9 @@ class BrowserTests:
         for project in self.projects:
             with quibble.logginglevel('zuul.CloneMapper', logging.WARNING):
                 repo_dir = quibble.zuul.repo_dir(project)
-            project_dir = os.path.normpath(os.path.join(
-                self.mw_install_path,
-                repo_dir))
+            project_dir = os.path.normpath(
+                os.path.join(self.mw_install_path, repo_dir)
+            )
             if _repo_has_npm_script(project_dir, 'selenium-test'):
                 self._run_webdriver(project_dir)
 
@@ -730,20 +805,21 @@ class BrowserTests:
         log.info('Running webdriver test in %s', project_dir)
         webdriver_env = {}
         webdriver_env.update(os.environ)
-        webdriver_env.update({
-            'MW_SERVER': self.web_url,
-            'MW_SCRIPT_PATH': '/',
-            'FORCE_COLOR': '1',  # for 'supports-color'
-            'MEDIAWIKI_USER': 'WikiAdmin',
-            'MEDIAWIKI_PASSWORD': 'testwikijenkinspass',
-            'DISPLAY': self.display,
-        })
+        webdriver_env.update(
+            {
+                'MW_SERVER': self.web_url,
+                'MW_SCRIPT_PATH': '/',
+                'FORCE_COLOR': '1',  # for 'supports-color'
+                'MEDIAWIKI_USER': 'WikiAdmin',
+                'MEDIAWIKI_PASSWORD': 'testwikijenkinspass',
+                'DISPLAY': self.display,
+            }
+        )
 
         _npm_install(project_dir)
         subprocess.check_call(
-            ['npm', 'run', 'selenium-test'],
-            cwd=project_dir,
-            env=webdriver_env)
+            ['npm', 'run', 'selenium-test'], cwd=project_dir, env=webdriver_env
+        )
 
     def __str__(self):
         return "Browser tests for projects {}".format(", ".join(self.projects))
@@ -759,8 +835,7 @@ class UserScripts:
 
         for cmd in self.commands:
             log.info(cmd)
-            subprocess.check_call(
-                cmd, shell=True, cwd=self.mw_install_path)
+            subprocess.check_call(cmd, shell=True, cwd=self.mw_install_path)
 
     def __str__(self):
         return "User commands: {}".format(", ".join(self.commands))
@@ -813,5 +888,4 @@ def _json_has_script(json_file, script_name):
         return False
     with open(json_file) as f:
         spec = json.load(f)
-    return ('scripts' in spec
-            and script_name in spec['scripts'])
+    return 'scripts' in spec and script_name in spec['scripts']

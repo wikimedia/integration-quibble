@@ -16,8 +16,7 @@ def from_path(path):
     has_skin = os.path.exists(skin_json)
 
     if has_ext and has_skin:
-        raise Exception(
-            'Found both extension.json and skin.json in %s' % path)
+        raise Exception('Found both extension.json and skin.json in %s' % path)
     elif not (has_ext or has_skin):
         return ExtensionRegistration()
     elif has_ext:
@@ -46,7 +45,6 @@ def _parse(reg_data):
 
 
 class ExtensionRegistration:
-
     def __init__(self, json_file=''):
         self._raw_json = None
         self._requires = set()

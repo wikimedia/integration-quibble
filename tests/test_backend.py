@@ -18,7 +18,6 @@ PHPDOCROOT = os.path.join(FIXTURES_DIR, 'phpdocroot')
 
 
 class TestBackendRegistry(unittest.TestCase):
-
     def test_recognizes_mysql(self):
         get_backend(DatabaseServer, 'mysql')
         get_backend(DatabaseServer, 'MySQL')
@@ -27,8 +26,10 @@ class TestBackendRegistry(unittest.TestCase):
         get_backend(DatabaseServer, 'sqlite')
 
     def test_raises_an_exception_on_unknown_db(self):
-        with self.assertRaisesRegex(Exception, "^Backend .*DatabaseServer.*"
-                                    + "not supported: fakedbengine"):
+        with self.assertRaisesRegex(
+            Exception,
+            "^Backend .*DatabaseServer.*" + "not supported: fakedbengine",
+        ):
             get_backend(DatabaseServer, 'fakeDBengine')
 
     def test_getDatabase(self):
@@ -36,39 +37,41 @@ class TestBackendRegistry(unittest.TestCase):
 
 
 class TestDatabaseServer(unittest.TestCase):
-
     @mock.patch('quibble.backend.os.makedirs')
     @mock.patch('quibble.backend.tempfile.TemporaryDirectory')
     def test_creates_basedir(self, mock_makedirs, _):
         DatabaseServer(base_dir='/tmp/booo').start()
-        self.assertTrue(mock_makedirs.called,
-                        'Must try to create the database base directory')
+        self.assertTrue(
+            mock_makedirs.called,
+            'Must try to create the database base directory',
+        )
 
     @mock.patch('quibble.backend.os.makedirs')
     @mock.patch('quibble.backend.tempfile.TemporaryDirectory')
     def test_honor_basedir_and_prefix(self, mock_makedirs, _):
         DatabaseServer(base_dir='/tmp/booo').start()
         (args, kwargs) = mock_makedirs.call_args
-        self.assertEqual({
-            'dir': '/tmp/booo',
-            'prefix': 'quibble-databaseserver-',
-        }, kwargs)
+        self.assertEqual(
+            {
+                'dir': '/tmp/booo',
+                'prefix': 'quibble-databaseserver-',
+            },
+            kwargs,
+        )
 
     @mock.patch('quibble.backend.os.makedirs')
     @mock.patch('quibble.backend.tempfile.TemporaryDirectory')
     def test_basedir_is_made_absolute(self, mock_makedirs, _):
         DatabaseServer(base_dir='data').start()
         (args, kwargs) = mock_makedirs.call_args
-        self.assertEqual(
-            os.path.join(os.getcwd(), 'data'),
-            kwargs.get('dir'))
+        self.assertEqual(os.path.join(os.getcwd(), 'data'), kwargs.get('dir'))
 
 
 class TestChromeWebDriver(unittest.TestCase):
-
     def setUp(self):
         patcher = mock.patch(
-            'quibble.backend._stream_relay', return_value=True)
+            'quibble.backend._stream_relay', return_value=True
+        )
         self.addCleanup(patcher.stop)
         patcher.start()
 
@@ -82,8 +85,10 @@ class TestChromeWebDriver(unittest.TestCase):
         self.assertIn('CHROMIUM_FLAGS', env)
 
         self.assertIn(
-            '--no-sandbox', env.get('CHROMIUM_FLAGS', ''),
-            'In a Docker container we must pass --no-sandbox')
+            '--no-sandbox',
+            env.get('CHROMIUM_FLAGS', ''),
+            'In a Docker container we must pass --no-sandbox',
+        )
 
     @mock.patch.dict(os.environ, clear=True)
     @mock.patch('subprocess.Popen')
@@ -95,8 +100,10 @@ class TestChromeWebDriver(unittest.TestCase):
         self.assertIn('CHROMIUM_FLAGS', env)
 
         self.assertIn(
-            '--headless', env.get('CHROMIUM_FLAGS', ''),
-            'Without DISPLAY, we must run headlessly with --headless')
+            '--headless',
+            env.get('CHROMIUM_FLAGS', ''),
+            'Without DISPLAY, we must run headlessly with --headless',
+        )
 
     @mock.patch.dict(os.environ, clear=True)
     @mock.patch('subprocess.Popen')
@@ -112,8 +119,10 @@ class TestChromeWebDriver(unittest.TestCase):
         self.assertNotIn('--headless', env.get('CHROMIUM_FLAGS', ''))
 
         self.assertNotIn(
-            'DISPLAY', os.environ,
-            'Must not have set DISPLAY when previously not set')
+            'DISPLAY',
+            os.environ,
+            'Must not have set DISPLAY when previously not set',
+        )
 
     @mock.patch.dict(os.environ, {'DISPLAY': ':30'})
     @mock.patch('subprocess.Popen')
@@ -123,7 +132,6 @@ class TestChromeWebDriver(unittest.TestCase):
 
 
 class TestExternalWebserverEngine(unittest.TestCase):
-
     @mock.patch('quibble.backend.subprocess.Popen')
     def test_start_does_not_invoke_any_command(self, mock_popen):
         ExternalWebserver().start()
@@ -136,11 +144,11 @@ class TestExternalWebserverEngine(unittest.TestCase):
 
 
 class TestPhpWebserver(unittest.TestCase):
-
     def assertServerRespond(self, flavor, url):
         with urllib.request.urlopen(url) as resp:
-            self.assertEqual("Built-in %s server reached.\n" % flavor,
-                             resp.read().decode())
+            self.assertEqual(
+                "Built-in %s server reached.\n" % flavor, resp.read().decode()
+            )
 
     @mark.integration
     def test_PhpWebserver_listens_on_specific_ip(self):
@@ -158,13 +166,15 @@ class TestPhpWebserver(unittest.TestCase):
 
     @mark.integration
     def test_has_os_environment_variables(self):
-        with mock.patch.dict('quibble.backend.os.environ',
-                             {
-                                 'MW_INSTALL_PATH': '/tmp/mw',
-                                 'MW_LOG_DIR': '/tmp/log',
-                                 'LOG_DIR': '/tmp/log',
-                             },
-                             clear=True):
+        with mock.patch.dict(
+            'quibble.backend.os.environ',
+            {
+                'MW_INSTALL_PATH': '/tmp/mw',
+                'MW_LOG_DIR': '/tmp/log',
+                'LOG_DIR': '/tmp/log',
+            },
+            clear=True,
+        ):
             url = 'http://127.0.0.1:4885'
             with PhpWebserver(mwdir=PHPDOCROOT, url=url, router=None):
                 env_url = url + '/env.php'
@@ -178,11 +188,9 @@ class TestPhpWebserver(unittest.TestCase):
 
 
 class TestMySQL(unittest.TestCase):
-
     @mock.patch('quibble.backend.subprocess.Popen')
     def test_install_db_exception(self, mock_popen):
-        mock_popen.return_value.communicate.return_value = (
-            'some output')
+        mock_popen.return_value.communicate.return_value = 'some output'
         mock_popen.return_value.returncode = 42
         with self.assertRaises(Exception, msg='FAILED (42): some output'):
             MySQL()._install_db()
@@ -191,18 +199,19 @@ class TestMySQL(unittest.TestCase):
     @mock.patch('quibble.backend.subprocess.Popen')
     def test_createwikidb_exception(self, mock_popen, _):
         mock_popen.return_value.communicate.return_value = (
-            'some output', None)
+            'some output',
+            None,
+        )
         mock_popen.return_value.returncode = 42
         with self.assertRaises(Exception, msg='FAILED (42): some output'):
             MySQL()._createwikidb()
 
 
 class TestPostgres(unittest.TestCase):
-
     @mark.integration
     def test_it_starts(self):
         pg = Postgres()
         with pg:
             self.assertTrue(
-                os.path.exists(pg.socket),
-                'PostgreSQL socket has been created')
+                os.path.exists(pg.socket), 'PostgreSQL socket has been created'
+            )

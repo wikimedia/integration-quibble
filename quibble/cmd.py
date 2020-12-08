@@ -31,13 +31,27 @@ import quibble.commands
 import quibble.util
 
 log = logging.getLogger('quibble.cmd')
-known_stages = ['all',
-                'phpunit-unit', 'phpunit', 'phpunit-standalone',
-                'npm-test', 'composer-test',
-                'qunit', 'selenium', 'api-testing']
-default_stages = ['phpunit-unit', 'phpunit', 'phpunit-standalone',
-                  'npm-test', 'composer-test',
-                  'qunit', 'selenium', 'api-testing']
+known_stages = [
+    'all',
+    'phpunit-unit',
+    'phpunit',
+    'phpunit-standalone',
+    'npm-test',
+    'composer-test',
+    'qunit',
+    'selenium',
+    'api-testing',
+]
+default_stages = [
+    'phpunit-unit',
+    'phpunit',
+    'phpunit-standalone',
+    'npm-test',
+    'composer-test',
+    'qunit',
+    'selenium',
+    'api-testing',
+]
 
 
 # Used for add_argument(choices=) let us validate multiple choices at once.
@@ -51,7 +65,6 @@ class MultipleChoices(list):
 
 
 class QuibbleCmd(object):
-
     def __init__(self):
         self._context_stack = contextlib.ExitStack()
 
@@ -80,7 +93,9 @@ class QuibbleCmd(object):
     def _warn_obsolete_env_deps(self, var):
         log.warning(
             '%s env variable is deprecated. '
-            'Instead pass projects as arguments.', var)
+            'Instead pass projects as arguments.',
+            var,
+        )
 
     def _repos_to_clone(self, projects, zuul_project, clone_vendor):
         """
@@ -99,12 +114,14 @@ class QuibbleCmd(object):
         if 'SKIN_DEPENDENCIES' in os.environ:
             self._warn_obsolete_env_deps('SKIN_DEPENDENCIES')
             dependencies.update(
-                os.environ.get('SKIN_DEPENDENCIES').split('\\n'))
+                os.environ.get('SKIN_DEPENDENCIES').split('\\n')
+            )
 
         if 'EXT_DEPENDENCIES' in os.environ:
             self._warn_obsolete_env_deps('EXT_DEPENDENCIES')
             dependencies.update(
-                os.environ.get('EXT_DEPENDENCIES').split('\\n'))
+                os.environ.get('EXT_DEPENDENCIES').split('\\n')
+            )
 
         dependencies.update(projects)
 
@@ -169,10 +186,12 @@ class QuibbleCmd(object):
         dependencies = self._repos_to_clone(
             projects=args.projects,
             zuul_project=zuul_project,
-            clone_vendor=use_vendor)
+            clone_vendor=use_vendor,
+        )
 
         dependencies_with_project_first = quibble.util.move_item_to_head(
-            dependencies, zuul_project)
+            dependencies, zuul_project
+        )
 
         repo_path = quibble.zuul.repo_dir(zuul_project)
 
@@ -183,10 +202,12 @@ class QuibbleCmd(object):
         run_npm = 'npm-test' in stages
 
         database_backend = quibble.backend.getDatabase(
-            args.db, db_dir, dump_dir)
+            args.db, db_dir, dump_dir
+        )
 
         web_backend = quibble.backend.getWebserver(
-            args.web_backend, mw_install_path, args.web_url)
+            args.web_backend, mw_install_path, args.web_url
+        )
 
         plan = []
         plan.append(quibble.commands.ReportVersions())
@@ -207,41 +228,55 @@ class QuibbleCmd(object):
                 'zuul_url': os.getenv('ZUUL_URL'),
             }
 
-            plan.append(quibble.commands.ZuulClone(
-                projects=dependencies,
-                **zuul_params
-            ))
+            plan.append(
+                quibble.commands.ZuulClone(
+                    projects=dependencies, **zuul_params
+                )
+            )
 
             if args.resolve_requires:
-                plan.append(quibble.commands.ResolveRequires(
-                    mw_install_path=mw_install_path,
-                    projects=dependencies,
-                    zuul_params=zuul_params,
-                    fail_on_extra_requires=args.fail_on_extra_requires,
-                ))
+                plan.append(
+                    quibble.commands.ResolveRequires(
+                        mw_install_path=mw_install_path,
+                        projects=dependencies,
+                        zuul_params=zuul_params,
+                        fail_on_extra_requires=args.fail_on_extra_requires,
+                    )
+                )
 
-            plan.append(quibble.commands.ExtSkinSubmoduleUpdate(
-                mw_install_path))
+            plan.append(
+                quibble.commands.ExtSkinSubmoduleUpdate(mw_install_path)
+            )
 
         if is_extension or is_skin:
             if run_composer or run_npm:
                 project_dir = os.path.join(mw_install_path, repo_path)
 
-                plan.append(quibble.commands.ExtSkinComposerNpmTest(
-                    project_dir, run_composer, run_npm))
+                plan.append(
+                    quibble.commands.ExtSkinComposerNpmTest(
+                        project_dir, run_composer, run_npm
+                    )
+                )
 
         if not args.skip_deps and use_composer:
-            plan.append(quibble.commands.CreateComposerLocal(
-                mw_install_path, dependencies))
-            plan.append(quibble.commands.NativeComposerDependencies(
-                mw_install_path))
+            plan.append(
+                quibble.commands.CreateComposerLocal(
+                    mw_install_path, dependencies
+                )
+            )
+            plan.append(
+                quibble.commands.NativeComposerDependencies(mw_install_path)
+            )
 
         if not args.skip_deps:
             # NPM install is done after MediaWiki installation, since it
             # takes a while and the phpunit-unit phase below may fail.
             if use_vendor:
-                plan.append(quibble.commands.VendorComposerDependencies(
-                    mw_install_path, log_dir))
+                plan.append(
+                    quibble.commands.VendorComposerDependencies(
+                        mw_install_path, log_dir
+                    )
+                )
 
         # phpunit-unit does not need the database populated or
         # LocalSettings.php in order to run.
@@ -249,20 +284,25 @@ class QuibbleCmd(object):
             plan.append(quibble.commands.PhpUnitUnit(mw_install_path, log_dir))
 
         if not args.skip_install:
-            plan.append(quibble.commands.StartBackends(
-                self._context_stack, [database_backend]))
+            plan.append(
+                quibble.commands.StartBackends(
+                    self._context_stack, [database_backend]
+                )
+            )
 
-            plan.append(quibble.commands.InstallMediaWiki(
-                mw_install_path=mw_install_path,
-                db=database_backend,
-                web_url=web_backend.url,
-                log_dir=log_dir,
-                tmp_dir=tmp_dir,
-                use_vendor=use_vendor))
+            plan.append(
+                quibble.commands.InstallMediaWiki(
+                    mw_install_path=mw_install_path,
+                    db=database_backend,
+                    web_url=web_backend.url,
+                    log_dir=log_dir,
+                    tmp_dir=tmp_dir,
+                    use_vendor=use_vendor,
+                )
+            )
 
         if not args.skip_deps:
-            plan.append(quibble.commands.NpmInstall(
-                mw_install_path))
+            plan.append(quibble.commands.NpmInstall(mw_install_path))
 
         phpunit_testsuite = None
         if args.phpunit_testsuite:
@@ -273,21 +313,30 @@ class QuibbleCmd(object):
             phpunit_testsuite = 'skins'
 
         if 'phpunit' in stages:
-            plan.append(quibble.commands.PhpUnitDatabaseless(
-                mw_install_path, phpunit_testsuite, log_dir))
+            plan.append(
+                quibble.commands.PhpUnitDatabaseless(
+                    mw_install_path, phpunit_testsuite, log_dir
+                )
+            )
 
-        if('phpunit-standalone' in stages and (is_extension or is_skin)):
-            plan.append(quibble.commands.PhpUnitStandalone(
-                mw_install_path, None, log_dir, repo_path))
+        if 'phpunit-standalone' in stages and (is_extension or is_skin):
+            plan.append(
+                quibble.commands.PhpUnitStandalone(
+                    mw_install_path, None, log_dir, repo_path
+                )
+            )
 
         if is_core:
-            plan.append(quibble.commands.CoreNpmComposerTest(
-                mw_install_path,
-                composer=run_composer,
-                npm=run_npm))
+            plan.append(
+                quibble.commands.CoreNpmComposerTest(
+                    mw_install_path, composer=run_composer, npm=run_npm
+                )
+            )
 
-        if set(['qunit', 'selenium', 'api-testing']) & set(stages) \
-                or args.commands:
+        if (
+            set(['qunit', 'selenium', 'api-testing']) & set(stages)
+            or args.commands
+        ):
             backends = [web_backend]
 
             display = os.environ.get('DISPLAY', None)
@@ -298,32 +347,45 @@ class QuibbleCmd(object):
 
             backends.append(quibble.backend.ChromeWebDriver(display))
 
-            plan.append(quibble.commands.StartBackends(
-                self._context_stack, backends))
+            plan.append(
+                quibble.commands.StartBackends(self._context_stack, backends)
+            )
 
         if 'qunit' in stages:
-            plan.append(quibble.commands.QunitTests(
-                mw_install_path, web_backend.url))
+            plan.append(
+                quibble.commands.QunitTests(mw_install_path, web_backend.url)
+            )
 
         if 'selenium' in stages:
-            plan.append(quibble.commands.BrowserTests(
-                mw_install_path,
-                dependencies_with_project_first,
-                display, web_backend.url))
+            plan.append(
+                quibble.commands.BrowserTests(
+                    mw_install_path,
+                    dependencies_with_project_first,
+                    display,
+                    web_backend.url,
+                )
+            )
 
         if 'api-testing' in stages:
-            plan.append(quibble.commands.ApiTesting(
-                mw_install_path, dependencies_with_project_first,
-                web_backend.url))
+            plan.append(
+                quibble.commands.ApiTesting(
+                    mw_install_path,
+                    dependencies_with_project_first,
+                    web_backend.url,
+                )
+            )
 
         if 'phpunit' in stages:
-            plan.append(quibble.commands.PhpUnitDatabase(
-                mw_install_path, phpunit_testsuite, log_dir))
+            plan.append(
+                quibble.commands.PhpUnitDatabase(
+                    mw_install_path, phpunit_testsuite, log_dir
+                )
+            )
 
         if args.commands:
-            plan.append(quibble.commands.UserScripts(
-                mw_install_path,
-                args.commands))
+            plan.append(
+                quibble.commands.UserScripts(mw_install_path, args.commands)
+            )
 
         return plan
 
@@ -351,42 +413,45 @@ def get_arg_parser():
     parser = argparse.ArgumentParser(
         description='Quibble: the MediaWiki test runner',
         prog='quibble',
-        )
+    )
     parser.add_argument(
         '--packages-source',
         choices=['composer', 'vendor'],
         default='vendor',
-        help='Source to install PHP dependencies from. Default: vendor')
+        help='Source to install PHP dependencies from. Default: vendor',
+    )
     parser.add_argument(
         '--skip-zuul',
         action='store_true',
-        help='Do not clone/checkout in workspace')
+        help='Do not clone/checkout in workspace',
+    )
     parser.add_argument(
         '--resolve-requires',
         action='store_true',
         help='Whether to process extension.json/skin.json and clone extra '
-             'extensions/skins mentioned in the "requires" statement. '
-             'This is done recursively.')
+        'extensions/skins mentioned in the "requires" statement. '
+        'This is done recursively.',
+    )
     parser.add_argument(
         '--fail-on-extra-requires',
         action='store_true',
         help='When --resolve-requires caused Quibble to clone extra '
-             'requirements not in the list of projects: fail.'
-             'Can be used to enforce extensions and skins to declare '
-             'their requirements via the extension registry.')
+        'requirements not in the list of projects: fail.'
+        'Can be used to enforce extensions and skins to declare '
+        'their requirements via the extension registry.',
+    )
     parser.add_argument(
-        '--skip-deps',
-        action='store_true',
-        help='Do not run composer/npm')
+        '--skip-deps', action='store_true', help='Do not run composer/npm'
+    )
     parser.add_argument(
-        '--skip-install',
-        action='store_true',
-        help='Do not install MediaWiki')
+        '--skip-install', action='store_true', help='Do not install MediaWiki'
+    )
     parser.add_argument(
         '--db',
         choices=['sqlite', 'mysql', 'postgres'],
         default='mysql',
-        help='Database backend to use. Default: mysql')
+        help='Database backend to use. Default: mysql',
+    )
     parser.add_argument(
         '--db-dir',
         default=None,
@@ -396,88 +461,112 @@ def get_arg_parser():
             'on completion. '
             'If set and relative, relatively to workspace. '
             'Default: %s' % tempfile.gettempdir()
-        )
+        ),
     )
     parser.add_argument(
         '--dump-db-postrun',
         action='store_true',
-        help='Dump the db before shutting down the server (mysql only)')
+        help='Dump the db before shutting down the server (mysql only)',
+    )
     parser.add_argument(
         '--git-cache',
         default='/srv/git' if quibble.is_in_docker() else 'ref',
         help='Path to bare git repositories to speed up git clone'
-             'operation. Passed to zuul-cloner as --cache-dir. '
-             'In Docker: "/srv/git", else "ref"')
+        'operation. Passed to zuul-cloner as --cache-dir. '
+        'In Docker: "/srv/git", else "ref"',
+    )
     parser.add_argument(
         '--git-parallel',
         default=4,
         type=int,
-        help='Number of workers to clone repositories. Default: 4')
+        help='Number of workers to clone repositories. Default: 4',
+    )
     parser.add_argument(
         '--branch',
         default=None,
-        help=('Branch to checkout instead of Zuul selected branch, '
-              'for example to specify an alternate branch to test '
-              'client library compatibility.')
-        )
+        help=(
+            'Branch to checkout instead of Zuul selected branch, '
+            'for example to specify an alternate branch to test '
+            'client library compatibility.'
+        ),
+    )
     parser.add_argument(
-        '--project-branch', nargs=1, action='append',
+        '--project-branch',
+        nargs=1,
+        action='append',
         default=[],
         metavar='PROJECT=BRANCH',
-        help=('project-specific branch to checkout which takes precedence '
-              'over --branch if it is provided; may be specified multiple '
-              'times.')
-        )
+        help=(
+            'project-specific branch to checkout which takes precedence '
+            'over --branch if it is provided; may be specified multiple '
+            'times.'
+        ),
+    )
     parser.add_argument(
-        '--web-url',
-        help='Base URL where MediaWiki can be accessed.')
+        '--web-url', help='Base URL where MediaWiki can be accessed.'
+    )
     parser.add_argument(
         '--web-backend',
         choices=['php', 'external'],
         default='php',
         help='Web server to use. Default to PHP\'s built-in. '
-             '"external" assumes that the local MediaWiki site can be accessed'
-             ' via an already running web server.')
+        '"external" assumes that the local MediaWiki site can be accessed'
+        ' via an already running web server.',
+    )
     parser.add_argument(
         '--workspace',
         default='/workspace' if quibble.is_in_docker() else os.getcwd(),
         help='Base path to work from. In Docker: "/workspace", '
-             'else current working directory'
-        )
+        'else current working directory',
+    )
     parser.add_argument(
         '--log-dir',
         default='log',
         help='Where logs and artifacts will be written to. '
-        'Default: "log" relatively to workspace'
-        )
+        'Default: "log" relatively to workspace',
+    )
     parser.add_argument(
-        'projects', default=[], nargs='*',
+        'projects',
+        default=[],
+        nargs='*',
         help='MediaWiki extensions and skins to clone. Always clone '
-             'mediawiki/core and mediawiki/skins/Vector. '
-             'If $ZUUL_PROJECT is set, it will be cloned as well.'
-        )
+        'mediawiki/core and mediawiki/skins/Vector. '
+        'If $ZUUL_PROJECT is set, it will be cloned as well.',
+    )
 
     parser.add_argument(
-        '--color', dest='color', action='store_true',
-        help='Enable colorful output.')
+        '--color',
+        dest='color',
+        action='store_true',
+        help='Enable colorful output.',
+    )
     parser.add_argument(
-        '--no-color', dest='color', action='store_false',
-        help='Disable colorful output.')
+        '--no-color',
+        dest='color',
+        action='store_false',
+        help='Disable colorful output.',
+    )
     # Disable by default for Jenkins to avoid triggering a bug in
     # the "Console Section" plugin which gets confused if a line
     # starts with color code (T236222).
     parser.set_defaults(color=sys.stdin.isatty())
 
     parser.add_argument(
-        '-n', '--dry-run',
+        '-n',
+        '--dry-run',
         action='store_true',
-        help='Stop before executing any commands.')
+        help='Stop before executing any commands.',
+    )
 
-    stages_args = parser.add_argument_group('stages', description=(
-        'Quibble runs all test commands (stages) by default. '
-        'Use the --run or --skip options to further refine which commands '
-        'will be run. '
-        'Available stages are: %s' % ', '.join(known_stages)))
+    stages_args = parser.add_argument_group(
+        'stages',
+        description=(
+            'Quibble runs all test commands (stages) by default. '
+            'Use the --run or --skip options to further refine which commands '
+            'will be run. '
+            'Available stages are: %s' % ', '.join(known_stages)
+        ),
+    )
 
     # Magic type for add_argument so that --foo=a,b,c is magically stored
     # as: foo=['a', 'b', 'c']
@@ -486,35 +575,51 @@ def get_arg_parser():
 
     stages_choices = MultipleChoices(known_stages)
     stages_args.add_argument(
-        '--run', default=['all'],
+        '--run',
+        default=['all'],
         type=comma_separated_list,
-        choices=stages_choices, metavar='STAGE[,STAGE ...]',
-        help='Tests to run. Comma separated. (default: all).'
+        choices=stages_choices,
+        metavar='STAGE[,STAGE ...]',
+        help='Tests to run. Comma separated. (default: all).',
     )
     stages_args.add_argument(
-        '--skip', default=[],
+        '--skip',
+        default=[],
         type=comma_separated_list,
-        choices=stages_choices, metavar='STAGE[,STAGE ...]',
+        choices=stages_choices,
+        metavar='STAGE[,STAGE ...]',
         help='Stages to skip. Comma separated. '
-             'Set to "all" to skip all stages. '
-             '(default: none). '
+        'Set to "all" to skip all stages. '
+        '(default: none). ',
     )
 
     command_args = stages_args.add_mutually_exclusive_group()
     command_args.add_argument(
-        '-c', '--command', action='append',
-        dest='commands', metavar='COMMAND',
+        '-c',
+        '--command',
+        action='append',
+        dest='commands',
+        metavar='COMMAND',
         help=(
             'Run given command instead of built-in stages. '
             'Each command is executed relatively to '
-            'MediaWiki installation path.'))
+            'MediaWiki installation path.'
+        ),
+    )
     command_args.add_argument(
-        '--commands', default=[], nargs='*', metavar='COMMAND',
-        help=('DEPRECATED: use -c COMMAND -c COMMAND'))
+        '--commands',
+        default=[],
+        nargs='*',
+        metavar='COMMAND',
+        help=('DEPRECATED: use -c COMMAND -c COMMAND'),
+    )
 
     parser.add_argument(
-        '--phpunit-testsuite', default=None, metavar='pattern',
-        help='PHPUnit: filter which testsuite to run')
+        '--phpunit-testsuite',
+        default=None,
+        metavar='pattern',
+        help='PHPUnit: filter which testsuite to run',
+    )
 
     return parser
 

@@ -9,7 +9,6 @@ FIXTURES_DIR = os.path.join(os.path.dirname(__file__), 'fixtures')
 
 
 class TestFromPath(unittest.TestCase):
-
     def test_on_a_non_existing_path(self):
         with mock.patch('os.path.isdir') as isdir:
             isdir.return_value = False
@@ -23,7 +22,8 @@ class TestFromPath(unittest.TestCase):
             with mock.patch('os.path.exists') as exists:
                 exists.return_value = False
                 reg = quibble.mediawiki.registry.from_path(
-                    'path does not matter')
+                    'path does not matter'
+                )
                 self.assertSetEqual(set(), reg.getRequiredRepos())
 
     def test_bails_out_on_both_ext_and_skin_files(self):
@@ -35,7 +35,8 @@ class TestFromPath(unittest.TestCase):
                 fake_path = 'path does not matter'
                 with self.assertRaisesRegex(
                     Exception,
-                    'Found both extension.json and skin.json in %s' % fake_path
+                    'Found both extension.json and skin.json in %s'
+                    % fake_path,
                 ):
                     quibble.mediawiki.registry.from_path(fake_path)
 
@@ -50,12 +51,13 @@ class TestFromPath(unittest.TestCase):
 
 
 class TestRead(unittest.TestCase):
-
     def test_read_with_a_json_file(self):
         self.assertIn(
             'requires',
             quibble.mediawiki.registry._read(
-                os.path.join(FIXTURES_DIR, 'extension.json')))
+                os.path.join(FIXTURES_DIR, 'extension.json')
+            ),
+        )
 
     def test_read_with_an_unexisting_file(self):
         with self.assertRaises(FileNotFoundError):
@@ -63,28 +65,22 @@ class TestRead(unittest.TestCase):
 
 
 class TestParse(unittest.TestCase):
-
     def test_without_requires(self):
-        self.assertSetEqual(
-            set(), quibble.mediawiki.registry._parse({}))
+        self.assertSetEqual(set(), quibble.mediawiki.registry._parse({}))
 
     def test_skin_requirement(self):
-        subject = {
-            'requires':
-            {'skins': {'FakeSkin': '*'}}
-        }
+        subject = {'requires': {'skins': {'FakeSkin': '*'}}}
         self.assertSetEqual(
             {'mediawiki/skins/FakeSkin'},
-            quibble.mediawiki.registry._parse(subject))
+            quibble.mediawiki.registry._parse(subject),
+        )
 
     def test_extension_requirement(self):
-        subject = {
-            'requires':
-            {'extensions': {'FakeExtension': '*'}}
-        }
+        subject = {'requires': {'extensions': {'FakeExtension': '*'}}}
         self.assertSetEqual(
             {'mediawiki/extensions/FakeExtension'},
-            quibble.mediawiki.registry._parse(subject))
+            quibble.mediawiki.registry._parse(subject),
+        )
 
 
 class TestMediaWikiExtensionRegistration(unittest.TestCase):

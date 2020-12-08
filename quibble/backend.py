@@ -50,7 +50,8 @@ def _tcp_wait(host, port, timeout=3):
 
     if not connected:
         raise TimeoutError(
-            'Could not connect to port %s after %s seconds' % (port, timeout))
+            'Could not connect to port %s after %s seconds' % (port, timeout)
+        )
 
 
 def backend(interface, key):
@@ -58,8 +59,10 @@ def backend(interface, key):
 
     def _register_backend(backend_class):
         if not issubclass(backend_class, interface):
-            raise Exception('Registered backend "%s" does not extend %s'
-                            % (backend_class, interface))
+            raise Exception(
+                'Registered backend "%s" does not extend %s'
+                % (backend_class, interface)
+            )
 
         interface_name = str(interface)
         if interface_name not in backend_registry:
@@ -104,8 +107,8 @@ def getWebserver(engine, mw_install_path, web_url):
 
 def _stream_relay(process, stream, log_function):
     thread = threading.Thread(
-        target=_stream_to_log,
-        args=(process, stream, log_function))
+        target=_stream_to_log, args=(process, stream, log_function)
+    )
     thread.start()
     return thread
 
@@ -164,8 +167,7 @@ class DatabaseServer(BackendServer):
             os.makedirs(base_dir, exist_ok=True)
 
         # Create and hold a reference
-        self._tmpdir = tempfile.TemporaryDirectory(
-            dir=base_dir, prefix=prefix)
+        self._tmpdir = tempfile.TemporaryDirectory(dir=base_dir, prefix=prefix)
         self.rootdir = self._tmpdir.name
         self.log.debug('Root dir: %s', self.rootdir)
 
@@ -178,13 +180,13 @@ class DatabaseServer(BackendServer):
         super(DatabaseServer, self).stop()
 
     def dump(self):
-        self.log.warning('%s does not support dumping database',
-                         self.__class__.__name__)
+        self.log.warning(
+            '%s does not support dumping database', self.__class__.__name__
+        )
 
 
 @db_backend('postgres')
 class Postgres(DatabaseServer):
-
     def __init__(self, base_dir=None, dump_dir=None):
         super(Postgres, self).__init__(base_dir, dump_dir)
 
@@ -195,18 +197,26 @@ class Postgres(DatabaseServer):
         self.socket = os.path.join(self.rootdir, 'socket')
 
         # Start pg_virtualenv and save configuration settings
-        self.server = subprocess.Popen([
-            'pg_virtualenv',
-            # Option for pg_createcluster
-            '-c', '--socketdir=%s' % self.socket,
-            'python3', '-m', 'quibble.pg_virtualenv_hook'
-        ], env={'QUIBBLE_TMPFILE': self.conffile})
+        self.server = subprocess.Popen(
+            [
+                # fmt: off
+                'pg_virtualenv',
+                # Option for pg_createcluster
+                '-c',
+                '--socketdir=%s' % self.socket,
+                'python3',
+                '-m', 'quibble.pg_virtualenv_hook'
+                # fmt: on
+            ],
+            env={'QUIBBLE_TMPFILE': self.conffile},
+        )
 
         while not os.path.exists(self.conffile):
             if self.server.poll() is not None:
                 raise Exception(
                     'Postgres failed during startup (%s)'
-                    % self.server.returncode)
+                    % self.server.returncode
+                )
             time.sleep(1)
 
         with open(self.conffile) as f:
@@ -227,14 +237,13 @@ class Postgres(DatabaseServer):
 
 @db_backend('mysql')
 class MySQL(DatabaseServer):
-
     def __init__(
         self,
         base_dir=None,
         dump_dir=None,
         user='wikiuser',
         password='secret',
-        dbname='wikidb'
+        dbname='wikidb',
     ):
         super(MySQL, self).__init__(base_dir, dump_dir)
 
@@ -245,10 +254,11 @@ class MySQL(DatabaseServer):
 
     def _install_db(self):
         self.log.info('Initializing MySQL data directory')
-        p = subprocess.Popen([
-            'mysql_install_db',
-            '--datadir=%s' % self.rootdir,
-            '--user=%s' % pwd.getpwuid(os.getuid())[0],
+        p = subprocess.Popen(
+            [
+                'mysql_install_db',
+                '--datadir=%s' % self.rootdir,
+                '--user=%s' % pwd.getpwuid(os.getuid())[0],
             ],
             universal_newlines=True,
             stdout=subprocess.PIPE,
@@ -260,20 +270,23 @@ class MySQL(DatabaseServer):
 
     def _createwikidb(self):
         self.log.info('Creating the wiki database and grant')
-        p = subprocess.Popen([
-            'mysql',
-            '--user=root',
-            '--socket=%s' % self.socket,
+        p = subprocess.Popen(
+            [
+                'mysql',
+                '--user=root',
+                '--socket=%s' % self.socket,
             ],
             universal_newlines=True,
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
-            )
-        grant = ("CREATE DATABASE IF NOT EXISTS %s;"
-                 "GRANT ALL ON %s.* TO '%s'@'localhost'"
-                 "IDENTIFIED BY '%s';\n" % (
-                     self.dbname, self.dbname, self.user, self.password))
+        )
+        grant = (
+            "CREATE DATABASE IF NOT EXISTS %s;"
+            "GRANT ALL ON %s.* TO '%s'@'localhost'"
+            "IDENTIFIED BY '%s';\n"
+            % (self.dbname, self.dbname, self.user, self.password)
+        )
         outs, errs = p.communicate(input=grant)
         if p.returncode != 0:
             raise Exception("FAILED (%s): %s" % (p.returncode, outs))
@@ -289,13 +302,14 @@ class MySQL(DatabaseServer):
 
         self._install_db()
 
-        self.server = subprocess.Popen([
-            '/usr/sbin/mysqld',  # fixme drop path
-            '--skip-networking',
-            '--datadir=%s' % self.rootdir,
-            '--log-error=%s' % self.errorlog,
-            '--pid-file=%s' % self.pidfile,
-            '--socket=%s' % self.socket,
+        self.server = subprocess.Popen(
+            [
+                '/usr/sbin/mysqld',  # fixme drop path
+                '--skip-networking',
+                '--datadir=%s' % self.rootdir,
+                '--log-error=%s' % self.errorlog,
+                '--pid-file=%s' % self.pidfile,
+                '--socket=%s' % self.socket,
             ],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
@@ -306,7 +320,8 @@ class MySQL(DatabaseServer):
                 with open(self.errorlog) as errlog:
                     print(errlog.read())
                 raise Exception(
-                    "MySQL died during startup (%s)" % self.server.returncode)
+                    "MySQL died during startup (%s)" % self.server.returncode
+                )
             self.log.info("Waiting for MySQL socket")
             time.sleep(1)
 
@@ -318,11 +333,12 @@ class MySQL(DatabaseServer):
         self.log.info('Dumping database to %s', dumpfile)
 
         mysqldump = open(dumpfile, 'wb')
-        subprocess.Popen([
+        subprocess.Popen(
+            [
                 'mysqldump',
                 '--socket=%s' % self.socket,
                 '--user=root',
-                '--all-databases'
+                '--all-databases',
             ],
             stdin=subprocess.PIPE,
             stdout=mysqldump,
@@ -331,13 +347,12 @@ class MySQL(DatabaseServer):
 
     def __str__(self):
         return "<{} {}>".format(
-            self.type,
-            self.socket if self.socket else "(no socket)")
+            self.type, self.socket if self.socket else "(no socket)"
+        )
 
 
 @db_backend('sqlite')
 class SQLite(DatabaseServer):
-
     def __init__(self, base_dir=None, dump_dir=None, dbname='wikidb'):
         super(SQLite, self).__init__(base_dir, dump_dir)
 
@@ -345,7 +360,6 @@ class SQLite(DatabaseServer):
 
 
 class ChromeWebDriver(BackendServer):
-
     def __init__(self, display=None, port=4444, url_base='/wd/hub'):
         super(ChromeWebDriver, self).__init__()
 
@@ -363,16 +377,17 @@ class ChromeWebDriver(BackendServer):
             env = {
                 'CHROMIUM_FLAGS': quibble.chromium_flags(),
                 'PATH': os.environ.get('PATH'),
-                }
+            }
 
             if self.display is not None:
                 # Pass it to chromedriver
                 env.update({'DISPLAY': self.display})
 
-            self.server = subprocess.Popen([
-                'chromedriver',
-                '--port=%s' % self.port,
-                '--url-base=%s' % self.url_base,
+            self.server = subprocess.Popen(
+                [
+                    'chromedriver',
+                    '--port=%s' % self.port,
+                    '--url-base=%s' % self.url_base,
                 ],
                 env=env,
                 universal_newlines=True,
@@ -386,7 +401,7 @@ class ChromeWebDriver(BackendServer):
             if prev_display:
                 os.environ.update({'DISPLAY': prev_display})
             elif prev_display is None and self.display:
-                del(os.environ['DISPLAY'])
+                del os.environ['DISPLAY']
 
     def __str__(self):
         return "<ChromeWebDriver {}>".format(self.display)
@@ -433,11 +448,15 @@ class PhpWebserver(WebserverEngine):
         super(PhpWebserver, self).__init__(**kwargs)
 
     def start(self):
-        server_cmd = ['php', '-d', 'output_buffering=Off', '-S',
-                      '%s:%s' % (self.host, self.port)]
+        server_cmd = [
+            # fmt: off
+            'php',
+            '-d', 'output_buffering=Off',
+            '-S', '%s:%s' % (self.host, self.port),
+            # fmt: on
+        ]
         if self.router:
-            server_cmd.append(
-                os.path.join(self.mwdir, self.router))
+            server_cmd.append(os.path.join(self.mwdir, self.router))
 
         self.server = subprocess.Popen(
             server_cmd,
@@ -461,12 +480,16 @@ class Xvfb(BackendServer):
 
     def start(self):
         self.log.info('Starting Xvfb on display %s', self.display)
-        self.server = subprocess.Popen([
-            'Xvfb', self.display,
-            '-screen', '0', '1280x1024x24',
-            '-nolisten', 'tcp',
-            '-nolisten', 'unix',
-            ])
+        self.server = subprocess.Popen(
+            [
+                # fmt: off
+                'Xvfb', self.display,
+                '-screen', '0', '1280x1024x24',
+                '-nolisten', 'tcp',
+                '-nolisten', 'unix',
+                # fmt: on
+            ]
+        )
 
     def __str__(self):
         return "<Xvfb {}>".format(self.display)

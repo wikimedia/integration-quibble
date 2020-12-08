@@ -32,8 +32,19 @@ CLONE_MAP = [
 ]
 
 
-def clone(branch, cache_dir, project_branch, projects, workers, workspace,
-          zuul_branch, zuul_newrev, zuul_project, zuul_ref, zuul_url):
+def clone(
+    branch,
+    cache_dir,
+    project_branch,
+    projects,
+    workers,
+    workspace,
+    zuul_branch,
+    zuul_newrev,
+    zuul_project,
+    zuul_ref,
+    zuul_url,
+):
     log = logging.getLogger('quibble.zuul.clone')
 
     if isinstance(projects, str):
@@ -63,7 +74,7 @@ def clone(branch, cache_dir, project_branch, projects, workers, workspace,
         zuul_newrev=zuul_newrev,
         zuul_project=zuul_project,
         cache_no_hardlinks=False,  # False allows hardlink
-        )
+    )
     # The constructor expects a file, set the value directly
     zuul_cloner.clone_map = CLONE_MAP
 
@@ -77,15 +88,14 @@ def clone(branch, cache_dir, project_branch, projects, workers, workspace,
 
     # Reimplement the cloner execute method with parallelism and logging
     # suitable for multiplexed output.
-    log.info("Preparing %d repositories with %s workers",
-             len(dests), workers)
+    log.info("Preparing %d repositories with %s workers", len(dests), workers)
 
     if 'mediawiki/core' in projects:
         mw_git_dir = os.path.join(dests['mediawiki/core'], '.git')
         if not os.path.exists(mw_git_dir):
             log.info("Cloning mediawiki/core first")
             zuul_cloner.prepareRepo('mediawiki/core', dests['mediawiki/core'])
-            del(dests['mediawiki/core'])
+            del dests['mediawiki/core']
 
     can_run = threading.Event()
     can_run.set()
@@ -93,7 +103,8 @@ def clone(branch, cache_dir, project_branch, projects, workers, workspace,
     with ThreadPoolExecutor(max_workers=workers) as executor:
         futures = [
             executor.submit(_clone_worker, can_run, zuul_cloner, project, dest)
-            for project, dest in dests.items()]
+            for project, dest in dests.items()
+        ]
         # Consume results
         for future in as_completed(futures):
             future.result()

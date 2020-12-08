@@ -18,8 +18,8 @@ def plans():
             test_data.get('plan'),
             test_data.get('args', []),
             test_data.get('env', {}),
-            id=os.path.relpath(plan_filename, PLANS_DIR)
-            )
+            id=os.path.relpath(plan_filename, PLANS_DIR),
+        )
 
 
 @pytest.mark.parametrize('expected,args,env', plans())

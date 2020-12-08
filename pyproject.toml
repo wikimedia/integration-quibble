@@ -1,0 +1,4 @@
+[tool.black]
+skip_string_normalization = true
+# Flake8 default line length
+line-length = 79

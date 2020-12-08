@@ -77,7 +77,9 @@ class GitChangedInHead:
         # --first-parent: ... but only follow the first parent commit
         # --format=format: : strip out the commit summary
         cmd = [
-            'git', 'show', 'HEAD',
+            'git',
+            'show',
+            'HEAD',
             '--name-only',
             '--diff-filter=ACM',
             '--find-renames=100%',

@@ -73,9 +73,7 @@ def isExtOrSkin(project):
 
     Returns boolean, whether the repository is a MediaWiki extension or skin.
     """
-    return project.startswith(
-        ('mediawiki/extensions/', 'mediawiki/skins/')
-    )
+    return project.startswith(('mediawiki/extensions/', 'mediawiki/skins/'))
 
 
 def move_item_to_head(dependencies, project):

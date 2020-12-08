@@ -5,7 +5,6 @@ import quibble.mediawiki.maintenance
 
 
 class TestMediawikiMaintenance(unittest.TestCase):
-
     @mock.patch.dict('os.environ', {'BAR': 'foo'}, clear=True)
     @mock.patch('subprocess.Popen')
     def test_install_php_uses_os_environment(self, mock_popen):
@@ -66,8 +65,9 @@ class TestMediawikiMaintenance(unittest.TestCase):
     @mock.patch('subprocess.Popen')
     def test_update_php_raises_exception_on_bad_exit_code(self, mock_popen):
         mock_popen.return_value.returncode = 42
-        with self.assertRaisesRegex(Exception,
-                                    'Update failed with exit code: 42'):
+        with self.assertRaisesRegex(
+            Exception, 'Update failed with exit code: 42'
+        ):
             quibble.mediawiki.maintenance.update([], mwdir='test/sources')
 
     @mock.patch('subprocess.Popen')
@@ -84,7 +84,8 @@ class TestMediawikiMaintenance(unittest.TestCase):
     def test_rebuildlocalisationcache_lang_parameter(self, mock_popen):
         mock_popen.return_value.returncode = 0
         quibble.mediawiki.maintenance.rebuildLocalisationCache(
-            lang=['fr', 'zh'])
+            lang=['fr', 'zh']
+        )
 
         (args, kwargs) = mock_popen.call_args
         params = args[0][2:]
@@ -97,7 +98,6 @@ class TestMediawikiMaintenance(unittest.TestCase):
     ):
         mock_popen.return_value.returncode = 43
         with self.assertRaisesRegex(
-                Exception,
-                'rebuildLocalisationCache failed with exit code: 43'
+            Exception, 'rebuildLocalisationCache failed with exit code: 43'
         ):
             quibble.mediawiki.maintenance.rebuildLocalisationCache()

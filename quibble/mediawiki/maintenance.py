@@ -33,8 +33,7 @@ def update(args, mwdir=None):
     p = subprocess.Popen(cmd, cwd=mwdir, env=update_env)
     p.communicate()
     if p.returncode > 0:
-        raise Exception(
-            'Update failed with exit code: %s' % p.returncode)
+        raise Exception('Update failed with exit code: %s' % p.returncode)
 
 
 def install(args, mwdir=None):
@@ -42,12 +41,14 @@ def install(args, mwdir=None):
 
     cmd = ['php', 'maintenance/install.php']
     cmd.extend(args)
-    cmd.extend([
-        '--with-extensions',  # T189567
-        '--pass=testwikijenkinspass',
-        'TestWiki',
-        'WikiAdmin'
-    ])
+    cmd.extend(
+        [
+            '--with-extensions',  # T189567
+            '--pass=testwikijenkinspass',
+            'TestWiki',
+            'WikiAdmin',
+        ]
+    )
     log.info(' '.join(cmd))
 
     install_env = {}
@@ -59,8 +60,7 @@ def install(args, mwdir=None):
     p = subprocess.Popen(cmd, cwd=mwdir, env=install_env)
     p.communicate()
     if p.returncode > 0:
-        raise Exception(
-            'Install failed with exit code: %s' % p.returncode)
+        raise Exception('Install failed with exit code: %s' % p.returncode)
 
 
 def rebuildLocalisationCache(lang=['en'], mwdir=None):
@@ -73,5 +73,6 @@ def rebuildLocalisationCache(lang=['en'], mwdir=None):
     p.communicate()
     if p.returncode > 0:
         raise Exception(
-            'rebuildLocalisationCache failed with exit code: %s' % (
-                p.returncode))
+            'rebuildLocalisationCache failed with exit code: %s'
+            % (p.returncode)
+        )

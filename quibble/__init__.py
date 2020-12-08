@@ -22,20 +22,25 @@ import time
 def colored_logging():
     # Color codes http://www.tldp.org/HOWTO/Bash-Prompt-HOWTO/x329.html
     logging.addLevelName(  # cyan
-        logging.DEBUG, "\033[36m%s\033[0m" %
-        logging.getLevelName(logging.DEBUG))
+        logging.DEBUG,
+        "\033[36m%s\033[0m" % logging.getLevelName(logging.DEBUG),
+    )
     logging.addLevelName(  # green
-        logging.INFO, "\033[32m%s\033[0m" %
-        logging.getLevelName(logging.INFO))
+        logging.INFO, "\033[32m%s\033[0m" % logging.getLevelName(logging.INFO)
+    )
     logging.addLevelName(  # yellow
-        logging.WARNING, "\033[33m%s\033[0m" %
-        logging.getLevelName(logging.WARNING))
+        logging.WARNING,
+        "\033[33m%s\033[0m" % logging.getLevelName(logging.WARNING),
+    )
     logging.addLevelName(  # red
-        logging.ERROR, "\033[31m%s\033[0m" %
-        logging.getLevelName(logging.ERROR))
+        logging.ERROR,
+        "\033[31m%s\033[0m" % logging.getLevelName(logging.ERROR),
+    )
     logging.addLevelName(  # red background
-        logging.CRITICAL, "\033[41m%s\033[0m" %
-        logging.getLevelName(logging.CRITICAL))
+        logging.CRITICAL,
+        "\033[41m%s\033[0m" % logging.getLevelName(logging.CRITICAL),
+    )
+
 
 # Can be used to temporarily alter a logging level.
 #
@@ -75,11 +80,13 @@ def chromium_flags():
     if is_in_docker():
         args.append('--no-sandbox')
     if use_headless():
-        args.extend([
-            '--headless',
-            '--disable-gpu',
-            '--remote-debugging-port=9222',
-        ])
+        args.extend(
+            [
+                '--headless',
+                '--disable-gpu',
+                '--remote-debugging-port=9222',
+            ]
+        )
 
     log = logging.getLogger('quibble.chromium_flags')
     log.debug("Flags: %s", args)
