@@ -455,7 +455,6 @@ class PhpWebserver(WebserverEngine):
 
 
 class Xvfb(BackendServer):
-
     def __init__(self, display=':94'):
         super(Xvfb, self).__init__()
         self.display = display
@@ -464,8 +463,7 @@ class Xvfb(BackendServer):
         self.log.info('Starting Xvfb on display %s', self.display)
         self.server = subprocess.Popen([
             'Xvfb', self.display,
-            '-screen', '0', '1280x1024x24'
-            '-ac',
+            '-screen', '0', '1280x1024x24',
             '-nolisten', 'tcp',
             '-nolisten', 'unix',
             ])
