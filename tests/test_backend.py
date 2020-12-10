@@ -11,6 +11,7 @@ from quibble.backend import ChromeWebDriver
 from quibble.backend import PhpWebserver
 from quibble.backend import ExternalWebserver
 from quibble.backend import MySQL
+from quibble.backend import Postgres
 
 FIXTURES_DIR = os.path.join(os.path.dirname(__file__), 'fixtures')
 PHPDOCROOT = os.path.join(FIXTURES_DIR, 'phpdocroot')
@@ -194,3 +195,14 @@ class TestMySQL(unittest.TestCase):
         mock_popen.return_value.returncode = 42
         with self.assertRaises(Exception, msg='FAILED (42): some output'):
             MySQL()._createwikidb()
+
+
+class TestPostgres(unittest.TestCase):
+
+    @mark.integration
+    def test_it_starts(self):
+        pg = Postgres()
+        with pg:
+            self.assertTrue(
+                os.path.exists(pg.socket),
+                'PostgreSQL socket has been created')

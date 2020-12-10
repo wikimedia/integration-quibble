@@ -197,7 +197,8 @@ class Postgres(DatabaseServer):
         # Start pg_virtualenv and save configuration settings
         self.server = subprocess.Popen([
             'pg_virtualenv',
-            '-c -s %s' % self.socket,
+            # Option for pg_createcluster
+            '-c', '--socketdir=%s' % self.socket,
             'python3', '-m', 'quibble.pg_virtualenv_hook'
         ], env={'QUIBBLE_TMPFILE': self.conffile})
 
