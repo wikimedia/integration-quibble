@@ -183,7 +183,7 @@ class InstallMediaWikiTest(unittest.TestCase):
         url = 'http://192.0.2.1:4321'
 
         quibble.commands.InstallMediaWiki(
-            '/tmp', db, url, '/log', True
+            '/src', db, url, '/log', '/tmp', True
         ).execute()
 
         # TODO: Assert that localsettings is edited correctly.
@@ -193,11 +193,11 @@ class InstallMediaWikiTest(unittest.TestCase):
                   '--server=%s' % (url, ),
                   '--dbtype=mysql', '--dbname=testwiki',
                   '--dbuser=USER', '--dbpass=PASS', '--dbserver=SERVER'],
-            mwdir='/tmp')
+            mwdir='/src')
 
         mock_update.assert_called_once_with(
             args=['--skip-external-dependencies'],
-            mwdir='/tmp')
+            mwdir='/src')
 
 
 class PhpUnitDatabaseTest(unittest.TestCase):

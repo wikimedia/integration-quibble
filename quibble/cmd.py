@@ -55,9 +55,12 @@ class QuibbleCmd(object):
     def __init__(self):
         self._context_stack = contextlib.ExitStack()
 
-    def _setup_environment(self, workspace, mw_install_path, log_dir):
+    def _setup_environment(self, workspace, mw_install_path, log_dir, tmp_dir):
         """
         Set and get needed environment variables.
+
+        TODO: Can we deprecate any of these in favor of explicit
+        parameters?
         """
         if 'EXECUTOR_NUMBER' not in os.environ:
             os.environ['EXECUTOR_NUMBER'] = '1'
@@ -72,7 +75,7 @@ class QuibbleCmd(object):
         os.environ['MW_INSTALL_PATH'] = mw_install_path
         os.environ['MW_LOG_DIR'] = log_dir
         os.environ['LOG_DIR'] = log_dir
-        os.environ['TMPDIR'] = tempfile.gettempdir()
+        os.environ['TMPDIR'] = tmp_dir
 
     def _warn_obsolete_env_deps(self, var):
         log.warning(
@@ -143,7 +146,9 @@ class QuibbleCmd(object):
         else:
             dump_dir = None
 
-        self._setup_environment(workspace, mw_install_path, log_dir)
+        tmp_dir = tempfile.gettempdir()
+
+        self._setup_environment(workspace, mw_install_path, log_dir, tmp_dir)
 
         zuul_project = os.environ.get('ZUUL_PROJECT', None)
         if zuul_project is None:
@@ -252,6 +257,7 @@ class QuibbleCmd(object):
                 db=database_backend,
                 web_url=web_backend.url,
                 log_dir=log_dir,
+                tmp_dir=tmp_dir,
                 use_vendor=use_vendor))
 
         if not args.skip_deps:

@@ -6,35 +6,16 @@
  * Process environment variables
  */
 
-// Get configured log directory
-if ( getenv( 'MW_LOG_DIR' ) ) {
-	$quibbleLogDir = getenv( 'MW_LOG_DIR' );
-} elseif ( getenv( 'WORKSPACE' ) ) {
-	$quibbleLogDir = getenv( 'WORKSPACE' ) . '/log';
-} else {
-	$quibbleLogDir = __DIR__ . '/../log';
-}
-
-// Ensure MW_INSTALL_PATH is set
-if ( !getenv( 'MW_INSTALL_PATH' ) ) {
-	if ( is_dir( getenv( 'WORKSPACE' ) . '/src/mediawiki/core' ) ) {
-		// The new pattern as of 2014, as used by Zuul cloner in Jenkins,
-		// and in Quibble, is to clone MediaWiki at /src/mediawiki/core,
-		// aka "/src/$ZUUL_PROJECT".
-		putenv( 'MW_INSTALL_PATH='. getenv( 'WORKSPACE' ) . '/src/mediawiki/core' );
-	} else {
-		// Legacy
-		// CI jobs that don't use Zuul cloner, clone core directly at WORKSPACE
-		putenv( 'MW_INSTALL_PATH='. getenv( 'WORKSPACE' ) );
-	}
-}
+// Set environment from quibble, leaving the ability to override.
+// TODO: Deprecate environment variables in code under test.
+{{params-declaration}}
 
 /**
  * Development settings
  */
 
 // MW_LOG_DIR is used by DevelopmentSettings.php
-putenv( "MW_LOG_DIR=$quibbleLogDir" );
+putenv( "MW_LOG_DIR=" . MW_LOG_DIR );
 
 // Use MediaWiki's development setting
 require_once "$IP/includes/DevelopmentSettings.php";
@@ -61,7 +42,7 @@ $wgDjvuToXML = '/usr/bin/djvutoxml';
 $wgDjvuTxt = '/usr/bin/djvutxt';
 
 // Set cache directory
-$wgCacheDirectory = getenv( 'TMPDIR' );
+$wgCacheDirectory = TMPDIR;
 
 // Enables the experimental REST API for testing, T235564
 $wgEnableRestAPI = true;
@@ -81,7 +62,7 @@ $wgEnableUploads = true;
 
 // Hack to support testing Parsoid as an extension, while overriding
 // the composer library included with core. (T227352)
-$parsoidDir = getenv( 'MW_INSTALL_PATH' ) . '/services/parsoid';
+$parsoidDir = MW_INSTALL_PATH . '/services/parsoid';
 if ( is_dir( $parsoidDir ) ) {
 	AutoLoader::$psr4Namespaces += [
 		// Keep this in sync with the "autoload" clause in

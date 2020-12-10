@@ -10,7 +10,6 @@ from quibble.gitchangedinhead import GitChangedInHead
 from quibble.util import copylog, parallel_run, isExtOrSkin
 import quibble.mediawiki.registry
 import quibble.zuul
-import shutil
 import subprocess
 import sys
 
@@ -453,11 +452,13 @@ class StartBackends:
 
 class InstallMediaWiki:
 
-    def __init__(self, mw_install_path, db, web_url, log_dir, use_vendor):
+    def __init__(self, mw_install_path, db, web_url, log_dir, tmp_dir,
+                 use_vendor):
         self.mw_install_path = mw_install_path
         self.db = db
         self.web_url = web_url
         self.log_dir = log_dir
+        self.tmp_dir = tmp_dir
         self.use_vendor = use_vendor
 
     def execute(self):
@@ -491,10 +492,25 @@ class InstallMediaWiki:
         localsettings_installer = \
             os.path.join(self.mw_install_path, 'LocalSettings-installer.php')
         quibblesettings = pkg_resources.resource_filename(
-            __name__, 'mediawiki/local_settings.php')
+            __name__, 'mediawiki/local_settings.php.tpl')
+
+        # Wire variables into settings template.
+        with open(quibblesettings, "r") as f:
+            params = {
+                'MW_INSTALL_PATH': self.mw_install_path,
+                'MW_LOG_DIR': self.log_dir,
+                'TMPDIR': self.tmp_dir,
+            }
+            params_declaration = "\n".join(
+                "const {} = '{}';".format(key, value)
+                for (key, value) in params.items()
+            )
+            customsettings = f.read()\
+                .replace('{{params-declaration}}', params_declaration)
 
         os.rename(localsettings, localsettings_installer)
-        shutil.copyfile(quibblesettings, localsettings)
+        with open(localsettings, "w") as f:
+            f.write(customsettings)
 
         copylog(localsettings,
                 os.path.join(self.log_dir, 'LocalSettings.php'))
