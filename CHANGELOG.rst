@@ -1,9 +1,81 @@
 Quibble changelog
 =================
 
-master (UNRELEASED)
+0.0.46 (2020-01-07)
 -------------------
-* …
+
+Highlights
+~~~~~~~~~~
+
+Python 3.5+ and 3.8
+^^^^^^^^^^^^^^^^^^^
+
+Explicitly require Python 3.5 or later which has been included in Debian since
+2017 (Stretch) and Ubuntu 2016 (Xenial).
+
+Python 3.8 is supported.
+
+Apache support
+^^^^^^^^^^^^^^
+
+Since its conception Quibble has been using a PHP built-in server which until
+PHP 7.4 serves requests serially and lacks extended configuration that could be
+find in other web servers.  This release bring in support to point Quibble to
+an external managed web server exposing MediaWiki.
+
+This is done by using `--web-backend=external` and setting `--web-url` to the
+base of the MediaWiki installation (without `index.php`). See `./docker` for an
+example of how to spawn Apache and php-fpm using supervisord which is used by
+the example `/DockerFile`.
+
+`T225218 <https://phabricator.wikimedia.org/T225218>`_
+Adam Wight && Kosta Harlan
+
+Features
+~~~~~~~~
+* Recognizes `podman <https://podman.io/>`_ as a container environment.
+  Marius Hoch
+* Run phpunit-unit stage before MediaWiki installation.
+  `T266441 <https://phabricator.wikimedia.org/T266441>`_
+  Kosta Harlan
+
+Bug fixes
+~~~~~~~~~
+* Fix regression which made us run linters for repositories besides MediaWiki
+  extensions or skins (eg: mediawiki/services/parsoid).
+  `T263500 <https://phabricator.wikimedia.org/T263500>`_
+  Antoine Musso
+* Fix Xvfb options which were improperly concatenated and thus ignored:
+  * Drop `-ac` (disable host-based access control mechanisms) since it was
+  never taken in account.
+  * Framebuffer is now explicitly set to Xvfb default: display `:0` and
+  `1280x1024x24`.
+  Adam Wight && Antoine Musso
+* Mute zuul.CloneMapper logging when running browser tests.
+  Antoine Musso
+
+Internal
+~~~~~~~~
+* Use `black <https://black.readthedocs.io/>`_ for code formatting.
+  Kosta Harlan && Adam Wight && Antoine Musso
+* Enhance code to more closely match PEP8.
+  Adam Wight
+* Enhance the example `Dockerfile`:
+  * Drop an unused FROM
+  * Collapse build steps to minimize intermediate layers
+  * Fix a typo that prevented deletion of `/var/lib/apt/lists`
+  * Spawn Apache2 with supervisor and change the entrypoint to use it as the
+  web backend.
+  Adam Wight
+* Fix rst links in the changelog.
+  Antoine Musso
+* Enhance how options are passed to `pg_virtualenv`
+  Antoine Musso
+* Add CI test environment for Python 3.8.
+  Antoine Musso
+* Run `flake8 <https://flake8.pycqa.org/>`_ against all supported Python
+  versions.
+  Antoine Musso
 
 0.0.45 (2020-09-18)
 -------------------
