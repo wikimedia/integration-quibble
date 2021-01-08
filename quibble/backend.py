@@ -347,7 +347,8 @@ class MySQL(DatabaseServer):
 
     def __str__(self):
         return "<{} {}>".format(
-            self.type, self.socket if self.socket else "(no socket)"
+            self.__class__.__name__,
+            self.socket if self.socket else "(no socket)",
         )
 
 
