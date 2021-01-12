@@ -177,7 +177,10 @@ class QuibbleCmd(object):
             log.debug("ZUUL_PROJECT=%s", zuul_project)
 
         is_core = zuul_project == 'mediawiki/core'
-        is_extension = zuul_project.startswith('mediawiki/extensions/')
+        is_extension = (
+            zuul_project.startswith('mediawiki/extensions/')
+            or zuul_project == 'mediawiki/services/parsoid'
+        )
         is_skin = zuul_project.startswith('mediawiki/skins/')
 
         use_composer = args.packages_source == 'composer'
