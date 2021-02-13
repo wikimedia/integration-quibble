@@ -134,7 +134,7 @@ class CoreNpmComposerTestTest(unittest.TestCase):
         quibble.commands.CoreNpmComposerTest('/tmp', True, True).execute()
 
         mock_check_call.assert_any_call(
-            ['composer', 'test', 'foo.php', 'bar.php'],
+            ['composer', 'test-some', 'foo.php', 'bar.php'],
             cwd='/tmp',
             env={'somevar': '42', 'COMPOSER_PROCESS_TIMEOUT': mock.ANY},
         )

@@ -352,12 +352,12 @@ class CoreNpmComposerTest:
         if not files:
             log.info('Skipping composer test (unneeded)')
         else:
-            log.info("Running composer test")
+            log.info("Running composer test for changed files")
 
             env = {'COMPOSER_PROCESS_TIMEOUT': '900'}
             env.update(os.environ)
 
-            composer_test_cmd = ['composer', 'test']
+            composer_test_cmd = ['composer', 'test-some']
             composer_test_cmd.extend(files)
             subprocess.check_call(
                 composer_test_cmd, cwd=self.mw_install_path, env=env
