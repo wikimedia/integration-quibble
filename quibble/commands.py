@@ -826,16 +826,32 @@ class BrowserTests:
 
 
 class UserScripts:
-    def __init__(self, mw_install_path, commands):
+    def __init__(self, mw_install_path, commands, web_url):
         self.mw_install_path = mw_install_path
         self.commands = commands
+        self.web_url = web_url
 
     def execute(self):
         log.info('User commands, working directory: %s', self.mw_install_path)
+        userscripts_env = {}
+        userscripts_env.update(os.environ)
+        userscripts_env.update(
+            {
+                'MW_SERVER': self.web_url,
+                'MW_SCRIPT_PATH': '/',
+                'MEDIAWIKI_USER': 'WikiAdmin',
+                'MEDIAWIKI_PASSWORD': 'testwikijenkinspass',
+            }
+        )
 
         for cmd in self.commands:
             log.info(cmd)
-            subprocess.check_call(cmd, shell=True, cwd=self.mw_install_path)
+            subprocess.check_call(
+                cmd,
+                shell=True,
+                cwd=self.mw_install_path,
+                env=userscripts_env,
+            )
 
     def __str__(self):
         return "User commands: {}".format(", ".join(self.commands))

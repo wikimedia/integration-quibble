@@ -387,7 +387,11 @@ class QuibbleCmd(object):
 
         if args.commands:
             plan.append(
-                quibble.commands.UserScripts(mw_install_path, args.commands)
+                quibble.commands.UserScripts(
+                    mw_install_path,
+                    args.commands,
+                    web_backend.url,
+                )
             )
 
         return plan

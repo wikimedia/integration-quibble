@@ -525,19 +525,43 @@ class UserScriptsTest(unittest.TestCase):
     @mock.patch('quibble.backend.PhpWebserver')
     @mock.patch('subprocess.check_call')
     def test_commands(self, mock_check_call, *_):
-        quibble.commands.UserScripts('/tmp', ['true', 'false']).execute()
+        quibble.commands.UserScripts(
+            '/tmp', ['true', 'false'], 'http://192.0.2.1:9413'
+        ).execute()
 
         mock_check_call.assert_has_calls(
             [
-                mock.call('true', cwd='/tmp', shell=True),
-                mock.call('false', cwd='/tmp', shell=True),
+                mock.call('true', cwd='/tmp', shell=True, env=mock.ANY),
+                mock.call('false', cwd='/tmp', shell=True, env=mock.ANY),
             ]
+        )
+
+    @mock.patch('quibble.backend.PhpWebserver')
+    @mock.patch('os.environ', clear=True)
+    @mock.patch('subprocess.check_call')
+    def test_mediawiki_environment_variables(self, mock_check_call, *_):
+        quibble.commands.UserScripts(
+            '/tmp', ['true', 'false'], 'http://192.0.2.1:9413'
+        ).execute()
+
+        (args, kwargs) = mock_check_call.call_args
+        env = kwargs.get('env', {})
+        self.assertEqual(
+            env,
+            {
+                'MEDIAWIKI_PASSWORD': 'testwikijenkinspass',
+                'MEDIAWIKI_USER': 'WikiAdmin',
+                'MW_SERVER': 'http://192.0.2.1:9413',
+                'MW_SCRIPT_PATH': '/',
+            },
         )
 
     @mock.patch('quibble.backend.PhpWebserver')
     def test_commands_raises_exception_on_error(self, *_):
         with self.assertRaises(subprocess.CalledProcessError, msg=''):
-            quibble.commands.UserScripts('/tmp', ['false']).execute()
+            quibble.commands.UserScripts('/tmp', ['false'], '').execute()
 
         with self.assertRaises(subprocess.CalledProcessError, msg=''):
-            quibble.commands.UserScripts('/tmp', ['true', 'false']).execute()
+            quibble.commands.UserScripts(
+                '/tmp', ['true', 'false'], ''
+            ).execute()
