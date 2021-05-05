@@ -1,9 +1,36 @@
 Quibble changelog
 =================
 
-master (UNRELEASED)
+0.0.47 (2021-05-05)
 -------------------
-* …
+
+Features
+~~~~~~~~
+* Test Parsoid as if it were an extension
+  `T271863 <https://phabricator.wikimedia.org/T271863>`_
+  C. Scott Ananian
+* Run `composer test-some` with paths. A new CI entry point which expect a list
+  of files to be passed as argument. Quibble passes the list of files that have
+  changed in HEAD.
+  `T199403 <https://phabricator.wikimedia.org/T199403>`_
+  James D. Forrester
+* When running a user script (`quibble -c <command>`), inject MediaWiki
+  environment variables (`MW_SERVER`, `MW_SCRIPT_PATH`, `MEDIAWIKI_USER` and
+  `MEDIAWIKI_PASSWORD`).
+  Antoine Musso
+
+Bug fixes
+~~~~~~~~~
+* Under Python 3.5, do not use setuptools_scm 6 which fix installation under
+  Debian Stretch.
+  Antoine Musso
+
+Internal
+~~~~~~~~
+* Make `black` to show the actual errors (`--diff`).
+  Antoine Musso
+* Use class name for MySQL str
+  Antoine Musso
 
 0.0.46 (2020-01-07)
 -------------------
