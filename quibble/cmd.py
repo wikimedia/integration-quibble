@@ -287,11 +287,12 @@ class QuibbleCmd(object):
             plan.append(quibble.commands.PhpUnitUnit(mw_install_path, log_dir))
 
         if not args.skip_install:
-            plan.append(
-                quibble.commands.StartBackends(
-                    self._context_stack, [database_backend]
+            if not args.db_is_external:
+                plan.append(
+                    quibble.commands.StartBackends(
+                        self._context_stack, [database_backend]
+                    )
                 )
-            )
 
             plan.append(
                 quibble.commands.InstallMediaWiki(
@@ -458,6 +459,12 @@ def get_arg_parser():
         choices=['sqlite', 'mysql', 'postgres'],
         default='mysql',
         help='Database backend to use. Default: mysql',
+    )
+    parser.add_argument(
+        '--db-is-external',
+        action='store_true',
+        help='If the database is managed externally and not by Quibble. '
+        'Default: managed by Quibble',
     )
     parser.add_argument(
         '--db-dir',

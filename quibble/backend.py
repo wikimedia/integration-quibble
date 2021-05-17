@@ -244,6 +244,7 @@ class MySQL(DatabaseServer):
         user='wikiuser',
         password='secret',
         dbname='wikidb',
+        dbserver='localhost',
     ):
         super(MySQL, self).__init__(base_dir, dump_dir)
 
@@ -251,6 +252,7 @@ class MySQL(DatabaseServer):
         self.password = password
         self.dbname = dbname
         self.socket = None
+        self.dbserver = dbserver
 
     def _install_db(self):
         self.log.info('Initializing MySQL data directory')
@@ -269,23 +271,25 @@ class MySQL(DatabaseServer):
             raise Exception("FAILED (%s): %s" % (p.returncode, outs))
 
     def _createwikidb(self):
+        """Create a database and necessary grants.
+        Will drop existing database if it already exists."""
         self.log.info('Creating the wiki database and grant')
+        mysql_cmd = ['mysql', '--user=root']
+        if self.socket:
+            mysql_cmd.append('--socket=%s' % self.socket)
         p = subprocess.Popen(
-            [
-                'mysql',
-                '--user=root',
-                '--socket=%s' % self.socket,
-            ],
+            mysql_cmd,
             universal_newlines=True,
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
         )
         grant = (
-            "CREATE DATABASE IF NOT EXISTS %s;"
+            "DROP DATABASE IF EXISTS %s;"
+            "CREATE DATABASE %s;"
             "GRANT ALL ON %s.* TO '%s'@'localhost'"
             "IDENTIFIED BY '%s';\n"
-            % (self.dbname, self.dbname, self.user, self.password)
+            % (self.dbname, self.dbname, self.dbname, self.user, self.password)
         )
         outs, errs = p.communicate(input=grant)
         if p.returncode != 0:
