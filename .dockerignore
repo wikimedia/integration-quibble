@@ -5,6 +5,8 @@
 cache
 ref
 src
+build
+log
 
 # Dev related
 .tox

@@ -10,3 +10,6 @@
 /.tox
 *.pyc
 /tests/.tmp
+/src/
+/build/
+/log/
