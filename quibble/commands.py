@@ -620,12 +620,29 @@ class InstallMediaWiki:
 
 
 class AbstractPhpUnit:
+    def get_phpunit_command(self, repo_path=None):
+        if _repo_has_composer_script(
+            self.mw_install_path, 'phpunit:entrypoint'
+        ):
+            phpunit_command = [
+                'composer',
+                'run',
+                '--timeout=0',
+                'phpunit:entrypoint',
+                '--',
+            ]
+        else:
+            phpunit_command = ['php', 'tests/phpunit/phpunit.php']
+        if repo_path:
+            phpunit_command.append(repo_path)
+        return phpunit_command
+
     def _run_phpunit(self, group=[], exclude_group=[], cmd=None):
         log.info(self)
 
         always_excluded = ['Broken', 'ParserFuzz', 'Stub']
         if not cmd:
-            cmd = ['php', 'tests/phpunit/phpunit.php']
+            cmd = self.get_phpunit_command()
         if self.testsuite:
             cmd.extend(['--testsuite', self.testsuite])
 
@@ -678,8 +695,7 @@ class PhpUnitStandalone(AbstractPhpUnit):
     def execute(self):
         self._run_phpunit(
             group=['Standalone'],
-            # Have to run custom entry point to run the in repo path
-            cmd=['php', 'tests/phpunit/phpunit.php', self.repo_path],
+            cmd=self.get_phpunit_command(self.repo_path),
         )
 
     def __str__(self):
