@@ -1,5 +1,6 @@
 from unittest import mock
 
+import io
 import pytest
 import quibble.util
 from quibble.util import (
@@ -8,6 +9,8 @@ from quibble.util import (
     move_item_to_head,
     php_version,
 )
+import sys
+import tempfile
 
 
 def test_parallel_run_accepts_an_empty_list_of_tasks():
@@ -77,3 +80,37 @@ def test_php_version(php_output):
     assert php_version('>=7.4') is True
     assert php_version('>=7.4.0') is True
     assert php_version('<7.4') is False
+
+
+def test_redirect_stream():
+    with tempfile.TemporaryFile(mode='w+') as stream, tempfile.TemporaryFile(
+        mode='w+'
+    ) as collector:
+        with quibble.util._redirect_stream(stream, collector):
+            stream.write("line\n")
+
+        collector.flush()
+        collector.seek(0, io.SEEK_SET)
+        captured = collector.read()
+        assert captured == "line\n"
+
+        stream.flush()
+        stream.seek(0, io.SEEK_SET)
+        sent = stream.read()
+        assert sent == ""
+
+
+def test_redirect_all_streams():
+    """This just proves that the redirect function is trying something
+    unsupported in the test context.
+    """
+    with tempfile.TemporaryFile(mode='w+') as collector:
+        with quibble.util.redirect_all_streams(collector):
+            print("test out")
+            print("test error", file=sys.stderr)
+            pass
+
+        collector.flush()
+        collector.seek(0, io.SEEK_SET)
+        captured = collector.read()
+        assert captured == "test out\ntest error\n"

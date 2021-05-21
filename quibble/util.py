@@ -14,11 +14,14 @@
 #     See the License for the specific language governing permissions and
 #     limitations under the License.
 
+import contextlib
 import logging
 from multiprocessing import Pool
+import os
 import re
 from shutil import copyfile
 import subprocess
+import sys
 
 from pkg_resources import Requirement
 from pkg_resources import parse_version
@@ -99,3 +102,29 @@ def php_version(specifier):
 
     except subprocess.CalledProcessError:
         pass
+
+
+@contextlib.contextmanager
+def _redirect_stream(source, sink):
+    """Redirects at the OS level, so that the new pipes are inherited by
+    subprocesses.
+
+    Can't reuse contextlib redirectors here because they only affect the Python
+    `std*` globals.
+    """
+    old_source_fileno = os.dup(source.fileno())
+    os.dup2(sink.fileno(), source.fileno())
+
+    yield
+    source.flush()
+
+    os.dup2(old_source_fileno, source.fileno())
+
+
+@contextlib.contextmanager
+def redirect_all_streams(sink):
+    """Redirect stdout and stderr to a single stream."""
+    with _redirect_stream(sys.stdout, sink), _redirect_stream(
+        sys.stderr, sink
+    ):
+        yield
