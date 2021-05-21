@@ -22,6 +22,8 @@ import re
 from shutil import copyfile
 import subprocess
 import sys
+import threading
+import time
 
 from pkg_resources import Requirement
 from pkg_resources import parse_version
@@ -148,3 +150,55 @@ def redirect_all_streams(sink):
         sys.stdout, sink
     ), _redirect_stream(sys.stderr, sink):
         yield
+
+
+class ProgressReporter:
+    """Report job progress at regular intervals, wraps an iterable and tracks
+    how many items have been served from it.
+
+    Inspired by tqdm.
+    """
+
+    def __init__(self, *, iterable, desc, sleep_interval, total):
+        self.iterable = iterable
+        self.desc = desc
+        self.completed = 0
+        self.total = total
+        self.start_time = time.time()
+        self.sleep_interval = sleep_interval
+
+        self.monitor = _RepeatingTimer(self.sleep_interval, self._refresh)
+
+    def __iter__(self):
+        self.monitor.start()
+
+        for obj in self.iterable:
+            yield obj
+
+            self.completed += 1
+
+        self.monitor.cancel()
+
+    def _refresh(self):
+        elapsed = int(time.time() - self.start_time)
+        log.debug(
+            "Waiting for %s: %ss elapsed, %s/%s completed",
+            self.desc,
+            elapsed,
+            self.completed,
+            self.total,
+        )
+
+
+class _RepeatingTimer(threading.Timer):
+    def __init__(self, *args, **kwargs):
+        # This is a daemon thread so that it can be immediately killed if the
+        # program crashes before fully consuming the iterator.  Otherwise, the
+        # `self.finished` Event might never receive the flag set by
+        # `self.monitor.cancel` above.
+        super(_RepeatingTimer, self).__init__(*args, **kwargs)
+        self.daemon = True
+
+    def run(self):
+        while not self.finished.wait(self.interval):
+            self.function(*self.args, **self.kwargs)
