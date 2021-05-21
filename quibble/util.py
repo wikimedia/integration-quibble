@@ -122,9 +122,29 @@ def _redirect_stream(source, sink):
 
 
 @contextlib.contextmanager
+def _redirect_logging(sink):
+    """Redirect logging to a single stream, and reconnect when finished."""
+    log_handler = logging.StreamHandler(sink)
+
+    logger = logging.getLogger()
+    old_handlers = logger.handlers
+    for handler in old_handlers:
+        logger.removeHandler(handler)
+    logger.addHandler(log_handler)
+
+    yield
+    log_handler.flush()
+
+    logger.removeHandler(log_handler)
+    for handler in old_handlers:
+        logger.addHandler(handler)
+    log_handler.close()
+
+
+@contextlib.contextmanager
 def redirect_all_streams(sink):
-    """Redirect stdout and stderr to a single stream."""
-    with _redirect_stream(sys.stdout, sink), _redirect_stream(
-        sys.stderr, sink
-    ):
+    """Redirect stdout, stderr, and logging to a single stream."""
+    with _redirect_logging(sink), _redirect_stream(
+        sys.stdout, sink
+    ), _redirect_stream(sys.stderr, sink):
         yield

@@ -1,6 +1,7 @@
 from unittest import mock
 
 import io
+import logging
 import pytest
 import quibble.util
 from quibble.util import (
@@ -108,9 +109,9 @@ def test_redirect_all_streams():
         with quibble.util.redirect_all_streams(collector):
             print("test out")
             print("test error", file=sys.stderr)
-            pass
+            logging.getLogger().error("test log")
 
         collector.flush()
         collector.seek(0, io.SEEK_SET)
         captured = collector.read()
-        assert captured == "test out\ntest error\n"
+        assert captured == "test out\ntest error\ntest log\n"
