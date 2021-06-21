@@ -86,14 +86,21 @@ class CreateComposerLocalTest(unittest.TestCase):
     def test_execute(self, mock_dump):
         quibble.commands.CreateComposerLocal(
             '/tmp',
-            ['mediawiki/extensions/Wikibase', 'justinrainbow/jsonschema'],
+            [
+                'mediawiki/extensions/Wikibase',
+                'mediawiki/skins/Vector',
+                'justinrainbow/jsonschema',
+            ],
         ).execute()
 
         mock_dump.assert_any_call(
             {
                 'extra': {
                     'merge-plugin': {
-                        'include': ['extensions/Wikibase/composer.json']
+                        'include': [
+                            'extensions/Wikibase/composer.json',
+                            'skins/Vector/composer.json',
+                        ]
                     }
                 }
             },

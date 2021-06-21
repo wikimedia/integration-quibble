@@ -239,12 +239,14 @@ class CreateComposerLocal:
 
     def execute(self):
         log.info('composer.local.json for merge plugin')
-        extensions = [
-            ext.strip()[len('mediawiki/') :] + '/composer.json'
-            for ext in self.dependencies
-            if ext.strip().startswith('mediawiki/extensions/')
+        extensions_and_skins = [
+            thing.strip()[len('mediawiki/') :] + '/composer.json'
+            for thing in self.dependencies
+            if thing.strip().startswith(
+                ('mediawiki/extensions/', 'mediawiki/skins/')
+            )
         ]
-        out = {'extra': {'merge-plugin': {'include': extensions}}}
+        out = {'extra': {'merge-plugin': {'include': extensions_and_skins}}}
         composer_local = os.path.join(
             self.mw_install_path, 'composer.local.json'
         )
