@@ -98,8 +98,8 @@ class CreateComposerLocalTest(unittest.TestCase):
                 'extra': {
                     'merge-plugin': {
                         'include': [
-                            'extensions/Wikibase/composer.json',
-                            'skins/Vector/composer.json',
+                            'extensions/*/composer.json',
+                            'skins/*/composer.json',
                         ]
                     }
                 }
