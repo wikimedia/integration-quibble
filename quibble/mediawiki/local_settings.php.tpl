@@ -63,12 +63,22 @@ $wgEnableUploads = true;
 // Hack to support testing Parsoid as an extension, while overriding
 // the composer library included with core. (T227352)
 $parsoidDir = MW_INSTALL_PATH . '/services/parsoid';
-if ( is_dir( $parsoidDir ) ) {
-	AutoLoader::$psr4Namespaces += [
-		// Keep this in sync with the "autoload" clause in
-		// $PARSOID_INSTALL_DIR/composer.json
-		'Wikimedia\\Parsoid\\' => "$parsoidDir/src",
-	];
-	wfLoadExtension( 'Parsoid', "$parsoidDir/extension.json" );
+if ( !is_dir( $parsoidDir ) ) {
+    // Fallback to version included in core if not cloned into /services/parsoid.
+    $parsoidDir = "$IP/vendor/wikimedia/parsoid";
 }
+AutoLoader::$psr4Namespaces += [
+	// Keep this in sync with the "autoload" clause in
+	// $PARSOID_INSTALL_DIR/composer.json
+	'Wikimedia\\Parsoid\\' => "$parsoidDir/src",
+];
+wfLoadExtension( 'Parsoid', "$parsoidDir/extension.json" );
+// Don't use Parsoid auto-config, which only works on REL1_36.
+$wgVisualEditorParsoidAutoConfig = false;
+$wgParsoidSettings = [
+	'useSelser' => true,
+	'rtTestMode' => false,
+	'linting' => false,
+];
+$wgVirtualRestConfig['modules']['parsoid'] = [];
 unset( $parsoidDir );
