@@ -1,9 +1,47 @@
 Quibble changelog
 =================
 
-master (UNRELEASED)
--------------------
-* …
+1.0.0 (2021-07-16)
+------------------
+
+Features
+~~~~~~~~
+* Add skins for composer merge plugin
+  `T280506 <https://phabricator.wikimedia.org/T280506>`_
+  Spotted by Lens0021
+  Antoine Musso
+* Use glob pattern when generating `composer.local.json`.
+
+  We previously forged the `composer.json` by explicitly referencing
+  `composer.json` files to load based on the list of repositories to clone and
+  the deprecated `EXT_DEPENDENCIES`/`SKIN_DEPENDENCIES` environment variable.
+
+  With globbing, it makes it easier to reuse an existing workspace without
+  having to relist  all the dependencies.
+  Kosta Harlan.
+* Introduce composer `phpunit:entrypoint` script to run the MediaWiki core
+  PHPUnit tests. If not present (for example in old release branches) we still
+  fallback to `maintenance/phpunit.php`).
+  `T90875 <https://phabricator.wikimedia.org/T90875>`_
+  Kosta Harlan
+* Add support for connecting to already running MySQL.
+  Use `--db-is-external` would cause Quibble to not spawn a one off MySQL, it
+  will instead attempt to connect to localhost with the default credentials:
+  `root` user with no password.
+
+  The option is MySQL specific, it is silently ignored for SQLite or PostgreSQL.
+
+  NOTE: the `wikidb` database is now dropped if it exists.
+  Kosta Harlan
+* Load Parsoid from `vendor.git` as fallback and set configuration.
+  `T218534 <https://phabricator.wikimedia.org/T218534>`_
+  `T227352 <https://phabricator.wikimedia.org/T227352>`_
+  Kosta Harlan
+
+Internal
+~~~~~~~~
+* Add a few more directories to git/docker/tox ignore lists
+  Kosta Harlan
 
 0.0.47 (2021-05-05)
 -------------------
