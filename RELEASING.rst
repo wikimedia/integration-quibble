@@ -7,6 +7,10 @@ List of steps to conduct to release a new version of Quibble:
 * Amend ``CHANGELOG.rst`` to replace 'master' with the new version and date
 * Verify ``CHANGELOG.rst`` has entries for commits since last version. Can be
   manually checked against: ``git log master..<previous tag>``
+* Check the rendered changelog, notably links to Phabricator tasks::
+
+    tox -e doc && xdg-open doc/build/html/changelog.html
+
 * git add, commit, send to review
 * Verify the CI job that runs all tests does work properly. That at least cover
   the most basic functionalities.
