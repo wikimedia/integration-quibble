@@ -1,6 +1,10 @@
 Quibble changelog
 =================
 
+master (UNRELEASED)
+-------------------
+* …
+
 1.0.1 (2021-07-23)
 -------------------
 * Revert *Load Parsoid from `vendor` as fallback and set configuration*.
