@@ -1,9 +1,12 @@
 Quibble changelog
 =================
 
-master (UNRELEASED)
+1.0.1 (2021-07-23)
 -------------------
-* …
+* Revert *Load Parsoid from `vendor` as fallback and set configuration*.
+  The feature caused a regression on Wikimedia CI.
+  `T287001 <https://phabricator.wikimedia.org/T287001>`_
+  C. Scott Ananian
 
 1.0.0 (2021-07-16)
 ------------------
@@ -37,7 +40,7 @@ Features
 
   NOTE: the `wikidb` database is now dropped if it exists.
   Kosta Harlan
-* Load Parsoid from `vendor.git` as fallback and set configuration.
+* Load Parsoid from `vendor` as fallback and set configuration.
   `T218534 <https://phabricator.wikimedia.org/T218534>`_
   `T227352 <https://phabricator.wikimedia.org/T227352>`_
   Kosta Harlan
