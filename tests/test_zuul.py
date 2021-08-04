@@ -208,15 +208,20 @@ class TestClone(unittest.TestCase):
         )
         self.maxDiff = None
 
+        assert mock_cloner.mock_calls[1] == mock.call().prepareRepo(
+            'mediawiki/core', mock.ANY
+        ), 'mediawiki/core is cloned first'
+
+        # Check other repositories got cloned
         mock_cloner.assert_has_calls(
             [
-                # MediaWiki core first
-                mock.call().prepareRepo('mediawiki/core', mock.ANY),
                 mock.call().log.getChild('mediawiki/extensions/Bar'),
                 mock.call().prepareRepo('mediawiki/extensions/Bar', mock.ANY),
                 mock.call().log.getChild('mediawiki/skins/Vector'),
                 mock.call().prepareRepo('mediawiki/skins/Vector', mock.ANY),
-            ]
+            ],
+            # Calls can happen in different order due to workers=2
+            any_order=True,
         )
 
 
