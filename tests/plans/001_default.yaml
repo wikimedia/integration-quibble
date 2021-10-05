@@ -32,6 +32,7 @@ plan:
  -  'Install MediaWiki, db=<MySQL (no socket)> vendor=True'
  -  'npm install in /WORKSPACE/src'
  -  'PHPUnit default suite (without database or standalone)'
+ -  'Run phpbench'
  -  'Run tests in mediawiki/core: composer, npm'
  -  'Start backends, <PhpWebserver http://127.0.0.1:9412 /WORKSPACE/src> <ChromeWebDriver :0>'
  -  'Run Qunit tests'

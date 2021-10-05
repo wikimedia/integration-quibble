@@ -34,6 +34,7 @@ log = logging.getLogger('quibble.cmd')
 known_stages = [
     'all',
     'phpunit-unit',
+    'phpbench',
     'phpunit',
     'phpunit-standalone',
     'npm-test',
@@ -44,6 +45,7 @@ known_stages = [
 ]
 default_stages = [
     'phpunit-unit',
+    'phpbench',
     'phpunit',
     'phpunit-standalone',
     'npm-test',
@@ -329,6 +331,12 @@ class QuibbleCmd(object):
                     mw_install_path, None, log_dir, repo_path
                 )
             )
+
+        if 'phpbench' in stages:
+            project_dir = mw_install_path
+            if is_extension or is_skin:
+                project_dir = os.path.join(mw_install_path, repo_path)
+            plan.append(quibble.commands.Phpbench(project_dir))
 
         if is_core:
             plan.append(

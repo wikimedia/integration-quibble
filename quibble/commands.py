@@ -619,6 +619,25 @@ class InstallMediaWiki:
         )
 
 
+class Phpbench:
+    """
+    See https://github.com/phpbench/phpbench / T291549
+    """
+
+    def __init__(self, directory):
+        self.directory = directory
+
+    def execute(self):
+        log.info(self)
+        if not _repo_has_composer_script(self.directory, 'phpbench'):
+            log.info('No phpbench entry found in composer.json')
+            return
+        subprocess.check_call(['composer', 'phpbench'], cwd=self.directory)
+
+    def __str__(self):
+        return "Run phpbench"
+
+
 class AbstractPhpUnit:
     def get_phpunit_command(self, repo_path=None):
         if _repo_has_composer_script(

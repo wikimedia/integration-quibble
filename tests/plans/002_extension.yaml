@@ -15,6 +15,7 @@ plan:
  -  'npm install in /WORKSPACE/src'
  -  'PHPUnit extensions suite (without database or standalone)'
  -  'PHPUnit default standalone suite on extensions/Foobar'
+ -  'Run phpbench'
  -  'Start backends, <PhpWebserver http://127.0.0.1:9412 /WORKSPACE/src> <Xvfb :94> <ChromeWebDriver :94>'
  -  'Run Qunit tests'
  -  'Browser tests for projects mediawiki/extensions/Foobar, mediawiki/core, mediawiki/skins/Vector, mediawiki/vendor'

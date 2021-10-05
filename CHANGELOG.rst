@@ -3,7 +3,9 @@ Quibble changelog
 
 master (UNRELEASED)
 -------------------
-* …
+* Add support for executing phpbench tests when repository has `composer phpbench` script defined.
+  `T291549 <https://phabricator.wikimedia.org/T291549>`_
+  Kosta Harlan
 
 1.0.1 (2021-07-23)
 -------------------
