@@ -1,11 +1,19 @@
 Quibble changelog
 =================
 
-master (UNRELEASED)
+1.1.0 (2021-10-06)
 -------------------
+
+Features
+~~~~~~~~
 * Add support for executing phpbench tests when repository has `composer phpbench` script defined.
   `T291549 <https://phabricator.wikimedia.org/T291549>`_
   Kosta Harlan
+
+Internal
+~~~~~~~~~
+* test: fix flappy test for core being cloned first
+* setup.cfg: replace dashes with underscores
 
 1.0.1 (2021-07-23)
 -------------------
