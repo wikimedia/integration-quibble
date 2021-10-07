@@ -624,15 +624,34 @@ class Phpbench:
     See https://github.com/phpbench/phpbench / T291549
     """
 
-    def __init__(self, directory):
+    def __init__(self, directory, composer_install=False):
         self.directory = directory
+        self.composer_install = composer_install
 
     def execute(self):
         log.info(self)
         if not _repo_has_composer_script(self.directory, 'phpbench'):
             log.info('No phpbench entry found in composer.json')
             return
-        subprocess.check_call(['composer', 'phpbench'], cwd=self.directory)
+        log.info('Running "composer phpbench" in %s', self.directory)
+        cmds = []
+        if self.composer_install:
+            cmds = [
+                [
+                    'composer',
+                    '--ansi',
+                    'install',
+                    '--no-progress',
+                    '--prefer-dist',
+                    '--profile',
+                    '-v',
+                ],
+            ]
+        cmds.append(['composer', '--ansi', 'phpbench'])
+        for cmd in cmds:
+            subprocess.check_call(cmd, cwd=self.directory)
+        if self.composer_install:
+            GitClean(self.directory).execute()
 
     def __str__(self):
         return "Run phpbench"

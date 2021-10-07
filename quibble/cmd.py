@@ -336,7 +336,11 @@ class QuibbleCmd(object):
             project_dir = mw_install_path
             if is_extension or is_skin:
                 project_dir = os.path.join(mw_install_path, repo_path)
-            plan.append(quibble.commands.Phpbench(project_dir))
+            plan.append(
+                quibble.commands.Phpbench(
+                    project_dir, composer_install=is_extension or is_skin
+                )
+            )
 
         if is_core:
             plan.append(
