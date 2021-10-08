@@ -1,9 +1,14 @@
 Quibble changelog
 =================
 
-master (UNRELEASED)
--------------------
-* …
+1.1.1 (2021-10-08)
+------------------
+
+Internal
+~~~~~~~~
+* phpbench: Run composer install first
+  `T291549 <https://phabricator.wikimedia.org/T291549>`_
+  Kosta Harlan
 
 1.1.0 (2021-10-06)
 -------------------
