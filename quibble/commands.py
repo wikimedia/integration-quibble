@@ -691,7 +691,7 @@ class AbstractPhpUnit:
             ['--exclude-group', ','.join(always_excluded + exclude_group)]
         )
 
-        if self.junit_file:
+        if self.junit and self.junit_file:
             cmd.extend(['--log-junit', self.junit_file])
         log.info(' '.join(cmd))
 
@@ -703,11 +703,12 @@ class AbstractPhpUnit:
 
 
 class PhpUnitDatabaseless(AbstractPhpUnit):
-    def __init__(self, mw_install_path, testsuite, log_dir):
+    def __init__(self, mw_install_path, testsuite, log_dir, junit=False):
         self.mw_install_path = mw_install_path
         self.testsuite = testsuite
         self.log_dir = log_dir
         self.junit_file = os.path.join(self.log_dir, 'junit-dbless.xml')
+        self.junit = junit
 
     def execute(self):
         # XXX might want to run the triggered extension first then the
@@ -723,12 +724,15 @@ class PhpUnitDatabaseless(AbstractPhpUnit):
 
 
 class PhpUnitStandalone(AbstractPhpUnit):
-    def __init__(self, mw_install_path, testsuite, log_dir, repo_path):
+    def __init__(
+        self, mw_install_path, testsuite, log_dir, repo_path, junit=False
+    ):
         self.mw_install_path = mw_install_path
         self.testsuite = testsuite
         self.log_dir = log_dir
         self.repo_path = repo_path
         self.junit_file = os.path.join(self.log_dir, 'junit-standalone.xml')
+        self.junit = junit
 
     def execute(self):
         self._run_phpunit(
@@ -743,11 +747,12 @@ class PhpUnitStandalone(AbstractPhpUnit):
 
 
 class PhpUnitUnit(AbstractPhpUnit):
-    def __init__(self, mw_install_path, log_dir):
+    def __init__(self, mw_install_path, log_dir, junit=False):
         self.mw_install_path = mw_install_path
         self.log_dir = log_dir
         self.testsuite = None
         self.junit_file = os.path.join(self.log_dir, 'junit-unit.xml')
+        self.junit = junit
 
     def execute(self):
         if _repo_has_composer_script(self.mw_install_path, 'phpunit:unit'):
@@ -761,11 +766,12 @@ class PhpUnitUnit(AbstractPhpUnit):
 
 
 class PhpUnitDatabase(AbstractPhpUnit):
-    def __init__(self, mw_install_path, testsuite, log_dir):
+    def __init__(self, mw_install_path, testsuite, log_dir, junit=False):
         self.mw_install_path = mw_install_path
         self.testsuite = testsuite
         self.log_dir = log_dir
         self.junit_file = os.path.join(self.log_dir, 'junit-db.xml')
+        self.junit = junit
 
     def execute(self):
         self._run_phpunit(group=['Database'], exclude_group=['Standalone'])

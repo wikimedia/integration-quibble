@@ -286,7 +286,11 @@ class QuibbleCmd(object):
         # phpunit-unit does not need the database populated or
         # LocalSettings.php in order to run.
         if 'phpunit-unit' in stages:
-            plan.append(quibble.commands.PhpUnitUnit(mw_install_path, log_dir))
+            plan.append(
+                quibble.commands.PhpUnitUnit(
+                    mw_install_path, log_dir, args.phpunit_junit
+                )
+            )
 
         if not args.skip_install:
             if not args.db_is_external:
@@ -321,14 +325,21 @@ class QuibbleCmd(object):
         if 'phpunit' in stages:
             plan.append(
                 quibble.commands.PhpUnitDatabaseless(
-                    mw_install_path, phpunit_testsuite, log_dir
+                    mw_install_path,
+                    phpunit_testsuite,
+                    log_dir,
+                    args.phpunit_junit,
                 )
             )
 
         if 'phpunit-standalone' in stages and (is_extension or is_skin):
             plan.append(
                 quibble.commands.PhpUnitStandalone(
-                    mw_install_path, None, log_dir, repo_path
+                    mw_install_path,
+                    None,
+                    log_dir,
+                    repo_path,
+                    args.phpunit_junit,
                 )
             )
 
@@ -394,7 +405,10 @@ class QuibbleCmd(object):
         if 'phpunit' in stages:
             plan.append(
                 quibble.commands.PhpUnitDatabase(
-                    mw_install_path, phpunit_testsuite, log_dir
+                    mw_install_path,
+                    phpunit_testsuite,
+                    log_dir,
+                    args.phpunit_junit,
                 )
             )
 
@@ -645,6 +659,12 @@ def get_arg_parser():
         default=None,
         metavar='pattern',
         help='PHPUnit: filter which testsuite to run',
+    )
+    parser.add_argument(
+        '--phpunit-junit',
+        default=False,
+        action='store_true',
+        help='PHPUnit: enable Junit reporting to LOG_DIR',
     )
 
     return parser

@@ -250,7 +250,10 @@ class PhpUnitDatabaseTest(unittest.TestCase):
     @mock.patch('subprocess.check_call')
     def test_execute(self, mock_check_call):
         quibble.commands.PhpUnitDatabase(
-            mw_install_path='/tmp', testsuite='extensions', log_dir='/log'
+            mw_install_path='/tmp',
+            testsuite='extensions',
+            log_dir='/log',
+            junit=True,
         ).execute()
 
         mock_check_call.assert_called_once_with(
@@ -275,7 +278,10 @@ class PhpUnitDatabaselessTest(unittest.TestCase):
     @mock.patch('subprocess.check_call')
     def test_execute(self, mock_check_call):
         quibble.commands.PhpUnitDatabaseless(
-            mw_install_path='/tmp', testsuite='extensions', log_dir='/log'
+            mw_install_path='/tmp',
+            testsuite='extensions',
+            log_dir='/log',
+            junit=True,
         ).execute()
 
         mock_check_call.assert_called_once_with(
@@ -303,6 +309,7 @@ class PhpUnitStandaloneTest(unittest.TestCase):
             testsuite=None,
             log_dir='/log',
             repo_path='../extensions/Scribunto',
+            junit=True,
         ).execute()
 
         mock_check_call.assert_called_once_with(
@@ -343,7 +350,9 @@ class PhpUnitUnitTest(unittest.TestCase):
         mock_load.return_value = {"scripts": {"phpunit:unit": {}}}
 
         quibble.commands.PhpUnitUnit(
-            mw_install_path='/tmp', log_dir='/log'
+            mw_install_path='/tmp',
+            log_dir='/log',
+            junit=True,
         ).execute()
 
         mock_check_call.assert_called_once_with(
