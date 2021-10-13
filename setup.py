@@ -3,4 +3,4 @@
 from setuptools import setup
 
 # See setup.cfg
-setup(use_scm_version=True)
+setup(version_config=True)
