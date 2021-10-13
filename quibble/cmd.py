@@ -210,8 +210,14 @@ class QuibbleCmd(object):
             args.db, db_dir, dump_dir
         )
 
+        web_backend_args = {}
+        if args.web_backend == 'php' and args.web_php_workers:
+            web_backend_args = {
+                'workers': args.web_php_workers,
+            }
+
         web_backend = quibble.backend.getWebserver(
-            args.web_backend, mw_install_path, args.web_url
+            args.web_backend, mw_install_path, args.web_url, web_backend_args
         )
 
         plan = []
@@ -552,6 +558,13 @@ def get_arg_parser():
         help='Web server to use. Default to PHP\'s built-in. '
         '"external" assumes that the local MediaWiki site can be accessed'
         ' via an already running web server.',
+    )
+    parser.add_argument(
+        '--web-php-workers',
+        type=int,
+        help='Number of workers for the php built-in webserver, '
+        'or set PHP_CLI_SERVER_WORKERS environment variable. '
+        'Requires PHP 7.4+',
     )
     parser.add_argument(
         '--workspace',

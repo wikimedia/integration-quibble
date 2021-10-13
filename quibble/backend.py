@@ -99,9 +99,9 @@ def getDatabase(engine, db_dir, dump_dir):
     return db
 
 
-def getWebserver(engine, mw_install_path, web_url):
+def getWebserver(engine, mw_install_path, web_url, kwargs={}):
     webclass = get_backend(WebserverEngine, engine)
-    backend = webclass(mwdir=mw_install_path, url=web_url)
+    backend = webclass(mwdir=mw_install_path, url=web_url, **kwargs)
     return backend
 
 
@@ -447,8 +447,9 @@ class PhpWebserver(WebserverEngine):
     default_url = 'http://127.0.0.1:9412'
     default_router = 'maintenance/dev/includes/router.php'
 
-    def __init__(self, router=default_router, **kwargs):
+    def __init__(self, router=default_router, workers=False, **kwargs):
         self.router = router
+        self.workers = workers
 
         super(PhpWebserver, self).__init__(**kwargs)
 
@@ -463,6 +464,13 @@ class PhpWebserver(WebserverEngine):
         if self.router:
             server_cmd.append(os.path.join(self.mwdir, self.router))
 
+        server_env = {}
+        if self.workers:
+            server_env = {
+                'PHP_CLI_SERVER_WORKERS': str(self.workers),
+            }
+        server_env.update(os.environ)
+
         self.server = subprocess.Popen(
             server_cmd,
             cwd=self.mwdir,
@@ -470,12 +478,19 @@ class PhpWebserver(WebserverEngine):
             bufsize=1,  # line buffered
             stdout=subprocess.DEVNULL,
             stderr=subprocess.PIPE,
-            env=os.environ,
+            env=server_env,
         )
         super(PhpWebserver, self).start()
 
     def __str__(self):
-        return '<PhpWebserver %s %s>' % (self.url, self.mwdir)
+        if not self.workers:
+            return '<PhpWebserver %s %s>' % (self.url, self.mwdir)
+        else:
+            return '<PhpWebserver %s %s with %s workers>' % (
+                self.url,
+                self.mwdir,
+                self.workers,
+            )
 
 
 class Xvfb(BackendServer):

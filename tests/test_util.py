@@ -1,6 +1,13 @@
+from unittest import mock
+
 import pytest
 import quibble.util
-from quibble.util import isCoreOrVendor, isExtOrSkin, move_item_to_head
+from quibble.util import (
+    isCoreOrVendor,
+    isExtOrSkin,
+    move_item_to_head,
+    php_version,
+)
 
 
 def test_parallel_run_accepts_an_empty_list_of_tasks():
@@ -60,3 +67,13 @@ def test_move_item_to_head_absent():
 
     with pytest.raises(ValueError):
         move_item_to_head(orig, 'extensions/foo')
+
+
+@mock.patch('subprocess.check_output')
+def test_php_version(php_output):
+    php_output.return_value = (
+        'PHP 7.4.21 (cli) (built: Jul  2 2021 03:59:48) ( NTS )'
+    )
+    assert php_version('>=7.4') is True
+    assert php_version('>=7.4.0') is True
+    assert php_version('<7.4') is False

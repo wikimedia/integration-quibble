@@ -186,6 +186,49 @@ class TestPhpWebserver(unittest.TestCase):
         self.assertIn('MW_LOG_DIR', server_env)
         self.assertIn('LOG_DIR', server_env)
 
+    @mock.patch.dict(os.environ, clear=True)
+    @mock.patch('quibble.backend.subprocess.Popen')
+    def test_php_workers_default(self, mock_popen):
+        with mock.patch('quibble.backend._stream_relay'):
+            PhpWebserver(mwdir=PHPDOCROOT, url='http://example.org').start()
+
+        (args, kwargs) = mock_popen.call_args
+        env = kwargs.get('env', {})
+        self.assertNotIn('PHP_CLI_SERVER_WORKERS', env)
+
+    @mock.patch.dict(os.environ, clear=True)
+    @mock.patch('quibble.backend.subprocess.Popen')
+    def test_php_with_four_workers(self, mock_popen):
+        with mock.patch('quibble.backend._stream_relay'):
+            PhpWebserver(
+                mwdir=PHPDOCROOT, url='http://example.org', workers=4
+            ).start()
+
+        (args, kwargs) = mock_popen.call_args
+        env = kwargs.get('env', {})
+        self.assertIn('PHP_CLI_SERVER_WORKERS', env)
+        self.assertEqual('4', env['PHP_CLI_SERVER_WORKERS'])
+
+    @mock.patch('quibble.backend.subprocess.Popen')
+    def test_php_workers_from_env(self, mock_popen):
+        with mock.patch.dict(
+            'quibble.backend.os.environ',
+            {
+                'PHP_CLI_SERVER_WORKERS': '42',
+            },
+            clear=True,
+        ):
+            with mock.patch('quibble.backend._stream_relay'):
+                PhpWebserver(
+                    mwdir=PHPDOCROOT, url='http://example.org'
+                ).start()
+
+        (args, kwargs) = mock_popen.call_args
+        env = kwargs.get('env', {})
+
+        self.assertIn('PHP_CLI_SERVER_WORKERS', env)
+        self.assertEqual('42', env['PHP_CLI_SERVER_WORKERS'])
+
 
 class TestMySQL(unittest.TestCase):
     @mock.patch('quibble.backend.subprocess.Popen')
