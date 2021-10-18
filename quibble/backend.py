@@ -259,6 +259,8 @@ class MySQL(DatabaseServer):
         p = subprocess.Popen(
             [
                 'mysql_install_db',
+                # Legacy system with a passwordless root user
+                '--auth-root-authentication-method=normal',
                 '--datadir=%s' % self.rootdir,
                 '--user=%s' % pwd.getpwuid(os.getuid())[0],
             ],
