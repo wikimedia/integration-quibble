@@ -1,9 +1,32 @@
 Quibble changelog
 =================
 
-master (UNRELEASED)
+1.2.0 (2021-10-25)
 -------------------
-* …
+
+Features
+~~~~~~~~
+* Support multiple workers in PHP 7.4+ web server. It already could be set via
+  `PHP_CLI_SERVER_WORKERS` environment variable. One can now set it via the
+  `--web-php-workers` option.
+  `T259456 <https://phabricator.wikimedia.org/T259456>`_
+  Antoine Musso
+
+Bug fixes
+~~~~~~~~~
+* Replace `setuptools_scm` with `setuptools-git-versioning`. Fixes installation
+  issue under Python 3.5 or with setuptools 45+.
+  `T292772 <https://phabricator.wikimedia.org/T292772>`_
+  Antoine Musso
+* Fix MySQL user creation on Debian Bullseye.
+  Antoine Musso
+
+Misc
+~~~~
+* Disable PHPUnit Junit report by default. Can be manually enabled with the
+  `--phpunit-junit` option if still needed.
+  `T256402 <https://phabricator.wikimedia.org/T256402>`_
+  Antoine Musso
 
 1.1.1 (2021-10-08)
 ------------------
