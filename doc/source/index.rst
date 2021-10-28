@@ -3,6 +3,7 @@
 
    usage
    changelog
+   license
    releasing
 
 .. include:: ../../README.rst
