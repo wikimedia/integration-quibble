@@ -397,6 +397,7 @@ class QuibbleCmd(object):
                     display,
                     web_backend.url,
                     args.web_backend,
+                    args.parallel_npm_install,
                 )
             )
 
@@ -586,6 +587,13 @@ def get_arg_parser():
         help='MediaWiki extensions and skins to clone. Always clone '
         'mediawiki/core and mediawiki/skins/Vector. '
         'If $ZUUL_PROJECT is set, it will be cloned as well.',
+    )
+
+    parser.add_argument(
+        '--parallel-npm-install',
+        action='store_true',
+        help='Whether to run "npm install" in parallel for all projects at '
+        'the beginning of the BrowserTest stage.',
     )
 
     parser.add_argument(

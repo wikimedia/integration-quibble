@@ -852,23 +852,62 @@ class ApiTesting:
 
 class BrowserTests:
     def __init__(
-        self, mw_install_path, projects, display, web_url, web_backend
+        self,
+        mw_install_path,
+        projects,
+        display,
+        web_url,
+        web_backend,
+        parallel_npm_install=False,
     ):
         self.mw_install_path = mw_install_path
         self.projects = projects
         self.display = display
         self.web_url = web_url
         self.web_backend = web_backend
+        self.parallel_npm_install = parallel_npm_install
 
     def execute(self):
+        if self.parallel_npm_install:
+            self._execute_parallel_npm_install()
+
         for project in self.projects:
-            with quibble.logginglevel('zuul.CloneMapper', logging.WARNING):
-                repo_dir = quibble.zuul.repo_dir(project)
-            project_dir = os.path.normpath(
-                os.path.join(self.mw_install_path, repo_dir)
-            )
+            project_dir = self._get_project_dir(project)
             if _repo_has_npm_script(project_dir, 'selenium-test'):
                 self._run_webdriver(project_dir)
+
+    def _execute_parallel_npm_install(self):
+        """
+        Parallelize the execution of npm install for all browser tests.
+        Ideally, we'd parallelize the Selenium test execution too, but
+        since that is going to require quite a bit more work (T226869),
+        let's start with the part that can be done now.
+        Note that his has the potential to increase the build time for
+        projects where a test failure occurs early on (i.e. in core, or
+        in AbuseFilter), because the tests don't run until npm install
+        completes for all projects that have browser tests. But for the
+        common scenario where the tests pass for all repos, this should
+        result in reducing build time.
+        """
+        tasks = []
+        parallel_projects = []
+        for project in self.projects:
+            if _repo_has_npm_script(
+                self._get_project_dir(project), 'selenium-test'
+            ):
+                parallel_projects.append(project)
+                tasks.append((_npm_install, self._get_project_dir(project)))
+        log.info(
+            "Running npm install in parallel for projects: %s",
+            ', '.join(parallel_projects),
+        )
+        parallel_run(tasks)
+
+    def _get_project_dir(self, project):
+        """Get the normalized path for a Zuul project."""
+        with quibble.logginglevel('zuul.CloneMapper', logging.WARNING):
+            repo_dir = quibble.zuul.repo_dir(project)
+        return os.path.normpath(os.path.join(self.mw_install_path, repo_dir))
 
     def _run_webdriver(self, project_dir):
         log.info('Running webdriver test in %s', project_dir)
@@ -887,7 +926,8 @@ class BrowserTests:
         if self.web_backend == 'external':
             webdriver_env.update({'QUIBBLE_APACHE': '1'})
 
-        _npm_install(project_dir)
+        if not self.parallel_npm_install:
+            _npm_install(project_dir)
         subprocess.check_call(
             ['npm', 'run', 'selenium-test'], cwd=project_dir, env=webdriver_env
         )
