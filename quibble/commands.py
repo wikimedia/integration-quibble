@@ -608,9 +608,10 @@ class Phpbench:
     See https://github.com/phpbench/phpbench / T291549
     """
 
-    def __init__(self, directory, composer_install=False):
+    def __init__(self, directory, composer_install=False, aggregate=False):
         self.directory = directory
         self.composer_install = composer_install
+        self.aggregate = aggregate
 
     def execute(self):
         log.info(self)
@@ -618,22 +619,47 @@ class Phpbench:
             log.info('No phpbench entry found in composer.json')
             return
         log.info('Running "composer phpbench" in %s', self.directory)
-        cmds = []
         if self.composer_install:
-            cmds = [
-                [
-                    'composer',
-                    '--ansi',
-                    'install',
-                    '--no-progress',
-                    '--prefer-dist',
-                    '--profile',
-                    '-v',
-                ],
+            cmd = [
+                'composer',
+                '--ansi',
+                'install',
+                '--no-progress',
+                '--prefer-dist',
+                '--profile',
+                '-v',
             ]
-        cmds.append(['composer', '--ansi', 'phpbench'])
-        for cmd in cmds:
             subprocess.check_call(cmd, cwd=self.directory)
+
+        if not self.aggregate:
+            subprocess.check_call(
+                ['composer', '--ansi', 'phpbench'], cwd=self.directory
+            )
+        else:
+            subprocess.check_call(
+                ['git', 'checkout', 'HEAD~1'], cwd=self.directory
+            )
+            if _repo_has_composer_script(self.directory, 'phpbench'):
+                cmds = [
+                    ['composer', '--ansi', 'phpbench', '--', '--tag=original'],
+                    ['git', 'switch', '-'],
+                    [
+                        'composer',
+                        '--ansi',
+                        'phpbench',
+                        '--',
+                        '--ref=original',
+                        '--report=aggregate',
+                    ],
+                ]
+
+                for cmd in cmds:
+                    subprocess.check_call(cmd, cwd=self.directory)
+            else:
+                subprocess.check_call(
+                    ['git', 'switch', '-'], cwd=self.directory
+                )
+
         if self.composer_install:
             GitClean(self.directory).execute()
 

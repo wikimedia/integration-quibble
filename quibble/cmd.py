@@ -366,7 +366,9 @@ class QuibbleCmd(object):
                 project_dir = os.path.join(mw_install_path, repo_path)
             plan.append(
                 quibble.commands.Phpbench(
-                    project_dir, composer_install=is_extension or is_skin
+                    project_dir,
+                    composer_install=is_extension or is_skin,
+                    aggregate=args.phpbench_aggregate,
                 )
             )
 
@@ -651,6 +653,14 @@ def get_arg_parser():
         action='store_true',
         help='Whether to run "npm install" in parallel for all projects at '
         'the beginning of the BrowserTest stage.',
+    )
+
+    parser.add_argument(
+        '--phpbench-aggregate',
+        action='store_true',
+        help='If this argument is set, then Quibble will run phpbench in '
+        'aggregate mode, comparing the previous commit with the '
+        'current one.',
     )
 
     parser.add_argument(
