@@ -851,11 +851,14 @@ class ApiTesting:
 
 
 class BrowserTests:
-    def __init__(self, mw_install_path, projects, display, web_url):
+    def __init__(
+        self, mw_install_path, projects, display, web_url, web_backend
+    ):
         self.mw_install_path = mw_install_path
         self.projects = projects
         self.display = display
         self.web_url = web_url
+        self.web_backend = web_backend
 
     def execute(self):
         for project in self.projects:
@@ -881,6 +884,8 @@ class BrowserTests:
                 'DISPLAY': self.display,
             }
         )
+        if self.web_backend == 'external':
+            webdriver_env.update({'QUIBBLE_APACHE': 1})
 
         _npm_install(project_dir)
         subprocess.check_call(

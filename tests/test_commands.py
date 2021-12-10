@@ -486,6 +486,7 @@ class BrowserTestsTest(unittest.TestCase):
             ['mediawiki/core', 'mediawiki/skins/Vector'],
             ':0',
             'http://192.0.2.1:4321',
+            'php',
         )
         c.execute()
 
@@ -519,6 +520,7 @@ class BrowserTestsTest(unittest.TestCase):
             ['mediawiki/core', 'mediawiki/skins/Vector'],
             ':0',
             'http://192.0.2.1:4321',
+            'php',
         )
         c.execute()
 
@@ -531,7 +533,11 @@ class BrowserTestsTest(unittest.TestCase):
         self, mock_driver, mock_server, mock_check_call
     ):
         c = quibble.commands.BrowserTests(
-            '/tmp', ['mediawiki/vendor'], ':0', 'http://192.0.2.1:4321'
+            '/tmp',
+            ['mediawiki/vendor'],
+            ':0',
+            'http://192.0.2.1:4321',
+            'external',
         )
         c.execute()
         mock_check_call.assert_not_called()
