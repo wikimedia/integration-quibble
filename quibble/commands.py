@@ -885,7 +885,7 @@ class BrowserTests:
             }
         )
         if self.web_backend == 'external':
-            webdriver_env.update({'QUIBBLE_APACHE': 1})
+            webdriver_env.update({'QUIBBLE_APACHE': '1'})
 
         _npm_install(project_dir)
         subprocess.check_call(
