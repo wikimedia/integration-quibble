@@ -1,9 +1,44 @@
 Quibble changelog
 =================
 
-master (UNRELEASED)
--------------------
-* …
+1.3.0 (2021-01-17)
+------------------
+
+Features
+~~~~~~~~
+* Set ``QUIBBLE_APACHE`` environment variable (value ``1``) when using an
+  external web server (``--web-backend=external``). This can be used to skip
+  tests that might have issues when web backend requests are run concurrently.
+  `T297480 <https://phabricator.wikimedia.org/T297480>`_
+  Kosta Harlan
+* Option to run ``npm install`` in parallel when running Browsertests:
+  ``--parallel-npm-install``. This should cut the overall build time
+  significantly.
+  `T226869 <https://phabricator.wikimedia.org/T226869>`_
+  Kosta Harlan
+
+Documentation
+~~~~~~~~~~~~~
+* Hide the table of content to reduce clutterness.
+  https://doc.wikimedia.org/quibble/
+  Antoine Musso
+* Move LICENSE out of the main page to its own page.
+  Antoine Musso
+
+Internal
+~~~~~~~~
+* Update NodeJS to version 14 in the example Dockerfile.
+  `T294931 <https://phabricator.wikimedia.org/T294931>`_
+  Kosta Harlan
+
+Work related to parallelization of the Quibble stages:
+
+* Introduce utilities to redirect stdout and stderr to a logger
+  ``quibble.util.redirect_all_streams``
+  Adam Wight
+* Wrapper to pretty-print parallel job progress
+  ``quibble.util.ProgressReporter``
+  Adam Wight
 
 1.2.0 (2021-10-25)
 -------------------
