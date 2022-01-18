@@ -126,7 +126,7 @@ class ExtSkinComposerTestTest(unittest.TestCase):
 
 
 class NpmTestTest(unittest.TestCase):
-    @mock.patch('quibble.commands._repo_has_npm_script', return_value=True)
+    @mock.patch('quibble.commands.repo_has_npm_script', return_value=True)
     @mock.patch('subprocess.check_call')
     def test_execute(self, mock_call, *_):
         quibble.commands.NpmTest('/tmp').execute()

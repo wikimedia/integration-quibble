@@ -299,7 +299,7 @@ class NpmTest:
         self.directory = directory
 
     def execute(self):
-        if _repo_has_npm_script(self.directory, 'test'):
+        if repo_has_npm_script(self.directory, 'test'):
             _npm_install(self.directory)
             subprocess.check_call(['npm', 'test'], cwd=self.directory)
         else:
@@ -456,10 +456,32 @@ class VendorComposerDependencies:
 
 
 class NpmInstall:
-    def __init__(self, directory):
-        self.directory = directory
+    def __init__(
+        self, mw_install_path, project=None, with_package_command=None
+    ):
+        if not project:
+            self.directory = mw_install_path
+        else:
+            self.directory = quibble.commands.get_project_dir(
+                mw_install_path, project
+            )
+        self.with_package_command = with_package_command
+        self.project = project
 
     def execute(self):
+        if (
+            self.with_package_command
+            and not quibble.commands.repo_has_npm_script(
+                self.directory, self.with_package_command
+            )
+        ):
+            log.info(
+                '%s command does not exist in project %s package.json, '
+                'skipping npm install',
+                self.with_package_command,
+                self.project,
+            )
+            return
         _npm_install(self.directory)
 
     def __str__(self):
@@ -821,7 +843,7 @@ class ApiTesting:
                     self.mw_install_path, quibble.zuul.repo_dir(project)
                 )
             )
-            if _repo_has_npm_script(project_dir, 'api-testing'):
+            if repo_has_npm_script(project_dir, 'api-testing'):
                 _npm_install(project_dir)
                 subprocess.check_call(
                     ['npm', 'run', 'api-testing'],
@@ -851,46 +873,10 @@ class BrowserTests:
         self.parallel_npm_install = parallel_npm_install
 
     def execute(self):
-        if self.parallel_npm_install:
-            self._execute_parallel_npm_install()
-
         for project in self.projects:
-            project_dir = self._get_project_dir(project)
-            if _repo_has_npm_script(project_dir, 'selenium-test'):
+            project_dir = get_project_dir(self.mw_install_path, project)
+            if repo_has_npm_script(project_dir, 'selenium-test'):
                 self._run_webdriver(project_dir)
-
-    def _execute_parallel_npm_install(self):
-        """
-        Parallelize the execution of npm install for all browser tests.
-        Ideally, we'd parallelize the Selenium test execution too, but
-        since that is going to require quite a bit more work (T226869),
-        let's start with the part that can be done now.
-        Note that his has the potential to increase the build time for
-        projects where a test failure occurs early on (i.e. in core, or
-        in AbuseFilter), because the tests don't run until npm install
-        completes for all projects that have browser tests. But for the
-        common scenario where the tests pass for all repos, this should
-        result in reducing build time.
-        """
-        tasks = []
-        parallel_projects = []
-        for project in self.projects:
-            if _repo_has_npm_script(
-                self._get_project_dir(project), 'selenium-test'
-            ):
-                parallel_projects.append(project)
-                tasks.append((_npm_install, self._get_project_dir(project)))
-        log.info(
-            "Running npm install in parallel for projects: %s",
-            ', '.join(parallel_projects),
-        )
-        parallel_run(tasks)
-
-    def _get_project_dir(self, project):
-        """Get the normalized path for a Zuul project."""
-        with quibble.logginglevel('zuul.CloneMapper', logging.WARNING):
-            repo_dir = quibble.zuul.repo_dir(project)
-        return os.path.normpath(os.path.join(self.mw_install_path, repo_dir))
 
     def _run_webdriver(self, project_dir):
         log.info('Running webdriver test in %s', project_dir)
@@ -1058,9 +1044,16 @@ def _repo_has_npm_lock(project_dir):
     return os.path.exists(lock_path)
 
 
-def _repo_has_npm_script(project_dir, script_name):
+def repo_has_npm_script(project_dir, script_name):
     package_path = os.path.join(project_dir, 'package.json')
     return _json_has_script(package_path, script_name)
+
+
+def get_project_dir(mw_install_path, project):
+    """Get the normalized path for a Zuul project."""
+    with quibble.logginglevel('zuul.CloneMapper', logging.WARNING):
+        repo_dir = quibble.zuul.repo_dir(project)
+    return os.path.normpath(os.path.join(mw_install_path, repo_dir))
 
 
 def _json_has_script(json_file, script_name):
