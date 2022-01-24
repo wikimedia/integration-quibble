@@ -986,7 +986,7 @@ class Parallel:
     """
 
     def __init__(self, *, name=None, steps):
-        self.name = name
+        self.name = name or "parallel steps"
         self.steps = list(steps)
 
         self.workers = max(1, min(len(self.steps), os.cpu_count()))
@@ -1043,10 +1043,9 @@ class Parallel:
         return (error, captured)
 
     def __str__(self):
-        label = self.name if self.name else "Run steps in parallel"
-        return "{} (concurrency={}):".format(label, self.workers) + "".join(
-            ["\n* " + step for step in map(str, self.steps)]
-        )
+        return "Run {} in parallel (concurrency={}):".format(
+            self.name, self.workers
+        ) + "".join(["\n* " + step for step in map(str, self.steps)])
 
 
 def _repo_has_composer_script(project_dir, script_name):

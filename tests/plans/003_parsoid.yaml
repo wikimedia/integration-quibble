@@ -8,7 +8,7 @@ plan:
  - 'Zuul clone with parameters {"cache_dir": "/var/cache/git", "projects": ["mediawiki/core", "mediawiki/services/parsoid", "mediawiki/skins/Vector", "mediawiki/vendor"], "workers": 4, "workspace": "/WORKSPACE/src", "zuul_project": "mediawiki/services/parsoid"}'
  - 'Extension and skin submodule update under MediaWiki root /WORKSPACE/src'
  - |-
-   npm and composer tests, if present (concurrency=2):
+   Run npm and composer tests, if present in parallel (concurrency=2):
    * composer test in /WORKSPACE/src/services/parsoid
    * npm test in /WORKSPACE/src/services/parsoid
  - 'Revert to git clean -xqdf in /WORKSPACE/src/services/parsoid'
