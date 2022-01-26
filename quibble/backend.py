@@ -134,6 +134,11 @@ class BackendServer:
     def __exit__(self, *args):
         self.stop()
 
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        del state["server"]
+        return state
+
     def start(self):
         pass
 

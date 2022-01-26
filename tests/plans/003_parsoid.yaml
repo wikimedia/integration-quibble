@@ -13,10 +13,12 @@ plan:
    * npm test in /WORKSPACE/src/services/parsoid
  - 'Revert to git clean -xqdf in /WORKSPACE/src/services/parsoid'
  - 'Install composer dev-requires for vendor.git'
- - 'PHPUnit unit tests'
  - 'Start backends, <MySQL (no socket)>'
- - 'Install MediaWiki, db=<MySQL (no socket)> vendor=True'
- - 'npm install in /WORKSPACE/src'
+ - |-
+  Run Post-dependency install, pre-database dependent steps in parallel (concurrency=3):
+  * PHPUnit unit tests
+  * Install MediaWiki, db=<MySQL (no socket)> vendor=True
+  * npm install in /WORKSPACE/src
  - 'PHPUnit extensions suite (without database or standalone)'
  - 'PHPUnit default standalone suite on services/parsoid'
  - 'Run phpbench'

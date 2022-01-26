@@ -300,10 +300,12 @@ class QuibbleCmd(object):
                     )
                 )
 
+        # Post dependency setup, pre database dependent phase.
+        parallel_steps = []
         # phpunit-unit does not need the database populated or
         # LocalSettings.php in order to run.
         if 'phpunit-unit' in stages:
-            plan.append(
+            parallel_steps.append(
                 quibble.commands.PhpUnitUnit(
                     mw_install_path, log_dir, args.phpunit_junit
                 )
@@ -317,7 +319,7 @@ class QuibbleCmd(object):
                     )
                 )
 
-            plan.append(
+            parallel_steps.append(
                 quibble.commands.InstallMediaWiki(
                     mw_install_path=mw_install_path,
                     db=database_backend,
@@ -329,7 +331,14 @@ class QuibbleCmd(object):
             )
 
         if not args.skip_deps:
-            plan.append(quibble.commands.NpmInstall(mw_install_path))
+            parallel_steps.append(quibble.commands.NpmInstall(mw_install_path))
+
+        plan.append(
+            quibble.commands.Parallel(
+                name="Post-dependency install, pre-database dependent steps",
+                steps=parallel_steps,
+            )
+        )
 
         phpunit_testsuite = None
         if args.phpunit_testsuite:
