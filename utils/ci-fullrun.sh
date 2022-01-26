@@ -10,7 +10,7 @@ set -eu -o pipefail
 set -x
 
 # ZUUL_ parameters passed to Quibble
-TEST_PROJECT=mediawiki/core
+TEST_PROJECT="mediawiki/core"
 TEST_BRANCH=master
 TEST_REF=master
 
