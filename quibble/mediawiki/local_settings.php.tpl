@@ -10,6 +10,11 @@
 // TODO: Deprecate environment variables in code under test.
 {{params-declaration}}
 
+// Caching settings.
+if ( extension_loaded( 'memcached' ) ) {
+    $wgMainCacheType = CACHE_MEMCACHED;
+}
+
 /**
  * Development settings
  */
