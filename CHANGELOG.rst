@@ -1,11 +1,35 @@
 Quibble changelog
 =================
 
-master (UNRELEASED)
+1.4.0 (2022-02-02)
 -------------------
-* …
 
-1.3.0 (2021-01-17)
+Features
+~~~~~~~~
+* Set Memcached as main cache type if extension is loaded
+  `T300340 <https://phabricator.wikimedia.org/T300340>`_
+  Kosta Harlan
+* phpbench: Support aggregate reports
+  `T291549 <https://phabricator.wikimedia.org/T291549>`_
+  Kosta Harlan
+
+Internal
+~~~~~~~~
+* Run post-dependency install, pre-test steps in parallel
+  `T225730 <https://phabricator.wikimedia.org/T225730>`_
+  Kosta Harlan
+* Split extension and skin npm and composer tests
+  Adam Wight
+* Split core npm and composer tests
+  Adam Wight
+* BrowserTests: Rework npm parallel install using ParallelCommand
+  Kosta Harlan
+* Parallelism as a command object
+  Adam Wight
+* ci-fullrun: Add extension variant
+  Kosta Harlan
+
+1.3.0 (2022-01-17)
 ------------------
 
 Features
