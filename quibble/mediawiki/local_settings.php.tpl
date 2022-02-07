@@ -67,7 +67,7 @@ $wgEnableUploads = true;
 
 // Hack to support testing Parsoid as an extension, while overriding
 // the composer library included with core. (T227352)
-$parsoidDir = MW_INSTALL_PATH . '/services/parsoid';
+$parsoidDir = $IP . '/services/parsoid';
 if ( is_dir( $parsoidDir ) ) {
 	AutoLoader::$psr4Namespaces += [
 		// Keep this in sync with the "autoload" clause in

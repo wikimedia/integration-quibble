@@ -548,7 +548,6 @@ class InstallMediaWiki:
         # Wire variables into settings template.
         with open(quibblesettings, "r") as f:
             params = {
-                'MW_INSTALL_PATH': self.mw_install_path,
                 'MW_LOG_DIR': self.log_dir,
                 'TMPDIR': self.tmp_dir,
             }
