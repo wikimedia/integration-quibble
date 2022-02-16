@@ -1,9 +1,12 @@
 Quibble changelog
 =================
 
-master (UNRELEASED)
--------------------
-* …
+1.4.1 (2022-02-16)
+------------------
+* Stop definining ``MW_INSTALL_PATH`` constant will be defined by MediaWiki
+  directly.
+  `T300301 <https://phabricator.wikimedia.org/T300301>`_
+  Daniel Kinzler
 
 1.4.0 (2022-02-02)
 -------------------
