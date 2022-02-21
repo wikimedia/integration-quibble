@@ -136,7 +136,8 @@ class BackendServer:
 
     def __getstate__(self):
         state = self.__dict__.copy()
-        del state["server"]
+        if "server" in state:
+            del state["server"]
         return state
 
     def start(self):
