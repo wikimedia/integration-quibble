@@ -11,8 +11,7 @@ set -x
 
 # ZUUL_ parameters passed to Quibble
 TEST_PROJECT="mediawiki/core"
-TEST_BRANCH=master
-TEST_REF=master
+MEDIAWIKI_BRANCH=master
 
 QUIBBLE_INSTALL_DIR=/tmp/quibble
 
@@ -29,6 +28,4 @@ python3 -s -c 'import pprint,sys; pprint.pprint(sys.path)'
 python3 -s setup.py install --prefix "$QUIBBLE_INSTALL_DIR"
 
 ZUUL_PROJECT=$TEST_PROJECT \
-	ZUUL_BRANCH=$TEST_BRANCH \
-	ZUUL_REF=$TEST_REF \
-	exec python3 -s "$QUIBBLE_INSTALL_DIR"/bin/quibble "${@}"
+	exec python3 -s "$QUIBBLE_INSTALL_DIR"/bin/quibble --branch "$MEDIAWIKI_BRANCH" "${@}"
