@@ -38,8 +38,8 @@ require_once "$IP/includes/DevelopmentSettings.php";
 // differently when being run on Wikimedia Jenkins CI.  That is more or less
 // needed when running Wikibase under Apache for QUnit, since the Jenkins
 // environment variables are not available to the Apache process.
-define( 'MW_QIBBLE_CI', true ); // since Quibble 1.4.2
-$wgWikimediaJenkinsCI = true; // deprecated since Quibble 1.4.2
+define( 'MW_QUIBBLE_CI', true ); // since Quibble 1.4.3
+$wgWikimediaJenkinsCI = true; // deprecated since Quibble 1.4.3
 
 // Configure $wgDjvu for the MediaWiki core DJVU unit tests
 $wgDjvuDump = '/usr/bin/djvudump';
