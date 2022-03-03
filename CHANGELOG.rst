@@ -1,9 +1,32 @@
 Quibble changelog
 =================
 
-master (UNRELEASED)
--------------------
-* …
+1.4.2 (2022-03-03)
+------------------
+
+Features
+~~~~~~~~
+* Usage of PHP global variable ``$wgWikimediaJenkinsCI`` is now deprecated.
+  Code should instead check for existence of PHP constant ``MW_QUIBBLE_CI``.
+  Daniel Kinzler
+
+Bug fix
+~~~~~~~
+* Fix backend teardown when no server exists (such as SQLite).
+  `T302226 <https://phabricator.wikimedia.org/T302226>`_
+  Kosta Harlan
+
+Internal
+~~~~~~~~
+* Remove ``Dockerfile``. It was not used for Wikimedia CI, for local
+  development one can extend the official images in `integration/config
+  <https://gerrit.wikimedia.org/g/integration/config/>`_.
+  Kosta Harlan
+* In ``utils/ci-full*`` scripts, stop using ``$ZUUL_REF``. It is set by CI and
+  we should not override it. That caused build to use obsolete code from our
+  Zuul system.
+  `T302707 <https://phabricator.wikimedia.org/T302707>`_
+  Antoine Musso
 
 1.4.1 (2022-02-16)
 ------------------
