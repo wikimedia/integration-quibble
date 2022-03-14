@@ -10,11 +10,6 @@
 // TODO: Deprecate environment variables in code under test.
 {{params-declaration}}
 
-// Caching settings.
-if ( extension_loaded( 'memcached' ) ) {
-    $wgMainCacheType = CACHE_MEMCACHED;
-}
-
 /**
  * Development settings
  */
@@ -57,6 +52,13 @@ $wgEnableRestAPI = true;
 $wgFlowContentFormat = 'wikitext';
 
 require_once __DIR__ . '/LocalSettings-installer.php';
+
+// Caching settings.
+if ( extension_loaded( 'memcached' ) ) {
+    $wgMainCacheType = CACHE_MEMCACHED;
+    $wgMemCachedServers = [ '127.0.0.1:11211' ];
+    $wgMemCachedPersistent = true;
+}
 
 # Force secret key. This key can be shared with the configuration
 # of testing tools, to allow them to perform privileged actions,
