@@ -1,9 +1,14 @@
 Quibble changelog
 =================
 
-master (UNRELEASED)
--------------------
-* …
+1.4.4 (2022-03-17)
+------------------
+* Properly setup memcached. The CLI installer automatically set
+  ``$wgMemCachedServers = []`` which disabled Memcached configuration. It is
+  now set to ``[ '127.0.0.1:11211' ]``.
+  `T300340 <https://phabricator.wikimedia.org/T300340>`_
+  Kosta Harlan
+* Set ``$wgMemCachedPersistent = true``.
 
 1.4.3 (2022-03-03)
 ------------------
