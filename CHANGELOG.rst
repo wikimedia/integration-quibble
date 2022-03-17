@@ -1,6 +1,10 @@
 Quibble changelog
 =================
 
+master (UNRELEASED)
+-------------------
+* …
+
 1.4.4 (2022-03-17)
 ------------------
 * Properly setup memcached. The CLI installer automatically set
