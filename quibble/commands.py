@@ -641,7 +641,9 @@ class Phpbench:
             if _repo_has_composer_script(self.directory, 'phpbench'):
                 cmds = [
                     ['composer', '--ansi', 'phpbench', '--', '--tag=original'],
-                    ['git', 'switch', '-'],
+                    # Checkout patch branch again so we can compare against
+                    # the HEAD~1 commit
+                    ['git', 'checkout', '-'],
                     [
                         'composer',
                         '--ansi',
@@ -655,8 +657,10 @@ class Phpbench:
                 for cmd in cmds:
                     subprocess.check_call(cmd, cwd=self.directory)
             else:
+                # HEAD~1 doesn't have phpbench in composer.json, so switch back
+                # to the patch, eventually returning exit code 0
                 subprocess.check_call(
-                    ['git', 'switch', '-'], cwd=self.directory
+                    ['git', 'checkout', '-'], cwd=self.directory
                 )
 
         if self.composer_install:
