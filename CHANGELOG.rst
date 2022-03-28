@@ -1,6 +1,10 @@
 Quibble changelog
 =================
 
+master (UNRELEASED)
+-------------------
+* …
+
 1.4.5 (2022-03-28)
 ------------------
 * In ``phpbench`` use ``git-checkout`` instead of ``git-switch`` which has been
