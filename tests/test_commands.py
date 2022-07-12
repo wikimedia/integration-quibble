@@ -129,7 +129,9 @@ class NpmTestTest(unittest.TestCase):
     @mock.patch('subprocess.check_call')
     def test_execute(self, mock_call, *_):
         quibble.commands.NpmTest('/tmp').execute()
-        mock_call.assert_any_call(['npm', 'test'], cwd='/tmp')
+        mock_call.assert_any_call(
+            [quibble.get_npm_command(), 'test'], cwd='/tmp'
+        )
 
 
 class CoreComposerTestTest(unittest.TestCase):
@@ -414,7 +416,9 @@ class ApiTestingTest(unittest.TestCase):
         c.execute()
 
         mock_check_call.assert_any_call(
-            ['npm', 'run', 'api-testing'], cwd='/tmp', env=mock.ANY
+            [quibble.get_npm_command(), 'run', 'api-testing'],
+            cwd='/tmp',
+            env=mock.ANY,
         )
 
     @mock.patch('os.path.exists', return_value=True)
@@ -491,10 +495,12 @@ class BrowserTestsTest(unittest.TestCase):
         c.execute()
 
         mock_check_call.assert_any_call(
-            ['npm', 'run', 'selenium-test'], cwd='/tmp', env=mock.ANY
+            [quibble.get_npm_command(), 'run', 'selenium-test'],
+            cwd='/tmp',
+            env=mock.ANY,
         )
         mock_check_call.assert_any_call(
-            ['npm', 'run', 'selenium-test'],
+            [quibble.get_npm_command(), 'run', 'selenium-test'],
             cwd='/tmp/skins/Vector',
             env=mock.ANY,
         )

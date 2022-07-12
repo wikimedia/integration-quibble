@@ -99,6 +99,11 @@ def is_in_docker():
     return os.path.exists('/.dockerenv') or os.getenv('container')
 
 
+def get_npm_command():
+    # Allow for overriding npm with e.g. pnpm.
+    return os.getenv('NPM_COMMAND') or 'npm'
+
+
 @contextmanager
 def Chronometer(name, logger):
 

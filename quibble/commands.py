@@ -28,11 +28,23 @@ def execute_command(command):
 
 def _npm_install(project_dir):
     if _repo_has_npm_lock(project_dir):
-        subprocess.check_call(['npm', 'ci'], cwd=project_dir)
-    else:
-        subprocess.check_call(['npm', 'prune'], cwd=project_dir)
+        cmd = 'ci'
+        if quibble.get_npm_command() == 'pnpm':
+            cmd = 'install'
         subprocess.check_call(
-            ['npm', 'install', '--no-progress', '--prefer-offline'],
+            [quibble.get_npm_command(), cmd], cwd=project_dir
+        )
+    else:
+        subprocess.check_call(
+            [quibble.get_npm_command(), 'prune'], cwd=project_dir
+        )
+        subprocess.check_call(
+            [
+                quibble.get_npm_command(),
+                'install',
+                '--no-progress',
+                '--prefer-offline',
+            ],
             cwd=project_dir,
         )
 
@@ -49,7 +61,7 @@ class ReportVersions:
             ['psql', '--version'],
             # ['sqlite', '--version'], php-sqlite3 doesn't provide a CLI
             ['node', '--version'],
-            ['npm', '--version'],
+            [quibble.get_npm_command(), '--version'],
             ['php', '--version'],
         ]
         for cmd in commands:
@@ -301,7 +313,9 @@ class NpmTest:
     def execute(self):
         if repo_has_npm_script(self.directory, 'test'):
             _npm_install(self.directory)
-            subprocess.check_call(['npm', 'test'], cwd=self.directory)
+            subprocess.check_call(
+                [quibble.get_npm_command(), 'test'], cwd=self.directory
+            )
         else:
             log.warning("%s lacks a package.json", self.directory)
 
@@ -854,7 +868,7 @@ class ApiTesting:
             if repo_has_npm_script(project_dir, 'api-testing'):
                 _npm_install(project_dir)
                 subprocess.check_call(
-                    ['npm', 'run', 'api-testing'],
+                    [quibble.get_npm_command(), 'run', 'api-testing'],
                     cwd=project_dir,
                     env=quibble_testing_config,
                 )
@@ -906,7 +920,9 @@ class BrowserTests:
         if not self.parallel_npm_install:
             _npm_install(project_dir)
         subprocess.check_call(
-            ['npm', 'run', 'selenium-test'], cwd=project_dir, env=webdriver_env
+            [quibble.get_npm_command(), 'run', 'selenium-test'],
+            cwd=project_dir,
+            env=webdriver_env,
         )
 
     def __str__(self):
