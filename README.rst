@@ -37,7 +37,7 @@ and use SQLite as a database backend::
 Wikimedia maintains Docker containers intended to be used for its continuous
 integration system, for example::
 
-    docker pull docker-registry.wikimedia.org/releng/quibble-stretch-php72:latest
+    docker pull docker-registry.wikimedia.org/releng/quibble-buster-php72:latest
 
 The source is on Gerrit https://gerrit.wikimedia.org/g/integration/config
 under the `dockerfiles` directory, where you'll also find other images with
@@ -54,7 +54,7 @@ Docker container
 
 Get the latest image being run by Wikimedia CI::
 
-  docker pull docker-registry.wikimedia.org/releng/quibble-stretch-php72:latest
+  docker pull docker-registry.wikimedia.org/releng/quibble-buster-php72:latest
 
 Quibble clones the repositories from Gerrit, and may load additional
 dependencies using composer and npm. At the end of the run, the container will
@@ -120,7 +120,7 @@ The final command::
       -v "$(pwd)"/log:/workspace/log \
       -v "$(pwd)"/ref:/srv/git:ro \
       -v "$(pwd)"/src:/workspace/src \
-      docker-registry.wikimedia.org/releng/quibble-stretch-php72:latest
+      docker-registry.wikimedia.org/releng/quibble-buster-php72:latest
 
 Quibble will then do the initial cloning of repositories reusing bare
 repositories from ``ref``, being local it is arguably faster than transferring
