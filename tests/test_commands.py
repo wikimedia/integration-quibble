@@ -243,8 +243,14 @@ class InstallMediaWikiTest(unittest.TestCase):
     @mock.patch('quibble.backend.get_backend')
     @mock.patch('quibble.mediawiki.maintenance.install')
     @mock.patch('quibble.mediawiki.maintenance.update')
+    @mock.patch('quibble.mediawiki.maintenance.addSite')
     def test_execute(
-        self, mock_update, mock_install_script, mock_db_factory, *_
+        self,
+        mock_addSite,
+        mock_update,
+        mock_install_script,
+        mock_db_factory,
+        *_
     ):
         db = mock.MagicMock(
             dbname='testwiki',
@@ -277,6 +283,10 @@ class InstallMediaWikiTest(unittest.TestCase):
 
         mock_update.assert_called_once_with(
             args=['--skip-external-dependencies'], mwdir='/src'
+        )
+
+        mock_addSite.assert_called_once_with(
+            args=['testwiki', 'CI', '--filepath=%s/$1' % (url)], mwdir='/src'
         )
 
 

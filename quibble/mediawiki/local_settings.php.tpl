@@ -53,6 +53,8 @@ $wgFlowContentFormat = 'wikitext';
 
 require_once __DIR__ . '/LocalSettings-installer.php';
 
+$wgLocalDatabases = [ $wgDBname ];
+
 // Caching settings.
 if ( extension_loaded( 'memcached' ) ) {
     $wgMainCacheType = CACHE_MEMCACHED;

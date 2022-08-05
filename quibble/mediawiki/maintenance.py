@@ -76,3 +76,19 @@ def rebuildLocalisationCache(lang=['en'], mwdir=None):
             'rebuildLocalisationCache failed with exit code: %s'
             % (p.returncode)
         )
+
+
+def addSite(args, mwdir=None):
+    log = logging.getLogger('mw.maintenance.addSite')
+    cmd = ['php', 'maintenance/addSite.php']
+    cmd.extend(args)
+    log.info(' '.join(cmd))
+
+    addSite_env = {}
+    if mwdir is not None:
+        addSite_env['MW_INSTALL_PATH'] = mwdir
+
+    p = subprocess.Popen(cmd, cwd=mwdir, env=addSite_env)
+    p.communicate()
+    if p.returncode > 0:
+        raise Exception('addSite failed with exit code: %s' % p.returncode)

@@ -603,6 +603,14 @@ class InstallMediaWiki:
             )
             update_args.append('--skip-external-dependencies')
 
+        quibble.mediawiki.maintenance.addSite(
+            args=[
+                self.db.dbname,  # globalid
+                'CI',  # site-group
+                '--filepath=%s/$1' % self.web_url,
+            ],
+            mwdir=self.mw_install_path,
+        )
         quibble.mediawiki.maintenance.update(
             args=update_args, mwdir=self.mw_install_path
         )
