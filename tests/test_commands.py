@@ -15,6 +15,37 @@ broken_on_macos = pytest.mark.skipif(
     sys.platform != 'linux', reason="Broken on MacOS, see T299840"
 )
 
+npm_envs_parameters = (
+    "npm_command_env, expected_npm_command",
+    [
+        pytest.param(None, "npm", id="NPM_COMMAND unset > npm"),
+        pytest.param("npm", "npm", id="NPM_COMMAND=npm > npm"),
+        pytest.param("pnpm", "pnpm", id="NPM_COMMAND=pnpm > pnpm"),
+    ],
+)
+
+
+# Used to run tests with various NPM_COMMAND environment variables. To use it
+# decorate the test method:
+#
+#  @pytest.mark.parametrize(*npm_envs_parameters)
+#
+# Add to the test method as last arguements:
+#   npm_command_env, expected_npm_command
+#
+# In the test method you can then:
+#
+#   with mock_npm_command_env(npm_command_env):
+#       // test code
+#
+# Then assert a call has been made to 'expected_npm_command'
+#
+def mock_npm_command_env(env_value):
+    if env_value is None:
+        return mock.patch.dict('os.environ', clear=True)
+    else:
+        return mock.patch.dict('os.environ', {'NPM_COMMAND': env_value})
+
 
 class ExtSkinSubmoduleUpdateTest(unittest.TestCase):
     def test_submodule_update_errors(self):
@@ -124,14 +155,16 @@ class ExtSkinComposerTestTest(unittest.TestCase):
         mock_call.assert_any_call(['composer', '--ansi', 'test'], cwd='/tmp')
 
 
-class NpmTestTest(unittest.TestCase):
+class NpmTestTest:
     @mock.patch('quibble.commands.repo_has_npm_script', return_value=True)
     @mock.patch('subprocess.check_call')
-    def test_execute(self, mock_call, *_):
-        quibble.commands.NpmTest('/tmp').execute()
-        mock_call.assert_any_call(
-            [quibble.get_npm_command(), 'test'], cwd='/tmp'
-        )
+    @pytest.mark.parametrize(*npm_envs_parameters)
+    def test_execute(
+        self, mock_call, mock_has, npm_command_env, expected_npm_command
+    ):
+        with mock_npm_command_env(npm_command_env):
+            quibble.commands.NpmTest('/tmp').execute()
+        mock_call.assert_any_call([expected_npm_command, 'test'], cwd='/tmp')
 
 
 class CoreComposerTestTest(unittest.TestCase):
@@ -389,7 +422,7 @@ class QunitTestsTest(unittest.TestCase):
         assert mock_check_call.call_count > 0
 
 
-class ApiTestingTest(unittest.TestCase):
+class ApiTestingTest:
     @mock.patch('builtins.open', mock.mock_open())
     @mock.patch('os.path.exists', return_value=True)
     @mock.patch('json.load')
@@ -397,6 +430,7 @@ class ApiTestingTest(unittest.TestCase):
     @mock.patch('subprocess.check_call')
     @mock.patch('quibble.backend.PhpWebserver')
     @mock.patch('quibble.backend.ChromeWebDriver')
+    @pytest.mark.parametrize(*npm_envs_parameters)
     def test_project_api_testing(
         self,
         mock_driver,
@@ -405,18 +439,21 @@ class ApiTestingTest(unittest.TestCase):
         mock_dump,
         mock_load,
         mock_path_exists,
+        npm_command_env,
+        expected_npm_command,
     ):
         mock_load.return_value = {'scripts': {'api-testing': 'run tests'}}
 
-        c = quibble.commands.ApiTesting(
-            '/tmp',
-            ['mediawiki/core', 'mediawiki/skins/Vector'],
-            'http://192.0.2.1:4321',
-        )
-        c.execute()
+        with mock_npm_command_env(npm_command_env):
+            c = quibble.commands.ApiTesting(
+                '/tmp',
+                ['mediawiki/core', 'mediawiki/skins/Vector'],
+                'http://192.0.2.1:4321',
+            )
+            c.execute()
 
         mock_check_call.assert_any_call(
-            [quibble.get_npm_command(), 'run', 'api-testing'],
+            [expected_npm_command, 'run', 'api-testing'],
             cwd='/tmp',
             env=mock.ANY,
         )
@@ -466,13 +503,14 @@ class ApiTestingTest(unittest.TestCase):
         mock_check_call.assert_not_called()
 
 
-class BrowserTestsTest(unittest.TestCase):
+class BrowserTestsTest:
     @mock.patch('os.path.exists', return_value=True)
     @mock.patch('builtins.open', mock.mock_open())
     @mock.patch('json.load')
     @mock.patch('subprocess.check_call')
     @mock.patch('quibble.backend.PhpWebserver')
     @mock.patch('quibble.backend.ChromeWebDriver')
+    @pytest.mark.parametrize(*npm_envs_parameters)
     def test_project_selenium(
         self,
         mock_driver,
@@ -480,27 +518,30 @@ class BrowserTestsTest(unittest.TestCase):
         mock_check_call,
         mock_load,
         mock_path_exists,
+        npm_command_env,
+        expected_npm_command,
     ):
         mock_load.return_value = {
             'scripts': {'selenium-test': 'run that stuff'}
         }
 
-        c = quibble.commands.BrowserTests(
-            '/tmp',
-            ['mediawiki/core', 'mediawiki/skins/Vector'],
-            ':0',
-            'http://192.0.2.1:4321',
-            'php',
-        )
-        c.execute()
+        with mock_npm_command_env(npm_command_env):
+            c = quibble.commands.BrowserTests(
+                '/tmp',
+                ['mediawiki/core', 'mediawiki/skins/Vector'],
+                ':0',
+                'http://192.0.2.1:4321',
+                'php',
+            )
+            c.execute()
 
         mock_check_call.assert_any_call(
-            [quibble.get_npm_command(), 'run', 'selenium-test'],
+            [expected_npm_command, 'run', 'selenium-test'],
             cwd='/tmp',
             env=mock.ANY,
         )
         mock_check_call.assert_any_call(
-            [quibble.get_npm_command(), 'run', 'selenium-test'],
+            [expected_npm_command, 'run', 'selenium-test'],
             cwd='/tmp/skins/Vector',
             env=mock.ANY,
         )
