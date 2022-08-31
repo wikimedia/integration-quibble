@@ -1,9 +1,25 @@
 Quibble changelog
 =================
 
-master (UNRELEASED)
+1.4.6 (2022-08-31)
 -------------------
-* …
+
+Features
+~~~~~~~~
+* Allow overriding the npm command by setting the `NPM_COMMAND`. Currently
+  supports https://pnpm.io/.
+  `T305525 <https://phabricator.wikimedia.org/T305525>`_
+  Kosta Harlan
+* Run `maintenance/addSite.php` to enable Wikibase wikis to link to themselves.
+  Michael Große
+  `T314586 <https://phabricator.wikimedia.org/T314586>`_
+
+Internal
+~~~~~~~~
+* Change Sphinx documentation default language from `None` to `en`
+  Antoine Musso
+* Update image names in README
+  Lucas Werkmeister
 
 1.4.5 (2022-03-28)
 ------------------
