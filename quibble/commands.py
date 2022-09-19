@@ -1037,6 +1037,9 @@ class Parallel:
         output streams to a single collector.  This collected output and any
         error are returned in a serializable format.
 
+        The child outputs are read as bytes and decoded to Unicode replacing
+        any potential invalid characters with their hexadecimal form.
+
         Returns
         -------
         tuple
@@ -1045,9 +1048,8 @@ class Parallel:
                 Output of the command, with stdout, stderr, and log lines
                 interleaved.
         """
-        with tempfile.TemporaryFile(
-            mode='w+'
-        ) as collector, quibble.util.redirect_all_streams(collector):
+        with tempfile.TemporaryFile() as collector, \
+                quibble.util.redirect_all_streams(collector):  # fmt: skip
             try:
                 execute_command(command)
                 error = None
@@ -1056,7 +1058,9 @@ class Parallel:
             finally:
                 collector.flush()
                 collector.seek(0, io.SEEK_SET)
-                captured = collector.read()
+                # With Python 3.8 we could use:
+                #   TemporaryFile(errors='backslashreplace')
+                captured = collector.read().decode(errors='backslashreplace')
 
         return (error, captured)
 

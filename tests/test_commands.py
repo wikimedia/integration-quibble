@@ -663,6 +663,14 @@ class EchoCommand:
             raise Exception("bad")
 
 
+class InvalidUnicodeCommand:
+    invalid_unicode = b"with invalid unicode: \x80abc"
+
+    def execute(self):
+        sys.stdout.buffer.write(b"stdout " + self.invalid_unicode)
+        sys.stderr.buffer.write(b"stderr " + self.invalid_unicode)
+
+
 def sequential_pool():
     pool = mock.MagicMock()
     pool.return_value.__enter__.return_value.imap_unordered.side_effect = (
@@ -741,4 +749,19 @@ class ParallelTest(unittest.TestCase):
 
         mock_log.info.assert_any_call(
             "log line\nstdout line\nstderr line\nthen fail\n"
+        )
+
+    @mock.patch('quibble.commands.log')
+    def test_parallel_run_child_handles_invalid_unicode(self, mock_log):
+        p = quibble.commands.Parallel(
+            steps=[
+                InvalidUnicodeCommand(),
+                InvalidUnicodeCommand(),
+            ]
+        )
+        p.execute()
+
+        mock_log.info.assert_called_with(
+            "stdout with invalid unicode: \\x80abc"
+            "stderr with invalid unicode: \\x80abc"
         )

@@ -100,7 +100,7 @@ def test_redirect_all_streams():
     """This just proves that the redirect function is trying something
     unsupported in the test context.
     """
-    with tempfile.TemporaryFile(mode='w+') as collector:
+    with tempfile.TemporaryFile() as collector:
         with quibble.util.redirect_all_streams(collector):
             print("test out")
             print("test error", file=sys.stderr)
@@ -108,5 +108,5 @@ def test_redirect_all_streams():
 
         collector.flush()
         collector.seek(0, io.SEEK_SET)
-        captured = collector.read()
+        captured = collector.read().decode()
         assert captured == "test out\ntest error\ntest log\n"

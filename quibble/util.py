@@ -91,10 +91,40 @@ def _redirect_stream(source, sink):
     os.dup2(old_source_fileno, source.fileno())
 
 
+class BytesStreamHandler(logging.StreamHandler):
+    """
+    Logging handling converting received strings to bytes
+
+    This is used when redirecting logging to TemporaryFile() which by default
+    is a binary file. The write() expects a byte like object.
+
+    Invalid unicode characters are replaced by backslashreplace.
+
+    With Python 3.8 we can remove it and use:
+
+        TemporaryFile(errors='backslashreplace')
+    """
+
+    def __init__(self, stream):
+        logging.StreamHandler.__init__(self, stream)
+
+    def emit(self, record):
+        msg = self.format(record)
+        self.stream.write(
+            bytes(
+                msg + self.terminator,
+                encoding='utf-8',
+                errors='backslashreplace',
+            )
+        )
+        self.stream.flush()
+
+
 @contextlib.contextmanager
 def _redirect_logging(sink):
+
     """Redirect logging to a single stream, and reconnect when finished."""
-    log_handler = logging.StreamHandler(sink)
+    log_handler = BytesStreamHandler(sink)
 
     logger = logging.getLogger()
     old_handlers = logger.handlers
