@@ -752,6 +752,7 @@ class ParallelTest(unittest.TestCase):
         )
 
     @mock.patch('quibble.commands.log')
+    @broken_on_macos
     def test_parallel_run_child_handles_invalid_unicode(self, mock_log):
         p = quibble.commands.Parallel(
             steps=[
