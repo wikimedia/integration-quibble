@@ -843,10 +843,11 @@ class QunitTests:
 
 
 class ApiTesting:
-    def __init__(self, mw_install_path, projects, url):
+    def __init__(self, mw_install_path, projects, url, web_backend):
         self.mw_install_path = mw_install_path
         self.projects = projects
         self.url = url
+        self.web_backend = web_backend
 
     def execute(self):
         settings_in_path = (
@@ -861,11 +862,13 @@ class ApiTesting:
 
         with open(settings_out_path, "w") as settings_out:
             json.dump(api_settings, settings_out)
-        quibble_testing_config = {
+        quibble_testing_config_env = {
             "API_TESTING_CONFIG_FILE": self.mw_install_path
             + "/api-testing-quibble.json"
         }
-        quibble_testing_config.update(os.environ)
+        quibble_testing_config_env.update(os.environ)
+        if self.web_backend == 'external':
+            quibble_testing_config_env.update({'QUIBBLE_APACHE': '1'})
 
         for project in self.projects:
             project_dir = os.path.normpath(
@@ -878,7 +881,7 @@ class ApiTesting:
                 subprocess.check_call(
                     [quibble.get_npm_command(), 'run', 'api-testing'],
                     cwd=project_dir,
-                    env=quibble_testing_config,
+                    env=quibble_testing_config_env,
                 )
 
     def __str__(self):
@@ -938,10 +941,11 @@ class BrowserTests:
 
 
 class UserScripts:
-    def __init__(self, mw_install_path, commands, web_url):
+    def __init__(self, mw_install_path, commands, web_url, web_backend):
         self.mw_install_path = mw_install_path
         self.commands = commands
         self.web_url = web_url
+        self.web_backend = web_backend
 
     def execute(self):
         log.info('User commands, working directory: %s', self.mw_install_path)
@@ -955,6 +959,8 @@ class UserScripts:
                 'MEDIAWIKI_PASSWORD': 'testwikijenkinspass',
             }
         )
+        if self.web_backend == 'external':
+            userscripts_env.update({'QUIBBLE_APACHE': '1'})
 
         for cmd in self.commands:
             log.info(cmd)

@@ -459,6 +459,7 @@ class ApiTestingTest:
                 '/tmp',
                 ['mediawiki/core', 'mediawiki/skins/Vector'],
                 'http://192.0.2.1:4321',
+                'external',
             )
             c.execute()
 
@@ -490,6 +491,7 @@ class ApiTestingTest:
             '/tmp',
             ['mediawiki/core', 'mediawiki/skins/Vector'],
             'http://192.0.2.1:4321',
+            'external',
         )
         c.execute()
 
@@ -507,7 +509,7 @@ class ApiTestingTest:
         mock_load.return_value = {}
 
         c = quibble.commands.ApiTesting(
-            '/tmp', ['mediawiki/vendor'], 'http://192.0.2.1:4321'
+            '/tmp', ['mediawiki/vendor'], 'http://192.0.2.1:4321', 'external'
         )
         c.execute()
         mock_check_call.assert_not_called()
@@ -605,7 +607,7 @@ class UserScriptsTest(unittest.TestCase):
     @mock.patch('subprocess.check_call')
     def test_commands(self, mock_check_call, *_):
         quibble.commands.UserScripts(
-            '/tmp', ['true', 'false'], 'http://192.0.2.1:9413'
+            '/tmp', ['true', 'false'], 'http://192.0.2.1:9413', 'external'
         ).execute()
 
         mock_check_call.assert_has_calls(
@@ -620,7 +622,7 @@ class UserScriptsTest(unittest.TestCase):
     @mock.patch('subprocess.check_call')
     def test_mediawiki_environment_variables(self, mock_check_call, *_):
         quibble.commands.UserScripts(
-            '/tmp', ['true', 'false'], 'http://192.0.2.1:9413'
+            '/tmp', ['true', 'false'], 'http://192.0.2.1:9413', 'external'
         ).execute()
 
         (args, kwargs) = mock_check_call.call_args
@@ -632,17 +634,20 @@ class UserScriptsTest(unittest.TestCase):
                 'MEDIAWIKI_USER': 'WikiAdmin',
                 'MW_SERVER': 'http://192.0.2.1:9413',
                 'MW_SCRIPT_PATH': '/',
+                'QUIBBLE_APACHE': '1',
             },
         )
 
     @mock.patch('quibble.backend.PhpWebserver')
     def test_commands_raises_exception_on_error(self, *_):
         with self.assertRaises(subprocess.CalledProcessError, msg=''):
-            quibble.commands.UserScripts('/tmp', ['false'], '').execute()
+            quibble.commands.UserScripts(
+                '/tmp', ['false'], '', 'external'
+            ).execute()
 
         with self.assertRaises(subprocess.CalledProcessError, msg=''):
             quibble.commands.UserScripts(
-                '/tmp', ['true', 'false'], ''
+                '/tmp', ['true', 'false'], '', 'external'
             ).execute()
 
 

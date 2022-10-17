@@ -475,6 +475,7 @@ class QuibbleCmd(object):
                     mw_install_path,
                     dependencies_with_project_first,
                     web_backend.url,
+                    args.web_backend,
                 )
             )
 
@@ -494,6 +495,7 @@ class QuibbleCmd(object):
                     mw_install_path,
                     args.commands,
                     web_backend.url,
+                    args.web_backend,
                 )
             )
 
