@@ -525,81 +525,71 @@ def get_arg_parser():
     parser = argparse.ArgumentParser(
         description='Quibble: the MediaWiki test runner',
         prog='quibble',
+        add_help=False,  # added back in the global_opts below
     )
-    parser.add_argument(
-        '--packages-source',
-        choices=['composer', 'vendor'],
-        default='vendor',
-        help='Source to install PHP dependencies from. Default: vendor',
+
+    global_opts = parser.add_argument_group('Global options')
+    global_opts.add_argument(
+        '-h',
+        '--help',
+        action='help',
     )
-    parser.add_argument(
+    global_opts.add_argument(
+        '--color',
+        dest='color',
+        action='store_true',
+        help='Enable colorful output.',
+    )
+    global_opts.add_argument(
+        '--no-color',
+        dest='color',
+        action='store_false',
+        help='Disable colorful output.',
+    )
+    # Disable by default for Jenkins to avoid triggering a bug in
+    # the "Console Section" plugin which gets confused if a line
+    # starts with color code (T236222).
+    global_opts.set_defaults(color=sys.stdin.isatty())
+
+    global_opts.add_argument(
+        '-n',
+        '--dry-run',
+        action='store_true',
+        help='Stop before executing any commands.',
+    )
+    global_opts.add_argument(
+        '--workspace',
+        default='/workspace' if quibble.is_in_docker() else os.getcwd(),
+        help='Base path to work from. In Docker: "/workspace", '
+        'else current working directory',
+    )
+    global_opts.add_argument(
+        '--log-dir',
+        default='log',
+        help='Where logs and artifacts will be written to. '
+        'Default: "log" relatively to workspace',
+    )
+
+    git_ops = parser.add_argument_group('Git operations')
+    git_ops.add_argument(
         '--skip-zuul',
         action='store_true',
         help='Do not clone/checkout in workspace',
     )
-    parser.add_argument(
-        '--resolve-requires',
-        action='store_true',
-        help='Whether to process extension.json/skin.json and clone extra '
-        'extensions/skins mentioned in the "requires" statement. '
-        'This is done recursively.',
-    )
-    parser.add_argument(
-        '--fail-on-extra-requires',
-        action='store_true',
-        help='When --resolve-requires caused Quibble to clone extra '
-        'requirements not in the list of projects: fail.'
-        'Can be used to enforce extensions and skins to declare '
-        'their requirements via the extension registry.',
-    )
-    parser.add_argument(
-        '--skip-deps', action='store_true', help='Do not run composer/npm'
-    )
-    parser.add_argument(
-        '--skip-install', action='store_true', help='Do not install MediaWiki'
-    )
-    parser.add_argument(
-        '--db',
-        choices=['sqlite', 'mysql', 'postgres'],
-        default='mysql',
-        help='Database backend to use. Default: mysql',
-    )
-    parser.add_argument(
-        '--db-is-external',
-        action='store_true',
-        help='If the database is managed externally and not by Quibble. '
-        'Default: managed by Quibble',
-    )
-    parser.add_argument(
-        '--db-dir',
-        default=None,
-        help=(
-            'Base directory holding database files. A sub directory '
-            'prefixed with "quibble-" will be created and deleted '
-            'on completion. '
-            'If set and relative, relatively to workspace. '
-            'Default: %s' % tempfile.gettempdir()
-        ),
-    )
-    parser.add_argument(
-        '--dump-db-postrun',
-        action='store_true',
-        help='Dump the db before shutting down the server (mysql only)',
-    )
-    parser.add_argument(
+    git_ops.add_argument(
         '--git-cache',
         default='/srv/git' if quibble.is_in_docker() else 'ref',
         help='Path to bare git repositories to speed up git clone'
         'operation. Passed to zuul-cloner as --cache-dir. '
         'In Docker: "/srv/git", else "ref"',
     )
-    parser.add_argument(
+    git_ops.add_argument(
         '--git-parallel',
         default=4,
         type=int,
         help='Number of workers to clone repositories. Default: 4',
     )
-    parser.add_argument(
+    git_ops.add_argument(
         '--branch',
         default=None,
         help=(
@@ -608,7 +598,7 @@ def get_arg_parser():
             'client library compatibility.'
         ),
     )
-    parser.add_argument(
+    git_ops.add_argument(
         '--project-branch',
         nargs=1,
         action='append',
@@ -620,10 +610,99 @@ def get_arg_parser():
             'times.'
         ),
     )
-    parser.add_argument(
-        '--web-url', help='Base URL where MediaWiki can be accessed.'
+
+    deps = parser.add_argument_group('Libraries dependencies')
+    deps.add_argument(
+        '--skip-deps',
+        action='store_true',
+        help='Do not run composer/npm installs',
     )
-    parser.add_argument(
+    deps.add_argument(
+        '--packages-source',
+        choices=['composer', 'vendor'],
+        default='vendor',
+        help='Source to install PHP dependencies from. Default: vendor',
+    )
+    deps.add_argument(
+        '--parallel-npm-install',
+        action='store_true',
+        help='Whether to run "npm install" in parallel for all projects at '
+        'the beginning of the BrowserTest stage.',
+    )
+
+    install = parser.add_argument_group('MediaWiki install')
+    install.add_argument(
+        '--skip-install', action='store_true', help='Do not install MediaWiki'
+    )
+    install.add_argument(
+        '--db',
+        choices=['sqlite', 'mysql', 'postgres'],
+        default='mysql',
+        help='Database backend to use. Default: mysql',
+    )
+    install.add_argument(
+        '--db-dir',
+        default=None,
+        help=(
+            'Base directory holding database files. A sub directory '
+            'prefixed with "quibble-" will be created and deleted '
+            'on completion. '
+            'If set and relative, relatively to workspace. '
+            'Default: %s' % tempfile.gettempdir()
+        ),
+    )
+    install.add_argument(
+        '--db-is-external',
+        action='store_true',
+        help='If the database is managed externally and not by Quibble. '
+        'Default: managed by Quibble',
+    )
+    install.add_argument(
+        '--dump-db-postrun',
+        action='store_true',
+        help='Dump the db before shutting down the server (mysql only)',
+    )
+
+    ext_requires = parser.add_argument_group('MediaWiki extension requires')
+    ext_requires.add_argument(
+        '--resolve-requires',
+        action='store_true',
+        help='Whether to process extension.json/skin.json and clone extra '
+        'extensions/skins mentioned in the "requires" statement. '
+        'This is done recursively.',
+    )
+    ext_requires.add_argument(
+        '--fail-on-extra-requires',
+        action='store_true',
+        help='When --resolve-requires caused Quibble to clone extra '
+        'requirements not in the list of projects: fail.'
+        'Can be used to enforce extensions and skins to declare '
+        'their requirements via the extension registry.',
+    )
+
+    tests = parser.add_argument_group('Stages options')
+    tests.add_argument(
+        '--phpbench-aggregate',
+        action='store_true',
+        help='If this argument is set, then Quibble will run phpbench in '
+        'aggregate mode, comparing the previous commit with the '
+        'current one.',
+    )
+    tests.add_argument(
+        '--phpunit-testsuite',
+        default=None,
+        metavar='pattern',
+        help='PHPUnit: filter which testsuite to run',
+    )
+    tests.add_argument(
+        '--phpunit-junit',
+        default=False,
+        action='store_true',
+        help='PHPUnit: enable Junit reporting to LOG_DIR',
+    )
+
+    web = parser.add_argument_group('Web server')
+    web.add_argument(
         '--web-backend',
         choices=['php', 'external'],
         default='php',
@@ -631,24 +710,15 @@ def get_arg_parser():
         '"external" assumes that the local MediaWiki site can be accessed'
         ' via an already running web server.',
     )
-    parser.add_argument(
+    web.add_argument(
         '--web-php-workers',
         type=int,
         help='Number of workers for the php built-in webserver, '
         'or set PHP_CLI_SERVER_WORKERS environment variable. '
         'Requires PHP 7.4+',
     )
-    parser.add_argument(
-        '--workspace',
-        default='/workspace' if quibble.is_in_docker() else os.getcwd(),
-        help='Base path to work from. In Docker: "/workspace", '
-        'else current working directory',
-    )
-    parser.add_argument(
-        '--log-dir',
-        default='log',
-        help='Where logs and artifacts will be written to. '
-        'Default: "log" relatively to workspace',
+    web.add_argument(
+        '--web-url', help='Base URL where MediaWiki can be accessed.'
     )
     parser.add_argument(
         'projects',
@@ -659,47 +729,8 @@ def get_arg_parser():
         'If $ZUUL_PROJECT is set, it will be cloned as well.',
     )
 
-    parser.add_argument(
-        '--parallel-npm-install',
-        action='store_true',
-        help='Whether to run "npm install" in parallel for all projects at '
-        'the beginning of the BrowserTest stage.',
-    )
-
-    parser.add_argument(
-        '--phpbench-aggregate',
-        action='store_true',
-        help='If this argument is set, then Quibble will run phpbench in '
-        'aggregate mode, comparing the previous commit with the '
-        'current one.',
-    )
-
-    parser.add_argument(
-        '--color',
-        dest='color',
-        action='store_true',
-        help='Enable colorful output.',
-    )
-    parser.add_argument(
-        '--no-color',
-        dest='color',
-        action='store_false',
-        help='Disable colorful output.',
-    )
-    # Disable by default for Jenkins to avoid triggering a bug in
-    # the "Console Section" plugin which gets confused if a line
-    # starts with color code (T236222).
-    parser.set_defaults(color=sys.stdin.isatty())
-
-    parser.add_argument(
-        '-n',
-        '--dry-run',
-        action='store_true',
-        help='Stop before executing any commands.',
-    )
-
     stages_args = parser.add_argument_group(
-        'stages',
+        'Stages',
         description=(
             'Quibble runs all test commands (stages) by default. '
             'Use the --run or --skip options to further refine which commands '
@@ -752,19 +783,6 @@ def get_arg_parser():
         nargs='*',
         metavar='COMMAND',
         help=('DEPRECATED: use -c COMMAND -c COMMAND'),
-    )
-
-    parser.add_argument(
-        '--phpunit-testsuite',
-        default=None,
-        metavar='pattern',
-        help='PHPUnit: filter which testsuite to run',
-    )
-    parser.add_argument(
-        '--phpunit-junit',
-        default=False,
-        action='store_true',
-        help='PHPUnit: enable Junit reporting to LOG_DIR',
     )
 
     return parser
