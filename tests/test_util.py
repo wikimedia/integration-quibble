@@ -5,6 +5,7 @@ import logging
 import pytest
 import quibble.util
 from quibble.util import (
+    FetchInfo,
     isCoreOrVendor,
     isExtOrSkin,
     move_item_to_head,
@@ -110,3 +111,53 @@ def test_redirect_all_streams():
         collector.seek(0, io.SEEK_SET)
         captured = collector.read().decode()
         assert captured == "test out\ntest error\ntest log\n"
+
+
+@mock.patch('quibble.util.FetchInfo.fetch')
+def test_FetchInfo_without_patchset(fetch):
+    fetch.return_value = {
+        'project': 'repo/example',
+        'branch': 'master',
+        'current_revision': 'deadbeef',  # o=CURRENT_REVISION
+        'revisions': {
+            'deadbeef': {
+                'fetch': {
+                    'anonymous http': {
+                        'ref': 'refs/changes/45/12345/42',
+                        'url': 'https://example.org/r/repo/example',
+                    }
+                }
+            }
+        },
+    }
+    assert FetchInfo.change(12345).asZuulEnv() == {
+        'ZUUL_URL': 'https://example.org/r/',
+        'ZUUL_PROJECT': 'repo/example',
+        'ZUUL_BRANCH': 'master',
+        'ZUUL_REF': 'refs/changes/45/12345/42',
+    }
+
+
+@mock.patch('quibble.util.FetchInfo.fetch')
+def test_FetchInfo_with_patchset(fetch):
+    fetch.return_value = {
+        'project': 'repo/example',
+        'branch': 'master',
+        'revisions': {
+            'deadbeef': {
+                '_number': 42,  # indice we look with o=ALL_REVISIONS
+                'fetch': {
+                    'anonymous http': {
+                        'ref': 'refs/changes/45/12345/42',
+                        'url': 'https://example.org/r/repo/example',
+                    }
+                },
+            }
+        },
+    }
+    assert FetchInfo.change(12345, 42).asZuulEnv() == {
+        'ZUUL_URL': 'https://example.org/r/',
+        'ZUUL_PROJECT': 'repo/example',
+        'ZUUL_BRANCH': 'master',
+        'ZUUL_REF': 'refs/changes/45/12345/42',
+    }

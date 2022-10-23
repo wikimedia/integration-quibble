@@ -15,9 +15,11 @@
 #     limitations under the License.
 
 import contextlib
+import json
 import logging
 import os
 import re
+import urllib.request
 from shutil import copyfile
 import subprocess
 import sys
@@ -199,3 +201,62 @@ class _RepeatingTimer(threading.Timer):
     def run(self):
         while not self.finished.wait(self.interval):
             self.function(*self.args, **self.kwargs)
+
+
+class FetchInfo:
+    url = None
+    project = None
+    branch = None
+    ref = None
+
+    @staticmethod
+    def change(change, patchset=None):
+        fetchinfo = FetchInfo()
+
+        url = 'https://gerrit.wikimedia.org/r/changes/?q=change:%s' % change
+        if patchset:
+            url += '&o=CURRENT_REVISION'
+        else:
+            url += '&o=ALL_REVISIONS'
+
+        change_info = FetchInfo.fetch(url)
+
+        fetchinfo.project = change_info['project']
+        fetchinfo.branch = change_info['branch']
+
+        def get_url_ref(rev):
+            fetch = rev['fetch']['anonymous http']
+            # url, reference
+            return (fetch['url'][: -len(fetchinfo.project)], fetch['ref'])
+
+        if patchset is None:
+            current = change_info['current_revision']
+            (fetchinfo.url, fetchinfo.ref) = get_url_ref(
+                change_info['revisions'][current]
+            )
+            return fetchinfo
+        else:
+            for sha1, rev_data in change_info['revisions'].items():
+                if rev_data["_number"] == patchset:
+                    (fetchinfo.url, fetchinfo.ref) = get_url_ref(rev_data)
+                    return fetchinfo
+            raise Exception(
+                "Could not find metadata for %s,%s" % (change, patchset)
+            )
+
+    @staticmethod
+    def fetch(url):
+        with urllib.request.urlopen(url) as f:
+            f.readline()  # consumes "')]}'\n"
+            changes = json.loads(f.readline().decode('utf-8'))
+            if len(changes) != 1:
+                raise Exception("Got multiple changes from %s" % url)
+            return changes[0]
+
+    def asZuulEnv(self):
+        return {
+            'ZUUL_URL': self.url,
+            'ZUUL_PROJECT': self.project,
+            'ZUUL_BRANCH': self.branch,
+            'ZUUL_REF': self.ref,
+        }

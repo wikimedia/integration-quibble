@@ -72,7 +72,13 @@ class QuibbleCmd(object):
         self._context_stack = contextlib.ExitStack()
 
     def _setup_environment(
-        self, workspace, mw_install_path, log_dir, tmp_dir, use_vendor=False
+        self,
+        workspace,
+        mw_install_path,
+        log_dir,
+        tmp_dir,
+        use_vendor=False,
+        zuul_env={},
     ):
         """
         Set and get needed environment variables.
@@ -104,6 +110,9 @@ class QuibbleCmd(object):
         # T333412
         if use_vendor:
             os.environ['MW_SKIP_EXTERNAL_DEPENDENCIES'] = '1'
+
+        if zuul_env:
+            os.environ.update(zuul_env)
 
     def _warn_obsolete_env_deps(self, var):
         log.warning(
@@ -179,6 +188,17 @@ class QuibbleCmd(object):
             dump_dir = None
 
         tmp_dir = tempfile.gettempdir()
+
+        # Set ZUUL variables when given `--change ###`
+        zuul_env = (
+            quibble.util.FetchInfo.change(args.change).asZuulEnv()
+            if args.change
+            else {}
+        )
+
+        self._setup_environment(
+            workspace, mw_install_path, log_dir, tmp_dir, zuul_env
+        )
 
         zuul_project = os.environ.get('ZUUL_PROJECT', None)
         if zuul_project is None:
@@ -641,6 +661,14 @@ def get_arg_parser():
         '--skip-zuul',
         action='store_true',
         help='Do not clone/checkout in workspace',
+    )
+    git_ops.add_argument(
+        '--change',
+        help=(
+            'Gerrit Change[,patchset] to act on. Will fetch the change '
+            'latest patchset (or the specified one). Overrides ZUUL '
+            'environment variables'
+        ),
     )
     git_ops.add_argument(
         '--git-cache',
