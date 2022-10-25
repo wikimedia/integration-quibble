@@ -1,9 +1,24 @@
 Quibble changelog
 =================
 
-master (UNRELEASED)
--------------------
-* …
+1.4.7 (2022-10-25)
+------------------
+
+Features
+~~~~~~~~
+* Set `QUIBBLE_APACHE=1` environment variable in the `api-testing` stage as
+  well as when running user scripts (`--command`).
+  `T320935 <https://phabricator.wikimedia.org/T320935>`_
+  Kosta Harlan
+* Enhance `--help` usage output by splitting options in different argument
+  groups.
+  Antoine Musso
+
+Bug fix
+~~~~~~~
+* Handle invalid Unicode received from tests.
+  `T318029 <https://phabricator.wikimedia.org/T318029>`_
+  Antoine Musso
 
 1.4.6 (2022-08-31)
 -------------------
