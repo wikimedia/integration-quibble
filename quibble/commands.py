@@ -992,6 +992,19 @@ class GitClean:
 
     def execute(self):
         subprocess.check_call(['git', 'clean', '-xqdf'], cwd=self.directory)
+        leftover_files = subprocess.check_output(
+            ['git', 'status', '--ignored', '--porcelain'],
+            cwd=self.directory,
+            universal_newlines=True,  # python 3.7: text=True
+        )
+        if leftover_files:
+            log.warning('git clean left behind some files!!! T321795')
+            for line in leftover_files.rstrip().split('\n'):
+                log.warning(line)
+            log.warning(
+                'Build continuining nonetheless but unexpected '
+                'failures might happen'
+            )
 
     def __str__(self):
         return "Revert to git clean -xqdf in {}".format(self.directory)

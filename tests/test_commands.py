@@ -684,6 +684,31 @@ def sequential_pool():
     return pool
 
 
+# This is a regular function to benefit from pytest builtin fixtures tmp_path
+# and caplog.
+@mock.patch('subprocess.check_call')
+@mock.patch('subprocess.check_output')
+def test_GitClean(check_output, check_call, tmp_path, caplog):
+    caplog.set_level(logging.WARNING)
+    # Simulate a dirty git workspace even after git clean ran
+    check_output.return_value = '!! composer.lock\n' '!! vendor\n'
+
+    quibble.commands.GitClean(tmp_path).execute()
+
+    check_call.assert_called_with(['git', 'clean', '-xqdf'], cwd=tmp_path)
+    check_output.assert_called_with(
+        ['git', 'status', '--ignored', '--porcelain'],
+        cwd=tmp_path,
+        universal_newlines=True,
+    )
+    assert [rec.message for rec in caplog.records] == [
+        mock.ANY,
+        '!! composer.lock',
+        '!! vendor',
+        mock.ANY,
+    ]
+
+
 class ParallelTest(unittest.TestCase):
     def test_init(self):
         p = quibble.commands.Parallel(steps=range(3))
