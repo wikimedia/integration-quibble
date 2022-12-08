@@ -302,7 +302,7 @@ class CmdTest(unittest.TestCase):
 
     def test_build_execution_plan(self):
         args = cmd._parse_arguments(args=[])
-        plan = cmd.QuibbleCmd().build_execution_plan(args)
+        project_dir, plan = cmd.QuibbleCmd().build_execution_plan(args)
 
         self.assertIsInstance(plan[0], quibble.commands.ReportVersions)
         self.assertIsInstance(plan[1], quibble.commands.EnsureDirectory)
@@ -368,6 +368,8 @@ class CmdTest(unittest.TestCase):
         q = cmd.QuibbleCmd()
 
         with self.assertLogs(level='DEBUG') as log:
-            q.execute([])
+            q.execute([], '/workspace/src')
 
-        self.assertRegex(log.output[0], "DEBUG:quibble.cmd:Execution plan:")
+        self.assertRegex(
+            log.output[0], "DEBUG:quibble.cmd:Project dir: /workspace/src"
+        )

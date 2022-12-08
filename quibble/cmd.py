@@ -20,6 +20,7 @@ import argparse
 import contextlib
 import logging
 import os
+import subprocess
 import sys
 import tempfile
 
@@ -258,6 +259,9 @@ class QuibbleCmd(object):
             plan.append(
                 quibble.commands.ExtSkinSubmoduleUpdate(mw_install_path)
             )
+
+        # Assume project dir is mediawiki/core by default
+        project_dir = mw_install_path
 
         if is_extension or is_skin:
             project_dir = os.path.join(mw_install_path, repo_path)
@@ -499,9 +503,11 @@ class QuibbleCmd(object):
                 )
             )
 
-        return plan
+        return project_dir, plan
 
-    def execute(self, plan, dry_run=False):
+    def execute(self, plan, project_dir, reporting_url=None, dry_run=False):
+        log.debug("Project dir: %s", project_dir)
+        log.debug("Reporting URL: %s", reporting_url or "not specified")
         log.debug("Execution plan:")
         for cmd in plan:
             log.debug(cmd)
@@ -511,7 +517,42 @@ class QuibbleCmd(object):
 
         with self._context_stack:
             for command in plan:
-                quibble.commands.execute_command(command)
+                try:
+                    quibble.commands.execute_command(command)
+                except subprocess.CalledProcessError as called_process_error:
+                    # If a command failed, check to see if the repository
+                    # is configured so that Quibble should transmit error
+                    # data to an endpoint for further processing.
+                    if not quibble.commands.repo_has_quibble_config(
+                        project_dir
+                    ):
+                        log.debug('No quibble.yaml in %s', project_dir)
+                        raise called_process_error
+                    if not reporting_url:
+                        log.debug('No reporting URL specified.')
+                        raise called_process_error
+                    config = quibble.commands.repo_load_quibble_config(
+                        project_dir
+                    )
+                    if not config.get('earlywarning'):
+                        log.debug(
+                            'No earlywarning section found in quibble.yaml'
+                        )
+                        raise called_process_error
+
+                    quibble.commands.transmit_error(
+                        should_comment=config.get('earlywarning').get(
+                            'should_comment', 0
+                        ),
+                        should_vote=config.get('earlywarning').get(
+                            'should_vote', 0
+                        ),
+                        command=str(command),
+                        reporting_url=reporting_url,
+                        api_key=os.getenv("QUIBBLE_API_KEY"),
+                        called_process_error=called_process_error,
+                    )
+                    raise called_process_error
 
 
 def _parse_arguments(args):
@@ -568,6 +609,12 @@ def get_arg_parser():
         default='log',
         help='Where logs and artifacts will be written to. '
         'Default: "log" relatively to workspace',
+    )
+    global_opts.add_argument(
+        '--reporting-url',
+        default=None,
+        help='HTTP endpoint that Quibble will POST error '
+        'messages to, for configured repositories.',
     )
 
     git_ops = parser.add_argument_group('Git operations')
@@ -798,9 +845,14 @@ def main():
         quibble.colored_logging()
 
     cmd = QuibbleCmd()
-    plan = cmd.build_execution_plan(args)
+    project_dir, plan = cmd.build_execution_plan(args)
 
-    cmd.execute(plan, dry_run=args.dry_run)
+    cmd.execute(
+        plan,
+        project_dir=project_dir,
+        reporting_url=args.reporting_url,
+        dry_run=args.dry_run,
+    )
 
 
 if __name__ == '__main__':

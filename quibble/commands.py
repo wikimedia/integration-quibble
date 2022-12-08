@@ -8,6 +8,9 @@ import multiprocessing
 import os
 import os.path
 import pkg_resources
+import requests
+import yaml
+
 from quibble.gitchangedinhead import GitChangedInHead
 from quibble.util import copylog, isExtOrSkin, ProgressReporter
 import quibble.mediawiki.registry
@@ -1099,6 +1102,15 @@ def _repo_has_npm_lock(project_dir):
     return os.path.exists(lock_path)
 
 
+def repo_has_quibble_config(project_dir):
+    return os.path.exists(os.path.join(project_dir, 'quibble.yaml'))
+
+
+def repo_load_quibble_config(project_dir):
+    with open(os.path.join(project_dir, 'quibble.yaml')) as f:
+        return yaml.safe_load(f)
+
+
 def repo_has_npm_script(project_dir, script_name):
     package_path = os.path.join(project_dir, 'package.json')
     return _json_has_script(package_path, script_name)
@@ -1117,3 +1129,59 @@ def _json_has_script(json_file, script_name):
     with open(json_file) as f:
         spec = json.load(f)
     return 'scripts' in spec and script_name in spec['scripts']
+
+
+def transmit_error(
+    should_comment: int,
+    should_vote: int,
+    command: str,
+    reporting_url: str,
+    api_key: str,
+    called_process_error: subprocess.CalledProcessError,
+):
+    """
+    Transmit command execution error data to an HTTP endpoint.
+
+    :param should_comment: 1 for true, 0 for false.
+    :param should_vote: 1 for true, 0 for false.
+    :param command: The command name as defined in the plan.
+    :param reporting_url: The URL to post the error data to
+    :param api_key: The API key to use with the outbound request. The
+        recipient of the data can use this to validate the request.
+    :param called_process_error: A CalledProcessError object
+        FIXME: The CalledProcessError doesn't have any output, for that we'd
+        need to convert the check_call/check_output calls to  subprocess.run().
+        Eventually that would be nice to have, so that the tool which reports
+        the errors as comments in Gerrit could include an extract of the error
+        output.
+    """
+    log.debug(
+        'Sending error data for command "%s" to %s', command, reporting_url
+    )
+    zuul_project = os.getenv('ZUUL_PROJECT')
+    zuul_change = os.getenv('ZUUL_CHANGE')
+    zuul_patchset = os.getenv('ZUUL_PATCHSET')
+    build_url = os.getenv('BUILD_URL')
+
+    try:
+        data = {
+            'should_comment': should_comment,
+            'should_vote': should_vote,
+            'command': command,
+            'project': zuul_project,
+            'change': zuul_change,
+            'patchset': zuul_patchset,
+            'build_url': build_url + '/consoleFull',
+        }
+        requests.post(
+            reporting_url, json=data, headers={"x-api-key": api_key}, timeout=5
+        )
+    except requests.exceptions.RequestException:
+        log.exception("Failed to POST data")
+        return
+    except Exception:
+        # Deliberately ignore most errors here; we don't want exceptions
+        # generated while transmitting error data to interfere with
+        # Quibble's functioning.
+        log.exception("An exception occurred while sending data")
+        return

@@ -1,0 +1,5 @@
+# Quibble configuration file.
+# TODO: Link to documentation.
+earlywarning:
+  should_comment: 1
+  should_vote: 1
