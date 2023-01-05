@@ -18,10 +18,41 @@ import os
 import subprocess
 
 
+# Compatibility with MW < 1.40; to remove once 1.39 is not CI-tested
+def getMaintenanceScript(script, args=[]):
+    """
+    Return a sequence of command arguments to run a maintenance script
+
+    Since MediaWiki 1.40, instead of invoking maintenance script directly, one
+    should use `maintenance/run.php` and pass the basename of the script:
+
+      php maintenance/run.php update
+
+    Will run `maintenance/update.php`. This command takes care of back
+    compatibility with older MediaWiki versions which do not have
+    `maintenance/run.php`.
+    """
+    subprocess.Popen
+    (basename, ext) = os.path.splitext(script)
+
+    if isinstance(args, str):
+        args = [args]
+
+    if os.path.exists('maintenance/run.php'):
+        cmd = ['php', 'maintenance/run.php', basename]
+    else:
+        if ext == '':
+            cmd = ['php', 'maintenance/%s.php' % basename]
+        else:
+            cmd = ['php', 'maintenance/%s' % script]
+    cmd.extend(args)
+    return cmd
+
+
 def update(args, mwdir=None):
     log = logging.getLogger('mw.maintenance.update')
 
-    cmd = ['php', 'maintenance/update.php', '--quick']
+    cmd = getMaintenanceScript('update', '--quick')
     cmd.extend(args)
     log.info(' '.join(cmd))
 
@@ -39,7 +70,7 @@ def update(args, mwdir=None):
 def install(args, mwdir=None):
     log = logging.getLogger('mw.maintenance.install')
 
-    cmd = ['php', 'maintenance/install.php']
+    cmd = getMaintenanceScript('install')
     cmd.extend(args)
     cmd.extend(
         [
@@ -65,7 +96,8 @@ def install(args, mwdir=None):
 
 def rebuildLocalisationCache(lang=['en'], mwdir=None):
     log = logging.getLogger('mw.maintenance.rebuildLocalisationCache')
-    cmd = ['php', 'maintenance/rebuildLocalisationCache.php']
+
+    cmd = getMaintenanceScript('rebuildLocalisationCache')
     cmd.extend(['--lang', ','.join(lang)])
     log.info(' '.join(cmd))
 
@@ -80,7 +112,8 @@ def rebuildLocalisationCache(lang=['en'], mwdir=None):
 
 def addSite(args, mwdir=None):
     log = logging.getLogger('mw.maintenance.addSite')
-    cmd = ['php', 'maintenance/addSite.php']
+
+    cmd = getMaintenanceScript('addSite')
     cmd.extend(args)
     log.info(' '.join(cmd))
 

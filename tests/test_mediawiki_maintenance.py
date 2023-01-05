@@ -1,7 +1,9 @@
+import pytest
 import unittest
 from unittest import mock
 
 import quibble.mediawiki.maintenance
+from quibble.mediawiki.maintenance import getMaintenanceScript
 
 
 class TestMediawikiMaintenance(unittest.TestCase):
@@ -101,3 +103,68 @@ class TestMediawikiMaintenance(unittest.TestCase):
             Exception, 'rebuildLocalisationCache failed with exit code: 43'
         ):
             quibble.mediawiki.maintenance.rebuildLocalisationCache()
+
+
+getMaintenanceScriptTestCases = (
+    'script,args,withRunPhp,expected',
+    [
+        pytest.param(
+            'update',
+            None,
+            True,
+            ['php', 'maintenance/run.php', 'update'],
+            id='short script',
+        ),
+        pytest.param(
+            'update',
+            None,
+            False,
+            ['php', 'maintenance/update.php'],
+            id='short script (legacy)',
+        ),
+        pytest.param(
+            'update.php',
+            None,
+            True,
+            ['php', 'maintenance/run.php', 'update'],
+            id='php script',
+        ),
+        pytest.param(
+            'update.php',
+            None,
+            False,
+            ['php', 'maintenance/update.php'],
+            id='php script (legacy)',
+        ),
+        pytest.param(
+            'foo',
+            '--lang=en',
+            True,
+            ['php', 'maintenance/run.php', 'foo', '--lang=en'],
+            id='with a single argument as string',
+        ),
+        pytest.param(
+            'foo',
+            ['--lang=fr,de'],
+            True,
+            ['php', 'maintenance/run.php', 'foo', '--lang=fr,de'],
+            id='with argument list',
+        ),
+        pytest.param(
+            'foo',
+            ['--verbose', '--lang=fr,de'],
+            True,
+            ['php', 'maintenance/run.php', 'foo', '--verbose', '--lang=fr,de'],
+            id='with list of multiple arguments',
+        ),
+    ],
+)
+
+
+@pytest.mark.parametrize(*getMaintenanceScriptTestCases)
+def test_getMaintenanceScript(script, args, withRunPhp, expected):
+    with mock.patch('os.path.exists', return_value=withRunPhp):
+        if args is None:
+            assert getMaintenanceScript(script) == expected
+        else:
+            assert getMaintenanceScript(script, args) == expected
