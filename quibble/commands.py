@@ -388,7 +388,7 @@ class CoreComposerTest:
             files = ['.']
         else:
             files = GitChangedInHead(
-                ['php', 'php5', 'inc', 'sample'], cwd=self.mw_install_path
+                ['php'], cwd=self.mw_install_path
             ).changedFiles()
 
         if not files:
