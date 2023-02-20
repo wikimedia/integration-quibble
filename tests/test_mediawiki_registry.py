@@ -84,7 +84,6 @@ class TestParse(unittest.TestCase):
 
 
 class TestMediaWikiExtensionRegistration(unittest.TestCase):
-
     # A little bit more higher level
     def test_initialized_from_a_file(self):
         fixture_ext = os.path.join(FIXTURES_DIR, 'extension.json')

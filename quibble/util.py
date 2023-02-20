@@ -122,7 +122,6 @@ class BytesStreamHandler(logging.StreamHandler):
 
 @contextlib.contextmanager
 def _redirect_logging(sink):
-
     """Redirect logging to a single stream, and reconnect when finished."""
     log_handler = BytesStreamHandler(sink)
 

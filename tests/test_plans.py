@@ -24,7 +24,6 @@ def plans():
 
 @pytest.mark.parametrize('expected,args,env', plans())
 def test_plan(expected, args, env):
-
     with mock.patch.dict('os.environ', env, clear=True):
         cmd_args = cmd._parse_arguments(args)
         plan = cmd.QuibbleCmd().build_execution_plan(cmd_args)

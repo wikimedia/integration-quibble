@@ -106,7 +106,6 @@ def get_npm_command():
 
 @contextmanager
 def Chronometer(name, logger):
-
     start = time.time()
     logger('>>> Start: %s' % name)
     try:

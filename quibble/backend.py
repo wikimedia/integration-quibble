@@ -122,7 +122,6 @@ def _stream_to_log(process, stream, log_function):
 
 
 class BackendServer:
-
     server = None
 
     def __init__(self):
@@ -156,7 +155,6 @@ class BackendServer:
 
 
 class DatabaseServer(BackendServer):
-
     dump_dir = None
 
     def __init__(self, base_dir=None, dump_dir=None):
