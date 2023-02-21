@@ -16,7 +16,8 @@ List of steps to conduct to release a new version of Quibble:
   the most basic functionalities.
 * Get the change merged and then:
 * ``git pull``
-* ``git tag -s <version> -m "Signed <version> release"``
+* ``export QUIBBLE_RELEASE_VERSION="<version>"``
+* ``git tag -s $QUIBBLE_VERSION -m "Signed $QUIBBLE_VERSION release"``
 * ``git push origin <version>``
 
 * In #wikimedia-releng log the new tag and the commit. Optionally poke all
