@@ -1,9 +1,26 @@
 Quibble changelog
 =================
 
-master (UNRELEASED)
--------------------
-* …
+1.5.0 (2023-02-21)
+------------------
+
+Features
+~~~~~~~~
+* Allow sending build failure data to external endpoint
+  `T323750 <https://phabricator.wikimedia.org/T323750>`_
+  Kosta Harlan
+* maintenance: Use run.php if it exists (MW 1.40+)
+  `T326333 <https://phabricator.wikimedia.org/T326333>`_
+  Antoine Musso, James Forrester
+* Warn if files are left over after git clean -xqdf
+  `T321795 <https://phabricator.wikimedia.org/T321795>`_
+  Antoine Musso
+
+Internal
+~~~~~~~~
+* Add Python 3.9 testing
+* black: Pin major version for black
+* black: Apply formatting fixes
 
 1.4.7 (2022-10-25)
 ------------------
