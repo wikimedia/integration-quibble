@@ -138,3 +138,27 @@ TESTING
 Coverage report::
 
     tox -e cover && open cover/index.html
+
+quibble.yaml
+------------
+
+Since version 1.5.0, Quibble will look for a ``quibble.yaml`` file in the root
+of the project it is testing.
+
+The current supported configuration options are:
+
+.. code-block:: yaml
+
+  # "early warning" related functionality, when Quibble fails a job
+  # (e.g. 'composer-test' or 'npm-test' exit with a non-zero code)
+  # Quibble will read this configuration to send to an external
+  # HTTP endpoint. See also the --reporting-url option.
+  earlywarning:
+      # Quibble passes both the "should_vote" and "should_comment"
+      # values to an external HTTP endpoint. An application at
+      # that endpoint can then potentially make a comment in
+      # a code review system with a verification vote and/or
+      # a comment with the status of the failed job.
+      should_vote: 1
+      should_comment: 1
+
