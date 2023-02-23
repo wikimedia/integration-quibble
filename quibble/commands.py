@@ -1171,7 +1171,7 @@ def transmit_error(
             'project': zuul_project,
             'change': zuul_change,
             'patchset': zuul_patchset,
-            'build_url': build_url + '/consoleFull',
+            'build_url': build_url + 'consoleFull',
         }
         requests.post(
             reporting_url, json=data, headers={"x-api-key": api_key}, timeout=5
