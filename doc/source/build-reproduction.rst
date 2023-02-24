@@ -11,7 +11,7 @@ You can find them in the Jenkins job parameters, [for example](https://phab.wmfu
     BASE_LOG_PATH=67/545967/1
     EXT_DEPENDENCIES=mediawiki/extensions/AbuseFilter\nmediawiki/extensions/AntiSpoof\nmediawiki/extensions/Babel\nmediawiki/extensions/CheckUser\nmediawiki/extensions/CirrusSearch\nmediawiki/extensions/Cite\nmediawiki/extensions/CiteThisPage\nmediawiki/extensions/CodeEditor\nmediawiki/extensions/ConfirmEdit\nmediawiki/extensions/ContentTranslation\nmediawiki/extensions/Echo\nmediawiki/extensions/Elastica\nmediawiki/extensions/EventLogging\nmediawiki/extensions/FileImporter\nmediawiki/extensions/Flow\nmediawiki/extensions/Gadgets\nmediawiki/extensions/GeoData\nmediawiki/extensions/GlobalCssJs\nmediawiki/extensions/GlobalPreferences\nmediawiki/extensions/GuidedTour\nmediawiki/extensions/ImageMap\nmediawiki/extensions/InputBox\nmediawiki/extensions/Interwiki\nmediawiki/extensions/JsonConfig\nmediawiki/extensions/MobileApp\nmediawiki/extensions/MobileFrontend\nmediawiki/extensions/NavigationTiming\nmediawiki/extensions/ParserFunctions\nmediawiki/extensions/PdfHandler\nmediawiki/extensions/Poem\nmediawiki/extensions/SandboxLink\nmediawiki/extensions/SiteMatrix\nmediawiki/extensions/SpamBlacklist\nmediawiki/extensions/TemplateData\nmediawiki/extensions/Thanks\nmediawiki/extensions/TimedMediaHandler\nmediawiki/extensions/Translate\nmediawiki/extensions/UniversalLanguageSelector\nmediawiki/extensions/VisualEditor\nmediawiki/extensions/WikiEditor\nmediawiki/extensions/Wikibase\nmediawiki/extensions/WikibaseCirrusSearch\nmediawiki/extensions/WikibaseMediaInfo\nmediawiki/extensions/cldr
     EXT_NAME=MobileFrontend
-    LOG_PATH=67/545967/1/test/wmf-quibble-vendor-mysql-php72-docker/55820fc
+    LOG_PATH=67/545967/1/test/wmf-quibble-vendor-mysql-php74-docker/55820fc
     MW_COMPOSER_MERGE_MW_IN_VENDOR=1
     SKIN_DEPENDENCIES=mediawiki/skins/MinervaNeue\nmediawiki/skins/Vector
     ZUUL_CHANGE=545967
@@ -40,14 +40,14 @@ Not all of the variables visible in the Jenkins jobs parameters are needed. The 
 
 At the moment only builds with one change set can be reproduced locally because git://contint2001.wikimedia.org is not accessible remotely.
 
-Choose the right docker image.
+Choose the right Docker image.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 You must also choose the correct quibble image for the base OS and php interpreter to mirror the job:
-e.g. Debian Stretch and php 7.2::
+e.g. Debian Buster and php 7.4::
 
-      docker-registry.wikimedia.org/releng/quibble-stretch-php72
+      docker-registry.wikimedia.org/releng/quibble-buster-php74
 
-You can find the full list of images by looking though those with quibble in the name from the WMF docker registry. e.g.::
+You can find the full list of images by looking though those with ``quibble`` in the name from the WMF docker registry. e.g.::
 
       curl -X GET https://docker-registry.wikimedia.org/v2/_catalog | grep quibble
 
@@ -62,7 +62,7 @@ Run::
       -v "$(pwd)"/log:/log \
       -v "$(pwd)"/ref:/srv/git:ro \
       -v "$(pwd)"/src:/workspace/src \
-      docker-registry.wikimedia.org/releng/quibble-stretch-php72:latest
+      docker-registry.wikimedia.org/releng/quibble-buster-php74:latest
 
 Optionally skip (slow) installation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -75,7 +75,7 @@ For repeated runs of the same change, assuming you have once successfully execut
       -v "$(pwd)"/log:/log \
       -v "$(pwd)"/ref:/srv/git:ro \
       -v "$(pwd)"/src:/workspace/src \
-      docker-registry.wikimedia.org/releng/quibble-stretch-php72:latest \
+      docker-registry.wikimedia.org/releng/quibble-buster-php74:latest \
       --skip-zuul \
       --skip-deps
 
