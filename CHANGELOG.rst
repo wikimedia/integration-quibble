@@ -3,7 +3,12 @@ Quibble changelog
 
 master (UNRELEASED)
 -------------------
-* …
+
+Features
+~~~~~~~~
+* reporting: Include ``CalledProcessError.cmd`` in payload
+  `T330750 <https://phabricator.wikimedia.org/T330750>`_
+  Kosta Harlan
 
 1.5.0 (2023-02-21)
 ------------------

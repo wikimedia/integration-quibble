@@ -1134,7 +1134,8 @@ def _json_has_script(json_file, script_name):
 def transmit_error(
     should_comment: int,
     should_vote: int,
-    command: str,
+    phase: str,
+    command: list,
     reporting_url: str,
     api_key: str,
     called_process_error: subprocess.CalledProcessError,
@@ -1144,7 +1145,8 @@ def transmit_error(
 
     :param should_comment: 1 for true, 0 for false.
     :param should_vote: 1 for true, 0 for false.
-    :param command: The command name as defined in the plan.
+    :param phase: The Quibble phase as defined in the command plan.
+    :param command: The command list from CalledProcessError.cmd.
     :param reporting_url: The URL to post the error data to
     :param api_key: The API key to use with the outbound request. The
         recipient of the data can use this to validate the request.
@@ -1155,9 +1157,7 @@ def transmit_error(
         the errors as comments in Gerrit could include an extract of the error
         output.
     """
-    log.debug(
-        'Sending error data for command "%s" to %s', command, reporting_url
-    )
+
     zuul_project = os.getenv('ZUUL_PROJECT')
     zuul_change = os.getenv('ZUUL_CHANGE')
     zuul_patchset = os.getenv('ZUUL_PATCHSET')
@@ -1167,12 +1167,19 @@ def transmit_error(
         data = {
             'should_comment': should_comment,
             'should_vote': should_vote,
-            'command': command,
+            'phase': str(phase),
+            'command': " ".join(command),
             'project': zuul_project,
             'change': zuul_change,
             'patchset': zuul_patchset,
             'build_url': build_url + 'consoleFull',
         }
+        log.debug(
+            'Sending error data for Quibble phase "%s" to %s. Data: %s',
+            phase,
+            reporting_url,
+            json.dumps(data),
+        )
         requests.post(
             reporting_url, json=data, headers={"x-api-key": api_key}, timeout=5
         )

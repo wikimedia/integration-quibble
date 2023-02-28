@@ -547,7 +547,8 @@ class QuibbleCmd(object):
                         should_vote=config.get('earlywarning').get(
                             'should_vote', 0
                         ),
-                        command=str(command),
+                        phase=str(command),
+                        command=called_process_error.cmd,
                         reporting_url=reporting_url,
                         api_key=os.getenv("QUIBBLE_API_KEY"),
                         called_process_error=called_process_error,
