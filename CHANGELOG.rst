@@ -1,7 +1,7 @@
 Quibble changelog
 =================
 
-master (UNRELEASED)
+1.5.1 (2023-03-01)
 -------------------
 
 Features
