@@ -1049,6 +1049,7 @@ class Parallel:
             for error, capture in results_in_progress:
                 log.info(capture)
                 if error:
+                    error.output = capture
                     raise error
 
     @staticmethod
@@ -1150,12 +1151,8 @@ def transmit_error(
     :param reporting_url: The URL to post the error data to
     :param api_key: The API key to use with the outbound request. The
         recipient of the data can use this to validate the request.
-    :param called_process_error: A CalledProcessError object
-        FIXME: The CalledProcessError doesn't have any output, for that we'd
-        need to convert the check_call/check_output calls to  subprocess.run().
-        Eventually that would be nice to have, so that the tool which reports
-        the errors as comments in Gerrit could include an extract of the error
-        output.
+    :param called_process_error: The CalledProcessError object from
+        the failed command.
     """
 
     zuul_project = os.getenv('ZUUL_PROJECT')
@@ -1163,22 +1160,26 @@ def transmit_error(
     zuul_patchset = os.getenv('ZUUL_PATCHSET')
     build_url = os.getenv('BUILD_URL')
 
+    output = ''
+    if called_process_error.output:
+        output = called_process_error.output
+
     try:
         data = {
             'should_comment': should_comment,
             'should_vote': should_vote,
             'phase': str(phase),
             'command': " ".join(command),
+            'output': output,
             'project': zuul_project,
             'change': zuul_change,
             'patchset': zuul_patchset,
             'build_url': build_url + 'consoleFull',
         }
         log.debug(
-            'Sending error data for Quibble phase "%s" to %s. Data: %s',
+            'Sending error data for Quibble phase "%s" to %s.',
             phase,
             reporting_url,
-            json.dumps(data),
         )
         requests.post(
             reporting_url, json=data, headers={"x-api-key": api_key}, timeout=5
