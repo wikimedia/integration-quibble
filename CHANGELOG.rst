@@ -3,7 +3,9 @@ Quibble changelog
 
 master (UNRELEASED)
 -------------------
-* …
+* reporting: Include ``pipeline`` in payload
+  `T331236 <https://phabricator.wikimedia.org/T331236>`_
+  Martin Urbanec
 
 1.5.1 (2023-03-01)
 -------------------

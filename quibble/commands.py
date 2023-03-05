@@ -1155,6 +1155,7 @@ def transmit_error(
         the failed command.
     """
 
+    zuul_pipeline = os.getenv('ZUUL_PIPELINE')
     zuul_project = os.getenv('ZUUL_PROJECT')
     zuul_change = os.getenv('ZUUL_CHANGE')
     zuul_patchset = os.getenv('ZUUL_PATCHSET')
@@ -1170,6 +1171,7 @@ def transmit_error(
             'should_vote': should_vote,
             'phase': str(phase),
             'command': " ".join(command),
+            'pipeline': zuul_pipeline,
             'output': output,
             'project': zuul_project,
             'change': zuul_change,
