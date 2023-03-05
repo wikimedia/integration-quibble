@@ -1136,7 +1136,7 @@ def transmit_error(
     should_comment: int,
     should_vote: int,
     phase: str,
-    command: list,
+    command: str,
     reporting_url: str,
     api_key: str,
     called_process_error: subprocess.CalledProcessError,
@@ -1147,7 +1147,7 @@ def transmit_error(
     :param should_comment: 1 for true, 0 for false.
     :param should_vote: 1 for true, 0 for false.
     :param phase: The Quibble phase as defined in the command plan.
-    :param command: The command list from CalledProcessError.cmd.
+    :param command: The command name from CalledProcessError.cmd.
     :param reporting_url: The URL to post the error data to
     :param api_key: The API key to use with the outbound request. The
         recipient of the data can use this to validate the request.
@@ -1170,7 +1170,7 @@ def transmit_error(
             'should_comment': should_comment,
             'should_vote': should_vote,
             'phase': str(phase),
-            'command': " ".join(command),
+            'command': command,
             'pipeline': zuul_pipeline,
             'output': output,
             'project': zuul_project,

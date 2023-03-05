@@ -540,6 +540,11 @@ class QuibbleCmd(object):
                         )
                         raise called_process_error
 
+                    called_process_error_cmd = called_process_error.cmd
+                    if isinstance(called_process_error_cmd, list):
+                        called_process_error_cmd = " ".join(
+                            called_process_error_cmd
+                        )
                     quibble.commands.transmit_error(
                         should_comment=config.get('earlywarning').get(
                             'should_comment', 0
@@ -548,7 +553,7 @@ class QuibbleCmd(object):
                             'should_vote', 0
                         ),
                         phase=str(command),
-                        command=called_process_error.cmd,
+                        command=called_process_error_cmd,
                         reporting_url=reporting_url,
                         api_key=os.getenv("QUIBBLE_API_KEY"),
                         called_process_error=called_process_error,
