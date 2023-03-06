@@ -1,11 +1,20 @@
 Quibble changelog
 =================
 
-master (UNRELEASED)
+1.5.2 (2023-03-06)
 -------------------
+
+Internal
+~~~~~~~~
 * reporting: Include ``pipeline`` in payload
   `T331236 <https://phabricator.wikimedia.org/T331236>`_
   Martin Urbanec
+* reporting: Include ``output`` in payload
+  `T331061 <https://phabricator.wikimedia.org/T331061>`_
+  Kosta Harlan
+* reporting: Command name can be a string
+  `T323750 <https://phabricator.wikimedia.org/T323750>`_
+  Kosta Harlan
 
 1.5.1 (2023-03-01)
 -------------------
