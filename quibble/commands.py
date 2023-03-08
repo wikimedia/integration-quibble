@@ -29,19 +29,54 @@ def execute_command(command):
         command.execute()
 
 
+def run(cmd: list, cwd: str, shell=False, env=None):
+    """
+    Wrapper around subprocess.Popen(), with default values for
+    stdout, stderr, shell, and env set for convenience and
+    consistency.
+    :param cmd: The command list.
+    :param cwd: The current working directory.
+    :param shell: Whether to set shell=True, default to False.
+    :param env: The optional environment override, default to None.
+    """
+    collected_output = b''
+    with subprocess.Popen(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        cwd=cwd,
+        shell=shell,
+        env=env,
+    ) as proc:
+        # The process is opened in binary mode in order to accept invalid
+        # Unicode emitted by the command (see 5c29fb1b and T318029).
+        #
+        # `readline()` let us find new lines from the bytes stream and we
+        # output them immediately in order to keep the output interactive.
+        #
+        # py38: while line := proc.stdout.readline()
+        for line in iter(proc.stdout.readline, b''):
+            sys.stdout.buffer.write(line)
+            sys.stdout.flush()
+            collected_output += line
+    if proc.returncode:
+        raise subprocess.CalledProcessError(
+            proc.returncode,
+            proc.args,
+            # The process is in binary mode, we want to emit valid unicode
+            output=collected_output.decode('utf-8', errors='backslashreplace'),
+        )
+
+
 def _npm_install(project_dir):
     if _repo_has_npm_lock(project_dir):
         cmd = 'ci'
         if quibble.get_npm_command() == 'pnpm':
             cmd = 'install'
-        subprocess.check_call(
-            [quibble.get_npm_command(), cmd], cwd=project_dir
-        )
+        run([quibble.get_npm_command(), cmd], cwd=project_dir)
     else:
-        subprocess.check_call(
-            [quibble.get_npm_command(), 'prune'], cwd=project_dir
-        )
-        subprocess.check_call(
+        run([quibble.get_npm_command(), 'prune'], cwd=project_dir)
+        run(
             [
                 quibble.get_npm_command(),
                 'install',
@@ -235,7 +270,7 @@ class ExtSkinSubmoduleUpdate:
 
                 for cmd in cmds:
                     try:
-                        subprocess.check_call(cmd, cwd=dirpath)
+                        run(cmd, cwd=dirpath)
                     except subprocess.CalledProcessError as e:
                         log.error(
                             "Failed to process git submodules for %s", dirpath
@@ -303,7 +338,7 @@ class ExtSkinComposerTest:
                 ['composer', '--ansi', 'test'],
             ]
             for cmd in cmds:
-                subprocess.check_call(cmd, cwd=self.directory)
+                run(cmd, cwd=self.directory)
 
     def __str__(self):
         return "composer test in {}".format(self.directory)
@@ -316,9 +351,7 @@ class NpmTest:
     def execute(self):
         if repo_has_npm_script(self.directory, 'test'):
             _npm_install(self.directory)
-            subprocess.check_call(
-                [quibble.get_npm_command(), 'test'], cwd=self.directory
-            )
+            run([quibble.get_npm_command(), 'test'], cwd=self.directory)
         else:
             log.warning("%s lacks a package.json", self.directory)
 
@@ -353,9 +386,7 @@ class CoreComposerTest:
 
             composer_test_cmd = ['composer', 'test-some']
             composer_test_cmd.extend(files)
-            subprocess.check_call(
-                composer_test_cmd, cwd=self.mw_install_path, env=env
-            )
+            run(composer_test_cmd, cwd=self.mw_install_path, env=env)
 
     def __str__(self):
         return "Run composer test in mediawiki/core"
@@ -376,7 +407,7 @@ class NativeComposerDependencies:
             '--profile',
             '-v',
         ]
-        subprocess.check_call(cmd, cwd=self.mw_install_path)
+        run(cmd, cwd=self.mw_install_path)
 
     def __str__(self):
         return "Run composer update for mediawiki/core"
@@ -411,13 +442,13 @@ class VendorComposerDependencies:
         ]
         composer_require.extend(reqs)
 
-        subprocess.check_call(composer_require, cwd=vendor_dir)
+        run(composer_require, cwd=vendor_dir)
 
         # Point composer-merge-plugin to mediawiki/core.
         # That let us easily merge autoload-dev section and thus complete
         # the autoloader.
         # T158674
-        subprocess.check_call(
+        run(
             [
                 'composer',
                 'config',
@@ -430,9 +461,7 @@ class VendorComposerDependencies:
         # FIXME integration/composer used to be outdated and broke the
         # autoloader. Since composer 1.0.0-alpha11 the following might not
         # be needed anymore.
-        subprocess.check_call(
-            ['composer', 'dump-autoload', '--optimize'], cwd=vendor_dir
-        )
+        run(['composer', 'dump-autoload', '--optimize'], cwd=vendor_dir)
 
         copylog(
             mw_composer_json,
@@ -653,16 +682,12 @@ class Phpbench:
                 '--profile',
                 '-v',
             ]
-            subprocess.check_call(cmd, cwd=self.directory)
+            run(cmd, cwd=self.directory)
 
         if not self.aggregate:
-            subprocess.check_call(
-                ['composer', '--ansi', 'phpbench'], cwd=self.directory
-            )
+            run(['composer', '--ansi', 'phpbench'], cwd=self.directory)
         else:
-            subprocess.check_call(
-                ['git', 'checkout', 'HEAD~1'], cwd=self.directory
-            )
+            run(['git', 'checkout', 'HEAD~1'], cwd=self.directory)
             if _repo_has_composer_script(self.directory, 'phpbench'):
                 cmds = [
                     ['composer', '--ansi', 'phpbench', '--', '--tag=original'],
@@ -680,13 +705,11 @@ class Phpbench:
                 ]
 
                 for cmd in cmds:
-                    subprocess.check_call(cmd, cwd=self.directory)
+                    run(cmd, cwd=self.directory)
             else:
                 # HEAD~1 doesn't have phpbench in composer.json, so switch back
                 # to the patch, eventually returning exit code 0
-                subprocess.check_call(
-                    ['git', 'checkout', '-'], cwd=self.directory
-                )
+                run(['git', 'checkout', '-'], cwd=self.directory)
 
         if self.composer_install:
             GitClean(self.directory).execute()
@@ -737,7 +760,7 @@ class AbstractPhpUnit:
         phpunit_env.update(os.environ)
         phpunit_env.update({'LANG': 'C.UTF-8'})
 
-        subprocess.check_call(cmd, cwd=self.mw_install_path, env=phpunit_env)
+        run(cmd, cwd=self.mw_install_path, env=phpunit_env)
 
 
 class PhpUnitDatabaseless(AbstractPhpUnit):
@@ -835,7 +858,7 @@ class QunitTests:
         karma_env.update(os.environ)
         karma_env.update({'CHROMIUM_FLAGS': quibble.chromium_flags()})
 
-        subprocess.check_call(
+        run(
             ['./node_modules/.bin/grunt', 'qunit'],
             cwd=self.mw_install_path,
             env=karma_env,
@@ -881,7 +904,7 @@ class ApiTesting:
             )
             if repo_has_npm_script(project_dir, 'api-testing'):
                 _npm_install(project_dir)
-                subprocess.check_call(
+                run(
                     [quibble.get_npm_command(), 'run', 'api-testing'],
                     cwd=project_dir,
                     env=quibble_testing_config_env,
@@ -933,7 +956,7 @@ class BrowserTests:
 
         if not self.parallel_npm_install:
             _npm_install(project_dir)
-        subprocess.check_call(
+        run(
             [quibble.get_npm_command(), 'run', 'selenium-test'],
             cwd=project_dir,
             env=webdriver_env,
@@ -967,7 +990,7 @@ class UserScripts:
 
         for cmd in self.commands:
             log.info(cmd)
-            subprocess.check_call(
+            run(
                 cmd,
                 shell=True,
                 cwd=self.mw_install_path,
@@ -1152,7 +1175,8 @@ def transmit_error(
     :param api_key: The API key to use with the outbound request. The
         recipient of the data can use this to validate the request.
     :param called_process_error: The CalledProcessError object from
-        the failed command.
+        the failed command. `output` is set on this object if failed
+        in a `ParallelCommand` or from `run()`.
     """
 
     zuul_pipeline = os.getenv('ZUUL_PIPELINE')

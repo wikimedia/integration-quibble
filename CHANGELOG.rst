@@ -18,6 +18,11 @@ Internal
 ~~~~~~~~
 
 * Drop support for Python 3.5 and 3.6
+* Switch to ``subprocess.Popen()`` for most command invocations,
+  instead of ``subprocess.check_call()``
+  `T331061 <https://phabricator.wikimedia.org/T331061>`_
+  Kosta Harlan & Antoine Musso
+* …
 
 1.5.2 (2023-03-06)
 -------------------

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import contextlib
+import io
 import logging
 import pytest
 import subprocess
@@ -53,15 +54,15 @@ class ExtSkinSubmoduleUpdateTest(unittest.TestCase):
 
         with mock.patch('os.walk') as mock_walk:
             mock_walk.side_effect = self.walk_extensions
-            with mock.patch('subprocess.check_call') as mock_check_call:
+            with mock.patch('quibble.commands.run') as mock_run:
                 # A git command failing aborts.
-                mock_check_call.side_effect = subprocess.CalledProcessError(
+                mock_run.side_effect = subprocess.CalledProcessError(
                     1, 'git something'
                 )
                 with self.assertRaises(subprocess.CalledProcessError):
                     c.execute()
 
-                mock_check_call.assert_called_once_with(
+                mock_run.assert_called_once_with(
                     [
                         'git',
                         'submodule',
@@ -79,10 +80,10 @@ class ExtSkinSubmoduleUpdateTest(unittest.TestCase):
 
         with mock.patch('os.walk') as mock_walk:
             mock_walk.side_effect = self.walk_extensions
-            with mock.patch('subprocess.check_call') as mock_check_call:
+            with mock.patch('quibble.commands.run') as mock_run:
                 c.execute()
 
-                mock_check_call.assert_any_call(
+                mock_run.assert_any_call(
                     [
                         'git',
                         'submodule',
@@ -99,7 +100,7 @@ class ExtSkinSubmoduleUpdateTest(unittest.TestCase):
                 # must have recursed into a sub-subdirectory.
                 self.assertEqual(
                     3,
-                    mock_check_call.call_count,
+                    mock_run.call_count,
                     "Stopped after the first level directory",
                 )
 
@@ -149,7 +150,7 @@ class ExtSkinComposerTestTest(unittest.TestCase):
     @mock.patch(
         'quibble.commands._repo_has_composer_script', return_value=True
     )
-    @mock.patch('subprocess.check_call')
+    @mock.patch('quibble.commands.run')
     def test_execute(self, mock_call, *_):
         quibble.commands.ExtSkinComposerTest('/tmp').execute()
         mock_call.assert_any_call(['composer', '--ansi', 'test'], cwd='/tmp')
@@ -157,7 +158,7 @@ class ExtSkinComposerTestTest(unittest.TestCase):
 
 class NpmTestTest:
     @mock.patch('quibble.commands.repo_has_npm_script', return_value=True)
-    @mock.patch('subprocess.check_call')
+    @mock.patch('quibble.commands.run')
     @pytest.mark.parametrize(*npm_envs_parameters)
     def test_execute(
         self, mock_call, mock_has, npm_command_env, expected_npm_command
@@ -173,11 +174,11 @@ class CoreComposerTestTest(unittest.TestCase):
         'quibble.gitchangedinhead.GitChangedInHead.changedFiles',
         return_value=['foo.php', 'bar.php'],
     )
-    @mock.patch('subprocess.check_call')
-    def test_execute(self, mock_check_call, *_):
+    @mock.patch('quibble.commands.run')
+    def test_execute(self, mock_run, *_):
         quibble.commands.CoreComposerTest('/tmp').execute()
 
-        mock_check_call.assert_any_call(
+        mock_run.assert_any_call(
             ['composer', 'test-some', 'foo.php', 'bar.php'],
             cwd='/tmp',
             env={'somevar': '42', 'COMPOSER_PROCESS_TIMEOUT': mock.ANY},
@@ -188,8 +189,8 @@ class VendorComposerDependenciesTest(unittest.TestCase):
     @mock.patch('quibble.util.copylog')
     @mock.patch('builtins.open', mock.mock_open())
     @mock.patch('json.load')
-    @mock.patch('subprocess.check_call')
-    def test_execute(self, mock_check_call, mock_load, *_):
+    @mock.patch('quibble.commands.run')
+    def test_execute(self, mock_run, mock_load, *_):
         mock_load.return_value = {
             'require-dev': {
                 'justinrainbow/jsonschema': '^1.2.3',
@@ -198,7 +199,7 @@ class VendorComposerDependenciesTest(unittest.TestCase):
 
         quibble.commands.VendorComposerDependencies('/tmp', '/log').execute()
 
-        mock_check_call.assert_any_call(
+        mock_run.assert_any_call(
             [
                 'composer',
                 'require',
@@ -292,8 +293,8 @@ class InstallMediaWikiTest(unittest.TestCase):
 
 class PhpUnitDatabaseTest(unittest.TestCase):
     @mock.patch.dict('os.environ', {'somevar': '42'}, clear=True)
-    @mock.patch('subprocess.check_call')
-    def test_execute(self, mock_check_call):
+    @mock.patch('quibble.commands.run')
+    def test_execute(self, mock_run):
         quibble.commands.PhpUnitDatabase(
             mw_install_path='/tmp',
             testsuite='extensions',
@@ -301,7 +302,7 @@ class PhpUnitDatabaseTest(unittest.TestCase):
             junit=True,
         ).execute()
 
-        mock_check_call.assert_called_once_with(
+        mock_run.assert_called_once_with(
             [
                 'php',
                 'tests/phpunit/phpunit.php',
@@ -320,8 +321,8 @@ class PhpUnitDatabaseTest(unittest.TestCase):
 
 
 class PhpUnitDatabaselessTest(unittest.TestCase):
-    @mock.patch('subprocess.check_call')
-    def test_execute(self, mock_check_call):
+    @mock.patch('quibble.commands.run')
+    def test_execute(self, mock_run):
         quibble.commands.PhpUnitDatabaseless(
             mw_install_path='/tmp',
             testsuite='extensions',
@@ -329,7 +330,7 @@ class PhpUnitDatabaselessTest(unittest.TestCase):
             junit=True,
         ).execute()
 
-        mock_check_call.assert_called_once_with(
+        mock_run.assert_called_once_with(
             [
                 'php',
                 'tests/phpunit/phpunit.php',
@@ -347,8 +348,8 @@ class PhpUnitDatabaselessTest(unittest.TestCase):
 
 class PhpUnitStandaloneTest(unittest.TestCase):
     @mock.patch.dict('os.environ', {'somevar': '42'}, clear=True)
-    @mock.patch('subprocess.check_call')
-    def test_execute(self, mock_check_call):
+    @mock.patch('quibble.commands.run')
+    def test_execute(self, mock_run):
         quibble.commands.PhpUnitStandalone(
             mw_install_path='/tmp',
             testsuite=None,
@@ -357,7 +358,7 @@ class PhpUnitStandaloneTest(unittest.TestCase):
             junit=True,
         ).execute()
 
-        mock_check_call.assert_called_once_with(
+        mock_run.assert_called_once_with(
             [
                 'php',
                 'tests/phpunit/phpunit.php',
@@ -377,21 +378,21 @@ class PhpUnitStandaloneTest(unittest.TestCase):
 class PhpUnitUnitTest(unittest.TestCase):
     @mock.patch('builtins.open', mock.mock_open())
     @mock.patch('json.load')
-    @mock.patch('subprocess.check_call')
-    def test_execute_no_scripts(self, mock_check_call, mock_load, *_):
+    @mock.patch('quibble.commands.run')
+    def test_execute_no_scripts(self, mock_run, mock_load, *_):
         mock_load.return_value = {"requires": {}}
 
         quibble.commands.PhpUnitUnit(
             mw_install_path='/tmp', log_dir='/log'
         ).execute()
 
-        mock_check_call.assert_not_called()
+        mock_run.assert_not_called()
 
     @mock.patch('os.path.exists', return_value=True)
     @mock.patch('builtins.open', mock.mock_open())
     @mock.patch('json.load')
-    @mock.patch('subprocess.check_call')
-    def test_execute_has_units(self, mock_check_call, mock_load, *_):
+    @mock.patch('quibble.commands.run')
+    def test_execute_has_units(self, mock_run, mock_load, *_):
         mock_load.return_value = {"scripts": {"phpunit:unit": {}}}
 
         quibble.commands.PhpUnitUnit(
@@ -400,7 +401,7 @@ class PhpUnitUnitTest(unittest.TestCase):
             junit=True,
         ).execute()
 
-        mock_check_call.assert_called_once_with(
+        mock_run.assert_called_once_with(
             [
                 'composer',
                 'phpunit:unit',
@@ -419,17 +420,17 @@ class QunitTestsTest(unittest.TestCase):
     @mock.patch.dict('os.environ', {'somevar': '42'}, clear=True)
     @mock.patch('quibble.backend.PhpWebserver')
     @mock.patch('quibble.is_in_docker', return_value=True)
-    @mock.patch('subprocess.check_call')
-    def test_execute(self, mock_check_call, *_):
+    @mock.patch('quibble.commands.run')
+    def test_execute(self, mock_run, *_):
         def check_env_for_no_sandbox(cmd, env={}, **_):
             assert 'CHROMIUM_FLAGS' in env
             assert '--no-sandbox' in env['CHROMIUM_FLAGS']
 
-        mock_check_call.side_effect = check_env_for_no_sandbox
+        mock_run.side_effect = check_env_for_no_sandbox
 
         quibble.commands.QunitTests('/tmp', 'http://192.0.2.1:4321').execute()
 
-        assert mock_check_call.call_count > 0
+        assert mock_run.call_count > 0
 
 
 class ApiTestingTest:
@@ -437,7 +438,7 @@ class ApiTestingTest:
     @mock.patch('os.path.exists', return_value=True)
     @mock.patch('json.load')
     @mock.patch('json.dump')
-    @mock.patch('subprocess.check_call')
+    @mock.patch('quibble.commands.run')
     @mock.patch('quibble.backend.PhpWebserver')
     @mock.patch('quibble.backend.ChromeWebDriver')
     @pytest.mark.parametrize(*npm_envs_parameters)
@@ -445,7 +446,7 @@ class ApiTestingTest:
         self,
         mock_driver,
         mock_server,
-        mock_check_call,
+        mock_run,
         mock_dump,
         mock_load,
         mock_path_exists,
@@ -463,7 +464,7 @@ class ApiTestingTest:
             )
             c.execute()
 
-        mock_check_call.assert_any_call(
+        mock_run.assert_any_call(
             [expected_npm_command, 'run', 'api-testing'],
             cwd='/tmp',
             env=mock.ANY,
@@ -473,14 +474,14 @@ class ApiTestingTest:
     @mock.patch('builtins.open', mock.mock_open())
     @mock.patch('json.load')
     @mock.patch('json.dump')
-    @mock.patch('subprocess.check_call')
+    @mock.patch('quibble.commands.run')
     @mock.patch('quibble.backend.PhpWebserver')
     @mock.patch('quibble.backend.ChromeWebDriver')
     def test_project_missing_api_testing(
         self,
         mock_driver,
         mock_server,
-        mock_check_call,
+        mock_run,
         mock_dump,
         mock_load,
         mock_path_exists,
@@ -495,16 +496,16 @@ class ApiTestingTest:
         )
         c.execute()
 
-        mock_check_call.assert_not_called()
+        mock_run.assert_not_called()
 
     @mock.patch('builtins.open', mock.mock_open())
     @mock.patch('json.load')
     @mock.patch('json.dump')
-    @mock.patch('subprocess.check_call')
+    @mock.patch('quibble.commands.run')
     @mock.patch('quibble.backend.PhpWebserver')
     @mock.patch('quibble.backend.ChromeWebDriver')
     def test_project_not_having_package_json(
-        self, mock_driver, mock_server, mock_check_call, mock_dump, mock_load
+        self, mock_driver, mock_server, mock_run, mock_dump, mock_load
     ):
         mock_load.return_value = {}
 
@@ -512,14 +513,14 @@ class ApiTestingTest:
             '/tmp', ['mediawiki/vendor'], 'http://192.0.2.1:4321', 'external'
         )
         c.execute()
-        mock_check_call.assert_not_called()
+        mock_run.assert_not_called()
 
 
 class BrowserTestsTest:
     @mock.patch('os.path.exists', return_value=True)
     @mock.patch('builtins.open', mock.mock_open())
     @mock.patch('json.load')
-    @mock.patch('subprocess.check_call')
+    @mock.patch('quibble.commands.run')
     @mock.patch('quibble.backend.PhpWebserver')
     @mock.patch('quibble.backend.ChromeWebDriver')
     @pytest.mark.parametrize(*npm_envs_parameters)
@@ -527,7 +528,7 @@ class BrowserTestsTest:
         self,
         mock_driver,
         mock_server,
-        mock_check_call,
+        mock_run,
         mock_load,
         mock_path_exists,
         npm_command_env,
@@ -547,12 +548,12 @@ class BrowserTestsTest:
             )
             c.execute()
 
-        mock_check_call.assert_any_call(
+        mock_run.assert_any_call(
             [expected_npm_command, 'run', 'selenium-test'],
             cwd='/tmp',
             env=mock.ANY,
         )
-        mock_check_call.assert_any_call(
+        mock_run.assert_any_call(
             [expected_npm_command, 'run', 'selenium-test'],
             cwd='/tmp/skins/Vector',
             env=mock.ANY,
@@ -561,14 +562,14 @@ class BrowserTestsTest:
     @mock.patch('os.path.exists', return_value=True)
     @mock.patch('builtins.open', mock.mock_open())
     @mock.patch('json.load')
-    @mock.patch('subprocess.check_call')
+    @mock.patch('quibble.commands.run')
     @mock.patch('quibble.backend.PhpWebserver')
     @mock.patch('quibble.backend.ChromeWebDriver')
     def test_project_missing_selenium(
         self,
         mock_driver,
         mock_server,
-        mock_check_call,
+        mock_run,
         mock_load,
         mock_path_exists,
     ):
@@ -583,13 +584,13 @@ class BrowserTestsTest:
         )
         c.execute()
 
-        mock_check_call.assert_not_called()
+        mock_run.assert_not_called()
 
-    @mock.patch('subprocess.check_call')
+    @mock.patch('quibble.commands.run')
     @mock.patch('quibble.backend.PhpWebserver')
     @mock.patch('quibble.backend.ChromeWebDriver')
     def test_project_not_having_package_json(
-        self, mock_driver, mock_server, mock_check_call
+        self, mock_driver, mock_server, mock_run
     ):
         c = quibble.commands.BrowserTests(
             '/tmp',
@@ -599,18 +600,18 @@ class BrowserTestsTest:
             'external',
         )
         c.execute()
-        mock_check_call.assert_not_called()
+        mock_run.assert_not_called()
 
 
 class UserScriptsTest(unittest.TestCase):
     @mock.patch('quibble.backend.PhpWebserver')
-    @mock.patch('subprocess.check_call')
-    def test_commands(self, mock_check_call, *_):
+    @mock.patch('quibble.commands.run')
+    def test_commands(self, mock_run, *_):
         quibble.commands.UserScripts(
             '/tmp', ['true', 'false'], 'http://192.0.2.1:9413', 'external'
         ).execute()
 
-        mock_check_call.assert_has_calls(
+        mock_run.assert_has_calls(
             [
                 mock.call('true', cwd='/tmp', shell=True, env=mock.ANY),
                 mock.call('false', cwd='/tmp', shell=True, env=mock.ANY),
@@ -619,13 +620,13 @@ class UserScriptsTest(unittest.TestCase):
 
     @mock.patch('quibble.backend.PhpWebserver')
     @mock.patch('os.environ', clear=True)
-    @mock.patch('subprocess.check_call')
-    def test_mediawiki_environment_variables(self, mock_check_call, *_):
+    @mock.patch('quibble.commands.run')
+    def test_mediawiki_environment_variables(self, mock_run, *_):
         quibble.commands.UserScripts(
             '/tmp', ['true', 'false'], 'http://192.0.2.1:9413', 'external'
         ).execute()
 
-        (args, kwargs) = mock_check_call.call_args
+        (args, kwargs) = mock_run.call_args
         env = kwargs.get('env', {})
         self.assertEqual(
             env,
@@ -688,14 +689,14 @@ def sequential_pool():
 # and caplog.
 @mock.patch('subprocess.check_call')
 @mock.patch('subprocess.check_output')
-def test_GitClean(check_output, check_call, tmp_path, caplog):
+def test_GitClean(check_output, run, tmp_path, caplog):
     caplog.set_level(logging.WARNING)
     # Simulate a dirty git workspace even after git clean ran
     check_output.return_value = '!! composer.lock\n' '!! vendor\n'
 
     quibble.commands.GitClean(tmp_path).execute()
 
-    check_call.assert_called_with(['git', 'clean', '-xqdf'], cwd=tmp_path)
+    run.assert_called_with(['git', 'clean', '-xqdf'], cwd=tmp_path)
     check_output.assert_called_with(
         ['git', 'status', '--ignored', '--porcelain'],
         cwd=tmp_path,
@@ -707,6 +708,25 @@ def test_GitClean(check_output, check_call, tmp_path, caplog):
         '!! vendor',
         mock.ANY,
     ]
+
+
+@mock.patch('subprocess.Popen')
+def test_run_handles_invalid_unicode(mock_popen, capfdbinary):
+    invalid_unicode = InvalidUnicodeCommand.invalid_unicode
+
+    context = mock_popen.return_value.__enter__.return_value
+    context.stdout = io.BytesIO(InvalidUnicodeCommand.invalid_unicode)
+    context.returncode = 1
+
+    with pytest.raises(subprocess.CalledProcessError) as exc_info:
+        quibble.commands.run('fake', cwd='/tmp')
+
+    assert exc_info.value.output == invalid_unicode.decode(
+        errors='backslashreplace'
+    ), 'CalledProcessError has backslashed valid unicode output'
+    assert (
+        capfdbinary.readouterr().out == invalid_unicode
+    ), 'raw binary is emitted to stdout'
 
 
 class ParallelTest(unittest.TestCase):
