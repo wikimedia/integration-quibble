@@ -3,6 +3,11 @@ Quibble changelog
 
 master (UNRELEASED)
 -------------------
+
+Internal
+~~~~~~~~
+
+* Drop support for Python 3.5 and 3.6
 * …
 
 1.5.2 (2023-03-06)
