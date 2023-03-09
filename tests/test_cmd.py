@@ -159,6 +159,17 @@ class CmdTest(unittest.TestCase):
         self.assertEqual('/workspace', args.workspace)
 
     @mock.patch.dict(os.environ, clear=True)
+    def test_setup_environment_mw_quibble_ci(self):
+        q = cmd.QuibbleCmd()
+        q._setup_environment(
+            workspace='/testworkspace',
+            mw_install_path='',
+            log_dir='',
+            tmp_dir='',
+        )
+        self.assertEqual(os.environ['MW_QUIBBLE_CI'], '1')
+
+    @mock.patch.dict(os.environ, clear=True)
     def test_setup_environment(self):
         q = cmd.QuibbleCmd()
 

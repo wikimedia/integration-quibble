@@ -4,11 +4,20 @@ Quibble changelog
 master (UNRELEASED)
 -------------------
 
+Features
+~~~~~~~~
+
+* Set ``MW_QUIBBLE_CI`` environment variable (value ``1``). This can be used to
+  change the behavior of tests runners, for example to hide progress report in
+  PHPUnit. For PHP code, it is advised to rely on the ``MW_QUIBBLE_CI`` define
+  set in ``LocalSettings.php``.
+  `T331621 <https://phabricator.wikimedia.org/T331621>`_
+  Kosta Harlan
+
 Internal
 ~~~~~~~~
 
 * Drop support for Python 3.5 and 3.6
-* …
 
 1.5.2 (2023-03-06)
 -------------------
