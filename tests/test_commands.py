@@ -287,7 +287,13 @@ class InstallMediaWikiTest(unittest.TestCase):
         )
 
         mock_addSite.assert_called_once_with(
-            args=['testwiki', 'CI', '--filepath=%s/$1' % (url)], mwdir='/src'
+            args=[
+                'testwiki',
+                'CI',
+                '--filepath=%s/$1' % (url),
+                '--pagepath=%s/index.php?title=$1' % (url),
+            ],
+            mwdir='/src',
         )
 
 

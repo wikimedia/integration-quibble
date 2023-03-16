@@ -640,6 +640,7 @@ class InstallMediaWiki:
                 self.db.dbname,  # globalid
                 'CI',  # site-group
                 '--filepath=%s/$1' % self.web_url,
+                '--pagepath=%s/index.php?title=$1' % self.web_url,
             ],
             mwdir=self.mw_install_path,
         )
