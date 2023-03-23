@@ -74,11 +74,14 @@ $wgEnableUploads = true;
 // the composer library included with core. (T227352)
 $parsoidDir = $IP . '/services/parsoid';
 if ( is_dir( $parsoidDir ) ) {
-	AutoLoader::$psr4Namespaces += [
-		// Keep this in sync with the "autoload" clause in
-		// $PARSOID_INSTALL_DIR/composer.json
-		'Wikimedia\\Parsoid\\' => "$parsoidDir/src",
-	];
-	wfLoadExtension( 'Parsoid', "$parsoidDir/extension.json" );
+    // Keep this in sync with the "autoload" clause in
+    // $PARSOID_INSTALL_DIR/composer.json
+    $parsoidNamespace = [ 'Wikimedia\\Parsoid\\' => "$parsoidDir/src" ];
+    if ( method_exists( 'AutoLoader', 'registerNamespaces' ) ) {
+        AutoLoader::registerNamespaces( $parsoidNamespace );
+    } else {
+        AutoLoader::$psr4Namespaces += $parsoidNamespace;
+    }
+    wfLoadExtension( 'Parsoid', "$parsoidDir/extension.json" );
 }
 unset( $parsoidDir );
