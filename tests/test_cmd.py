@@ -228,12 +228,6 @@ class CmdTest(unittest.TestCase):
             default_stages, stages, 'must runs all stages by default'
         )
 
-    def test_should_run_runall_accepts_all_stages(self):
-        q = cmd.QuibbleCmd()
-        args = cmd._parse_arguments(args=['--run', 'all'])
-        stages = q._stages_to_run(args.run, args.skip, args.commands)
-        self.assertEqual(default_stages, stages, '--run=all runs all stages')
-
     def test_should_run_skippall_runs_no_stage(self):
         q = cmd.QuibbleCmd()
         args = cmd._parse_arguments(args=['--skip', 'all'])
@@ -246,14 +240,6 @@ class CmdTest(unittest.TestCase):
         args = cmd._parse_arguments(args=['--skip', 'phpunit'])
         stages = q._stages_to_run(args.run, args.skip, args.commands)
         self.assertEqual(['foo'], stages, '--skip skips the stage')
-
-    def test_should_run_runall_and_skip_play_nice(self):
-        q = cmd.QuibbleCmd()
-        args = cmd._parse_arguments(args=['--run', 'all', '--skip', 'phpunit'])
-        stages = q._stages_to_run(args.run, args.skip, args.commands)
-        expected_stages = default_stages.copy()
-        expected_stages.remove('phpunit')
-        self.assertEqual(expected_stages, stages, '--run=all respects --skip')
 
     def test_should_run_running_a_single_stage(self):
         q = cmd.QuibbleCmd()

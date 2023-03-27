@@ -158,7 +158,7 @@ class QuibbleCmd(object):
         stages = default_stages
         if skip:
             stages = [s for s in stages if s not in skip]
-        if 'all' in run:
+        if run == []:
             return stages
         if run:
             stages = run
@@ -813,11 +813,11 @@ def get_arg_parser():
     stages_choices = MultipleChoices(known_stages)
     stages_args.add_argument(
         '--run',
-        default=['all'],
+        default=[],
         type=comma_separated_list,
         choices=stages_choices,
         metavar='STAGE[,STAGE ...]',
-        help='Tests to run. Comma separated. (default: all).',
+        help='Tests to run. Comma separated. (default: run all stages).',
     )
     stages_args.add_argument(
         '--skip',
