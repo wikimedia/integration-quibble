@@ -942,6 +942,7 @@ def get_arg_parser():
     stages_choices = MultipleChoices(known_stages)
     stages_args.add_argument(
         '--run',
+        action='extend',
         default=[],
         type=comma_separated_list,
         choices=stages_choices,
@@ -950,6 +951,7 @@ def get_arg_parser():
     )
     stages_args.add_argument(
         '--skip',
+        action='extend',
         default=[],
         type=comma_separated_list,
         choices=stages_choices,

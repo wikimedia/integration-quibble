@@ -259,6 +259,10 @@ class CmdTest(unittest.TestCase):
         args = cmd._parse_arguments(args=['--run=phpunit,qunit'])
         self.assertEqual(['phpunit', 'qunit'], args.run)
 
+    def test_run_option_multiple_times(self):
+        args = cmd._parse_arguments(args=['--run=npm-test', '--run=phpunit'])
+        self.assertEqual(['npm-test', 'phpunit'], args.run)
+
     def test_run_option_does_not_shallow_next_arg(self):
         args = cmd._parse_arguments(args=['--run', 'phpunit', 'repo'])
         self.assertEqual(['phpunit'], args.run)
@@ -267,6 +271,10 @@ class CmdTest(unittest.TestCase):
     def test_skip_option_is_comma_separated(self):
         args = cmd._parse_arguments(args=['--skip=phpunit,qunit'])
         self.assertEqual(['phpunit', 'qunit'], args.skip)
+
+    def test_skip_option_multiple_times(self):
+        args = cmd._parse_arguments(args=['--skip=qunit', '--skip=selenium'])
+        self.assertEqual(['qunit', 'selenium'], args.skip)
 
     def test_skip_option_does_not_shallow_next_arg(self):
         args = cmd._parse_arguments(args=['--skip', 'phpunit', 'repo'])
