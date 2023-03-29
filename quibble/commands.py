@@ -419,7 +419,7 @@ class VendorComposerDependencies:
         self.log_dir = log_dir
 
     def execute(self):
-        log.info('vendor.git used. ' 'Requiring composer dev dependencies')
+        log.info('mediawiki/vendor is used, add require-dev dependencies')
         mw_composer_json = os.path.join(self.mw_install_path, 'composer.json')
         vendor_dir = os.path.join(self.mw_install_path, 'vendor')
         with open(mw_composer_json, 'r') as f:
@@ -430,7 +430,7 @@ class VendorComposerDependencies:
             for dependency, version in composer['require-dev'].items()
         ]
 
-        log.debug('composer require %s', ' '.join(reqs))
+        log.debug('composer require --dev %s', ' '.join(reqs))
         composer_require = [
             'composer',
             'require',
@@ -629,10 +629,8 @@ class InstallMediaWiki:
             # still check versions to make sure it stays in sync with MediaWiki
             # core.
             #
-            # T88211
-            log.info(
-                'mediawiki/vendor used. ' 'Skipping external dependencies'
-            )
+            # T88211, T333412
+            log.info('mediawiki/vendor is used, skip composer.lock check')
             update_args.append('--skip-external-dependencies')
 
         quibble.mediawiki.maintenance.addSite(

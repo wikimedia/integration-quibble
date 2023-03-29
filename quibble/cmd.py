@@ -71,7 +71,9 @@ class QuibbleCmd(object):
     def __init__(self):
         self._context_stack = contextlib.ExitStack()
 
-    def _setup_environment(self, workspace, mw_install_path, log_dir, tmp_dir):
+    def _setup_environment(
+        self, workspace, mw_install_path, log_dir, tmp_dir, use_vendor=False
+    ):
         """
         Set and get needed environment variables.
 
@@ -95,6 +97,16 @@ class QuibbleCmd(object):
         # We also define() this value in local_settings.php.tpl, but
         # MediaWikiUnitTestCase test runs don't load LocalSettings.php.
         os.environ['MW_QUIBBLE_CI'] = '1'
+
+        # In the mediawiki/vendor update workflow, we patch vendor (and its
+        # lock file) first, and update the mediawiki/core composer.json after.
+        # As such, when testing mediawiki/vendor, it's normal that its lock
+        # file doesn't match mediawiki/core. This is tested by the
+        # mediawiki/core commit instead.
+        #
+        # T333412
+        if use_vendor:
+            os.environ['MW_SKIP_EXTERNAL_DEPENDENCIES'] = '1'
 
     def _warn_obsolete_env_deps(self, var):
         log.warning(
@@ -171,8 +183,6 @@ class QuibbleCmd(object):
 
         tmp_dir = tempfile.gettempdir()
 
-        self._setup_environment(workspace, mw_install_path, log_dir, tmp_dir)
-
         zuul_project = os.environ.get('ZUUL_PROJECT', None)
         if zuul_project is None:
             # TODO: Isn't this default already covered by quibble.zuul, and we
@@ -191,6 +201,10 @@ class QuibbleCmd(object):
 
         use_composer = args.packages_source == 'composer'
         use_vendor = args.packages_source == 'vendor'
+
+        self._setup_environment(
+            workspace, mw_install_path, log_dir, tmp_dir, use_vendor
+        )
 
         dependencies = self._repos_to_clone(
             projects=args.projects,

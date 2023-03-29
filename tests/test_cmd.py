@@ -375,6 +375,26 @@ class CmdTest(unittest.TestCase):
                 mock_clone.call_args[1]['projects'],
             )
 
+    def test_build_execution_plan_MW_SKIP_EXTERNAL_DEPENDENCIES_vendor(self):
+        with mock.patch.dict('os.environ', clear=True):
+            q = cmd.QuibbleCmd()
+            args = cmd._parse_arguments(['--packages-source', 'vendor'])
+            with mock.patch('quibble.commands.ZuulClone'):
+                q.build_execution_plan(args)
+            self.assertDictContainsSubset(
+                {'MW_SKIP_EXTERNAL_DEPENDENCIES': '1'}, os.environ
+            )
+
+    def test_build_execution_plan_MW_SKIP_EXTERNAL_DEPENDENCIES_composer(self):
+        with mock.patch.dict('os.environ', clear=True):
+            q = cmd.QuibbleCmd()
+            args = cmd._parse_arguments(['--packages-source', 'composer'])
+            with mock.patch('quibble.commands.ZuulClone'):
+                q.build_execution_plan(args)
+            self.assertNotIn('MW_SKIP_EXTERNAL_DEPENDENCIES', os.environ)
+            # Ensure setup_environment applied
+            self.assertIn('LOG_DIR', os.environ)
+
     def test_execute(self):
         q = cmd.QuibbleCmd()
 
