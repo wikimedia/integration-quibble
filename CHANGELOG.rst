@@ -1,10 +1,23 @@
 Quibble changelog
 =================
 
-master (UNRELEASED)
+1.5.4 (2023-04-03)
 -------------------
 
-* …
+Features
+~~~~~~~~
+
+* Switch generated LocalSettings.php to use ``AutoLoader::registerNamespaces``
+  instead of internal ``AutoLoader->psr4Namespaces``.
+  `T332930 <https://phabricator.wikimedia.org/T332930>`_
+  Arlo Breault
+* Set ``--pagepath`` option in the ``maintenance/addSite.php`` call.
+  `T331280 <https://phabricator.wikimedia.org/T331280>`_
+  Jakob Warkotsch
+* Set ``MW_SKIP_EXTERNAL_DEPENDENCIES`` environment variable during
+  mediawiki/vendor jobs.
+  `T333412 <https://phabricator.wikimedia.org/T333412>`_
+  Timo Tijhof
 
 1.5.3 (2023-03-09)
 -------------------
@@ -27,7 +40,6 @@ Internal
   instead of ``subprocess.check_call()``
   `T331061 <https://phabricator.wikimedia.org/T331061>`_
   Kosta Harlan & Antoine Musso
-* …
 
 1.5.2 (2023-03-06)
 -------------------
