@@ -22,12 +22,12 @@ args: ['--git-cache=/var/cache/git', '--workspace=/WORKSPACE']
 #
 # Required. Any plan test MUST have a plan to assert against.
 plan:
- -  'Report package versions'
- -  "Ensure we have the directory '/WORKSPACE/log'"
- -  'Zuul clone with parameters {"cache_dir": "/var/cache/git", "projects": ["mediawiki/core", "mediawiki/skins/Vector", "mediawiki/vendor"], "workers": 4, "workspace": "/WORKSPACE/src"}'
- -  'Extension and skin submodule update under MediaWiki root /WORKSPACE/src'
+ -  'Versions'
+ -  "Ensure dir: '/WORKSPACE/log'"
+ -  'Zuul clone {"cache_dir": "/var/cache/git", "projects": ["mediawiki/core", "mediawiki/skins/Vector", "mediawiki/vendor"], "workers": 4, "workspace": "/WORKSPACE/src"}'
+ -  'Submodule update: /WORKSPACE/src'
  -  'Install composer dev-requires for vendor.git'
- -  'Start backends, <MySQL (no socket)>'
+ -  'Start backends: <MySQL (no socket)>'
  - |-
    Run Post-dependency install, pre-database dependent steps in parallel (concurrency=3):
    * PHPUnit unit tests
@@ -37,10 +37,10 @@ plan:
  -  'Run phpbench'
  - |-
     Run 'composer test' and 'npm test' in parallel (concurrency=2):
-    * Run composer test in mediawiki/core
+    * composer test for mediawiki/core
     * npm test in /WORKSPACE/src
- -  'Start backends, <PhpWebserver http://127.0.0.1:9412 /WORKSPACE/src> <ChromeWebDriver :0>'
+ -  'Start backends: <PhpWebserver http://127.0.0.1:9412 /WORKSPACE/src> <ChromeWebDriver :0>'
  -  'Run Qunit tests'
- -  'Browser tests for projects mediawiki/core, mediawiki/skins/Vector, mediawiki/vendor'
+ -  'Browser tests: mediawiki/core, mediawiki/skins/Vector, mediawiki/vendor'
  -  'Run API-Testing'
  -  'PHPUnit default suite (with database)'

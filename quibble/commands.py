@@ -119,7 +119,7 @@ class ReportVersions:
             log.warning('Command not found: %s', ' '.join(cmd))
 
     def __str__(self):
-        return 'Report package versions'
+        return 'Versions'
 
 
 class ZuulClone:
@@ -168,7 +168,7 @@ class ZuulClone:
         pruned_params = {
             k: v for k, v in self.__dict__.items() if v is not None and v != []
         }
-        return "Zuul clone with parameters {}".format(
+        return "Zuul clone {}".format(
             json.dumps(pruned_params, sort_keys=True)
         )
 
@@ -280,9 +280,7 @@ class ExtSkinSubmoduleUpdate:
     def __str__(self):
         # TODO: Would be nicer to extract the directory crawl into a subroutine
         # and print the analysis here.
-        return (
-            "Extension and skin submodule update under MediaWiki root {}"
-        ).format(self.mw_install_path)
+        return ("Submodule update: {}").format(self.mw_install_path)
 
 
 # Used to be bin/mw-create-composer-local.py
@@ -389,7 +387,7 @@ class CoreComposerTest:
             run(composer_test_cmd, cwd=self.mw_install_path, env=env)
 
     def __str__(self):
-        return "Run composer test in mediawiki/core"
+        return "composer test for mediawiki/core"
 
 
 class NativeComposerDependencies:
@@ -410,7 +408,7 @@ class NativeComposerDependencies:
         run(cmd, cwd=self.mw_install_path)
 
     def __str__(self):
-        return "Run composer update for mediawiki/core"
+        return "composer update for mediawiki/core"
 
 
 class VendorComposerDependencies:
@@ -539,7 +537,7 @@ class StartBackends:
         log.info("Shutting down backends: %s", self._service_names())
 
     def __str__(self):
-        return "Start backends, {}".format(self._service_names())
+        return "Start backends: {}".format(self._service_names())
 
 
 class InstallMediaWiki:
@@ -962,7 +960,7 @@ class BrowserTests:
         )
 
     def __str__(self):
-        return "Browser tests for projects {}".format(", ".join(self.projects))
+        return "Browser tests: {}".format(", ".join(self.projects))
 
 
 class UserScripts:
@@ -1008,7 +1006,7 @@ class EnsureDirectory:
         os.makedirs(self.directory, exist_ok=True)
 
     def __str__(self):
-        return "Ensure we have the directory '{}'".format(self.directory)
+        return "Ensure dir: '{}'".format(self.directory)
 
 
 class GitClean:
