@@ -72,8 +72,19 @@ $wgEnableUploads = true;
 
 // Hack to support testing Parsoid as an extension, while overriding
 // the composer library included with core. (T227352)
+function wfInterceptParsoidLoading( $className ) {
+    // Only intercept Parsoid namespace classes
+    if ( preg_match( '/(MW|Wikimedia\\\\)Parsoid\\\\/', $className ) ) {
+       $fileName = Autoloader::find( $className );
+       if ( $fileName !== null ) {
+           require $fileName;
+       }
+    }
+}
+
 $parsoidDir = $IP . '/services/parsoid';
 if ( is_dir( $parsoidDir ) ) {
+    spl_autoload_register( 'wfInterceptParsoidLoading', true, true );
     // Keep this in sync with the "autoload" clause in
     // $PARSOID_INSTALL_DIR/composer.json
     $parsoidNamespace = [ 'Wikimedia\\Parsoid\\' => "$parsoidDir/src" ];
