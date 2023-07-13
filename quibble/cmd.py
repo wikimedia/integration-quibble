@@ -312,8 +312,7 @@ class QuibbleCmd(object):
             )
 
         if not args.skip_deps:
-            # NPM install is done after MediaWiki installation, since it
-            # takes a while and the phpunit-unit phase below may fail.
+            # NPM install is done after MediaWiki installation.
             if use_vendor:
                 plan.append(
                     quibble.commands.VendorComposerDependencies(
@@ -323,14 +322,6 @@ class QuibbleCmd(object):
 
         # Post dependency setup, pre database dependent phase.
         parallel_steps = []
-        # phpunit-unit does not need the database populated or
-        # LocalSettings.php in order to run.
-        if 'phpunit-unit' in stages:
-            parallel_steps.append(
-                quibble.commands.PhpUnitUnit(
-                    mw_install_path, log_dir, args.phpunit_junit
-                )
-            )
 
         if not args.skip_install:
             if not args.db_is_external:
@@ -360,6 +351,14 @@ class QuibbleCmd(object):
                 steps=parallel_steps,
             )
         )
+
+        # phpunit-unit needs LocalSettings.php, see T227900#9014246
+        if 'phpunit-unit' in stages:
+            plan.append(
+                quibble.commands.PhpUnitUnit(
+                    mw_install_path, log_dir, args.phpunit_junit
+                )
+            )
 
         phpunit_testsuite = None
         if args.phpunit_testsuite:

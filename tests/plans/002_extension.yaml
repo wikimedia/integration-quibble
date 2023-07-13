@@ -15,10 +15,10 @@ plan:
  -  'Install composer dev-requires for vendor.git'
  -  'Start backends: <MySQL (no socket)>'
  - |-
-  Run Post-dependency install, pre-database dependent steps in parallel (concurrency=3):
-  * PHPUnit unit tests
+  Run Post-dependency install, pre-database dependent steps in parallel (concurrency=2):
   * Install MediaWiki, db=<MySQL (no socket)> vendor=True
   * npm install in /WORKSPACE/src
+ -  'PHPUnit unit tests'
  -  'PHPUnit extensions suite (without database or standalone)'
  -  'PHPUnit default standalone suite on extensions/Foobar'
  -  'Run phpbench'
