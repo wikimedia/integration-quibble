@@ -1,10 +1,31 @@
 Quibble changelog
 =================
 
-master (UNRELEASED)
+1.5.5 (2023-07-14)
 -------------------
 
-* …
+Features
+~~~~~~~~
+
+* Fix Parsoid CI after changes to use phpunit directly
+  `T90875 <https://phabricator.wikimedia.org/T90875>`_
+  Subramanya Sastry
+* Run PHPUnit unit tests after installing MediaWiki
+  `T227900 <https://phabricator.wikimedia.org/T227900>`_
+  Daimona Eaytoy
+
+Documentation
+~~~~~~~~~~~~~
+
+* commands: Shorten the descriptons of some commands
+  James D. Forrester
+
+Internal
+~~~~~~~~
+
+* utils: fullrun-extensions: Clone SecurePoll
+  `T341840 <https://phabricator.wikimedia.org/T341840>`_
+  Taavi Väänänen
 
 1.5.4 (2023-04-03)
 -------------------
