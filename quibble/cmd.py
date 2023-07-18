@@ -225,7 +225,7 @@ class QuibbleCmd(object):
         run_npm = 'npm-test' in stages
 
         database_backend = quibble.backend.getDatabase(
-            args.db, db_dir, dump_dir
+            args.db, db_dir, dump_dir, log_dir
         )
 
         web_backend_args = {}

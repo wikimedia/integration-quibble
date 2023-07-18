@@ -33,7 +33,7 @@ class TestBackendRegistry(unittest.TestCase):
             get_backend(DatabaseServer, 'fakeDBengine')
 
     def test_getDatabase(self):
-        getDatabase('mysql', '/tmp/db', '/tmp/dump')
+        getDatabase('mysql', '/tmp/db', '/tmp/dump', '/tmp/log')
 
 
 class TestDatabaseServer(unittest.TestCase):

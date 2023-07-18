@@ -91,10 +91,10 @@ def db_backend(key):
     return backend(DatabaseServer, key)
 
 
-def getDatabase(engine, db_dir, dump_dir):
+def getDatabase(engine, db_dir, dump_dir, log_dir):
     '''Set up a database backend, without starting it.'''
     dbclass = get_backend(DatabaseServer, engine)
-    db = dbclass(base_dir=db_dir, dump_dir=dump_dir)
+    db = dbclass(base_dir=db_dir, dump_dir=dump_dir, log_dir=log_dir)
     db.type = engine
     return db
 
@@ -156,11 +156,13 @@ class BackendServer:
 
 class DatabaseServer(BackendServer):
     dump_dir = None
+    log_dir = None
 
-    def __init__(self, base_dir=None, dump_dir=None):
+    def __init__(self, base_dir=None, dump_dir=None, log_dir=None):
         super(DatabaseServer, self).__init__()
         self.base_dir = base_dir
         self.dump_dir = dump_dir
+        self.log_dir = log_dir
 
     def _init_rootdir(self, base_dir):
         # Create a temporary data directory
@@ -191,8 +193,8 @@ class DatabaseServer(BackendServer):
 
 @db_backend('postgres')
 class Postgres(DatabaseServer):
-    def __init__(self, base_dir=None, dump_dir=None):
-        super(Postgres, self).__init__(base_dir, dump_dir)
+    def __init__(self, base_dir=None, dump_dir=None, log_dir=None):
+        super(Postgres, self).__init__(base_dir, dump_dir, log_dir)
 
     def start(self):
         super(Postgres, self).start()
@@ -245,18 +247,20 @@ class MySQL(DatabaseServer):
         self,
         base_dir=None,
         dump_dir=None,
+        log_dir=None,
         user='wikiuser',
         password='secret',
         dbname='wikidb',
         dbserver='localhost',
     ):
-        super(MySQL, self).__init__(base_dir, dump_dir)
+        super(MySQL, self).__init__(base_dir, dump_dir, log_dir)
 
         self.user = user
         self.password = password
         self.dbname = dbname
         self.socket = None
         self.dbserver = dbserver
+        self.log_dir = log_dir
 
     def _install_db(self):
         self.log.info('Initializing MySQL data directory')
@@ -305,7 +309,11 @@ class MySQL(DatabaseServer):
         self.log.info('Starting MySQL')
         super(MySQL, self).start()
 
-        self.errorlog = os.path.join(self.rootdir, 'error.log')
+        if self.log_dir is None:
+            self.errorlog = os.path.join(self.rootdir, 'error.log')
+        else:
+            self.errorlog = os.path.join(self.log_dir, 'mysql-error.log')
+
         self.pidfile = os.path.join(self.rootdir, 'mysqld.pid')
         self.socket = os.path.join(self.rootdir, 'socket')
         self.dbserver = 'localhost:' + self.socket
@@ -364,8 +372,10 @@ class MySQL(DatabaseServer):
 
 @db_backend('sqlite')
 class SQLite(DatabaseServer):
-    def __init__(self, base_dir=None, dump_dir=None, dbname='wikidb'):
-        super(SQLite, self).__init__(base_dir, dump_dir)
+    def __init__(
+        self, base_dir=None, dump_dir=None, log_dir=None, dbname='wikidb'
+    ):
+        super(SQLite, self).__init__(base_dir, dump_dir, log_dir)
 
         self.dbname = dbname
 
