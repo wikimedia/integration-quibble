@@ -324,6 +324,7 @@ class MySQL(DatabaseServer):
             [
                 '/usr/sbin/mysqld',  # fixme drop path
                 '--skip-networking',
+                '--innodb-print-all-deadlocks',
                 '--datadir=%s' % self.rootdir,
                 '--log-error=%s' % self.errorlog,
                 '--pid-file=%s' % self.pidfile,
