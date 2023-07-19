@@ -3,4 +3,4 @@
 from setuptools import setup
 
 # See setup.cfg
-setup(version_config=True)
+setup()
