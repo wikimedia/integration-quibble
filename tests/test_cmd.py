@@ -381,9 +381,8 @@ class CmdTest(unittest.TestCase):
             args = cmd._parse_arguments(['--packages-source', 'vendor'])
             with mock.patch('quibble.commands.ZuulClone'):
                 q.build_execution_plan(args)
-            self.assertDictContainsSubset(
-                {'MW_SKIP_EXTERNAL_DEPENDENCIES': '1'}, os.environ
-            )
+            self.assertIn('MW_SKIP_EXTERNAL_DEPENDENCIES', os.environ)
+            self.assertEqual('1', os.environ['MW_SKIP_EXTERNAL_DEPENDENCIES'])
 
     def test_build_execution_plan_MW_SKIP_EXTERNAL_DEPENDENCIES_composer(self):
         with mock.patch.dict('os.environ', clear=True):
