@@ -8,7 +8,7 @@ tests can be included or excluded as needed.
 
 Everything is performed by a single command, `quibble`.
 
-Running quibble requires python 3 and the following tools, or you can run in
+Running quibble requires Python 3 and the following tools, or you can run in
 the provided docker image.
 
 - Chromium
@@ -18,39 +18,17 @@ the provided docker image.
 - php
 - Xvfb
 
-Quick Start
------------
-
-Full build and run, with no caching::
-
-    docker build --tag quibble .
-    docker run -it --rm quibble
-
-Which runs tests with php7.0, MariaDB and using mediawiki/vendor.git to
-provide PHP libraries.
-
-You could instead run tests with dependencies provided by `composer install`
-and use SQLite as a database backend::
-
-    docker run -it quibble  --packages-source composer --db sqlite
-
-Wikimedia maintains Docker containers intended to be used for its continuous
-integration system, for example::
-
-    docker pull docker-registry.wikimedia.org/releng/quibble-buster-php74:latest
-
-The source is on Gerrit https://gerrit.wikimedia.org/g/integration/config
-under the `dockerfiles` directory, where you'll also find other images with
-slight variations such as other PHP versions.
+The source of the Docker container that runs Quibble in Wikimedia CI is in
+Gerrit at https://gerrit.wikimedia.org/g/integration/config under the `dockerfiles`
+directory, where you'll also find other images with slight variations such as
+different PHP versions.
 
 Further documentation can be found on https://doc.wikimedia.org/quibble/ .
 
+How it works in Wikimedia CI
+----------------------------
 
-Setup
------
-
-Docker container
-~~~~~~~~~~~~~~~~
+*To locally reproduce a build, see: :doc:`build-reproduction`.*
 
 Get the latest image being run by Wikimedia CI::
 
@@ -131,6 +109,30 @@ Finally, having ``/src`` mounted from the host, lets one reuse the installed
 wiki. One can later skip cloning/checking out the repositories by passing
 ``--skip-zuul`` and skip installing composer and npm dependencies with
 ``--skip-deps``. For other options see: :doc:`usage`.
+
+Quick Start
+-----------
+
+To test a change to Quibble itself, it is recommended that you run it with
+a modified version of the same Docker image as used by Wikimedia CI.
+
+Prerequisites from <https://www.mediawiki.org/wiki/Continuous_integration/Docker>:
+* Docker
+* docker-pkg
+* clone of `integration/config <https://gerrit.wikimedia.org/g/integration/config>`_ from Gerrit
+
+To modify and run the image locally:
+
+* Submit your patch to Gerrit for review. It does not need to be merged yet,
+  but this allows the existing logic to fetch and install your version
+  in the container.
+* Edit `dockerfiles/quibble-buster/Dockerfile.template` and specify
+  your commit hash in the `QUIBBLE_VERSION` assignment.
+* Make a temporary bump in the quibble-buster and quibble-buster-php74 changelogs.
+  Use a version like `-dev1` rather than regular semver versions as those builds
+  may remain in your local cache and complicate future testing on your machine).
+* Run `dockerfiles/config.yaml build --select '*/quibble-buster:*' dockerfiles/`
+
 
 TESTING
 -------

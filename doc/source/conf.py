@@ -44,6 +44,7 @@ version = release
 extensions = [
     'sphinxarg.ext',
     'sphinx.ext.autodoc',
+    # 'sphinx.ext.autosectionlabel',
     'sphinx.ext.doctest',
     'sphinx.ext.todo',
     'sphinx.ext.coverage',
