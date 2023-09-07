@@ -94,9 +94,6 @@ class QuibbleCmd(object):
         os.environ['MW_LOG_DIR'] = log_dir
         os.environ['LOG_DIR'] = log_dir
         os.environ['TMPDIR'] = tmp_dir
-        # We also define() this value in local_settings.php.tpl, but
-        # MediaWikiUnitTestCase test runs don't load LocalSettings.php.
-        os.environ['MW_QUIBBLE_CI'] = '1'
 
         # In the mediawiki/vendor update workflow, we patch vendor (and its
         # lock file) first, and update the mediawiki/core composer.json after.

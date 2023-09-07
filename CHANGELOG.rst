@@ -4,7 +4,15 @@ Quibble changelog
 master (UNRELEASED)
 -------------------
 
-* …
+* Remove ``MW_QUIBBLE_CI`` environment variable, introduced in 1.5.3.
+
+  In PHP, check the ``MW_QUIBBLE_CI`` constant instead. This is set
+  both during all PHP and non-PHP stages (e.g. QUnit or api-testing),
+  except for pure unit tests (where LocalSettings doesn't load).
+  Those should not vary by environment.
+
+  To detect Apache from within a Node.js process,
+  check the ``QUIBBLE_APACHE=1`` environment variable instead.
 
 1.5.5 (2023-07-14)
 -------------------
@@ -56,10 +64,7 @@ Features
 Features
 ~~~~~~~~
 
-* Set ``MW_QUIBBLE_CI`` environment variable (value ``1``). This can be used to
-  change the behavior of tests runners, for example to hide progress report in
-  PHPUnit. For PHP code, it is advised to rely on the ``MW_QUIBBLE_CI`` define
-  set in ``LocalSettings.php``.
+* Introduce ``MW_QUIBBLE_CI`` environment variable (value ``1``).
   `T331621 <https://phabricator.wikimedia.org/T331621>`_
   Kosta Harlan
 
@@ -122,7 +127,7 @@ Internal
 
 Features
 ~~~~~~~~
-* Set `QUIBBLE_APACHE=1` environment variable in the `api-testing` stage as
+* Set ``QUIBBLE_APACHE=1`` environment variable in the `api-testing` stage as
   well as when running user scripts (`--command`).
   `T320935 <https://phabricator.wikimedia.org/T320935>`_
   Kosta Harlan
