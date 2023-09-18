@@ -7,7 +7,7 @@ import logging
 import multiprocessing
 import os
 import os.path
-import pkg_resources
+
 import requests
 import yaml
 
@@ -18,6 +18,23 @@ import quibble.zuul
 import subprocess
 import sys
 import tempfile
+
+HAS_IMPORTLIB_RESOURCES_AS_FILE = bool(sys.version_info >= (3, 9))
+
+if HAS_IMPORTLIB_RESOURCES_AS_FILE:
+    import importlib.resources
+else:
+    # Python 3.7 deprecated pkg_resources but importlib.resources.as_file got
+    # introduced in 3.9. We mute the warning until we require Python 3.9.
+    import warnings
+
+    warnings.filterwarnings(
+        'ignore',
+        category=DeprecationWarning,
+        message='pkg_resources is deprecated as an API',
+    )
+    import pkg_resources
+    import pathlib
 
 log = logging.getLogger(__name__)
 monitor_interval = 10
@@ -561,15 +578,33 @@ class InstallMediaWiki:
             self.mw_install_path, 'LocalSettings-installer.php'
         )
 
-        customsettings = InstallMediaWiki._expand_localsettings_template(
-            pkg_resources.resource_filename(
-                __name__, 'mediawiki/local_settings.php.tpl'
-            ),
-            {
-                'MW_LOG_DIR': self.log_dir,
-                'TMPDIR': self.tmp_dir,
-            },
-        )
+        quibble_settings = {
+            'MW_LOG_DIR': self.log_dir,
+            'TMPDIR': self.tmp_dir,
+        }
+
+        if HAS_IMPORTLIB_RESOURCES_AS_FILE:
+            ref = (
+                importlib.resources.files(__package__)
+                / 'mediawiki/local_settings.php.tpl'
+            )
+            with importlib.resources.as_file(ref) as quibblesettings_file:
+                customsettings = (
+                    InstallMediaWiki._expand_localsettings_template(
+                        quibblesettings_file, quibble_settings
+                    )
+                )
+        else:
+            # Fallback to legacy pkg_resources
+            customsettings = InstallMediaWiki._expand_localsettings_template(
+                # use a Path for consistency with importlib.resources.as_file()
+                pathlib.Path(
+                    pkg_resources.resource_filename(
+                        __name__, 'mediawiki/local_settings.php.tpl'
+                    )
+                ),
+                quibble_settings,
+            )
 
         InstallMediaWiki._apply_custom_settings(
             localsettings=localsettings,

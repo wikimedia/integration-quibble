@@ -3,6 +3,8 @@
 import contextlib
 import io
 import logging
+import os.path
+import pathlib
 import pytest
 import subprocess
 import sys
@@ -274,10 +276,22 @@ class InstallMediaWikiTest:
             ) as mocks:
                 install_mw.execute()
                 mock_install_args.assert_called_once()
-                mocks['_expand_localsettings_template'].assert_called_once()
-                mocks['_apply_custom_settings'].assert_called_once()
 
-        # TODO: Assert that localsettings is edited correctly.
+                mocks[
+                    '_expand_localsettings_template'
+                ].assert_called_once_with(
+                    # Import lib returns a NtPath or PosixPath
+                    pathlib.Path(
+                        # Assuming we run tests from a source tree (and not a
+                        # wheel), we already know where the file is.
+                        os.path.join(
+                            os.path.dirname(os.path.dirname(__file__)),
+                            'quibble/mediawiki/local_settings.php.tpl',
+                        )
+                    ),
+                    {'MW_LOG_DIR': '/log', 'TMPDIR': '/tmp'},
+                )
+                mocks['_apply_custom_settings'].assert_called_once()
 
         mock_update.assert_called_once_with(
             args=['--skip-external-dependencies'], mwdir='/src'
