@@ -250,7 +250,7 @@ class InstallMediaWikiTest:
         mock_update,
         mock_install_script,
         mock_db_factory,
-        *_
+        *_,
     ):
         db = mock.MagicMock(
             dbname='testwiki',

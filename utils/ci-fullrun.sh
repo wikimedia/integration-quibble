@@ -21,6 +21,9 @@ python3 -m venv --system-site-packages $QUIBBLE_VENV
 # shellcheck disable=SC1091
 source $QUIBBLE_VENV/bin/activate
 
+# Wikimedia CI uses Buster which ships outdated pip 18
+pip3 install --upgrade pip
+
 pip3 install "$(realpath "$(dirname "$0")"/../)"
 
 ZUUL_PROJECT=$TEST_PROJECT \

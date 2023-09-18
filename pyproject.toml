@@ -1,7 +1,81 @@
+[build-system]
+requires = [
+    "setuptools>=61.0",
+    "setuptools-git-versioning >= 1.8.0,<2",
+]
+build-backend = "setuptools.build_meta"
+
+# https://packaging.python.org/en/latest/specifications/declaring-project-metadata/
+[project]
+name = "quibble"
+# Version is set dynamically
+description = "A test runner for MediaWiki"
+readme = "README.rst"
+requires-python = ">=3.7"
+license = { text = "Apache License Version 2.0" }
+maintainers = [
+    {name = "Wikimedia Release Engineering", email = "qa@lists.wikimedia.org"},
+    {name = "Antoine Musso", email = "hashar@free.fr"},
+]
+keywords = ["quibble", "mediawiki"]
+# See https://pypi.org/classifiers/
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.7",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Topic :: Software Development :: Testing",
+  "Topic :: Software Development :: Version Control :: Git",
+]
+dynamic = ["version"]
+dependencies = [
+  # For zuul-cloner
+  "extras",
+  "six",
+  "PyYAML",
+  "GitPython ~= 3.1.0",
+  "requests",
+]
+
+[project.optional-dependencies]
+test = [
+  "pytest",
+  "coverage",
+]
+doc = [
+  "Sphinx>=1.4.9",
+  "sphinx-argparse>=0.1.15",
+]
+
+[project.urls]
+"Documentation" = "https://doc.wikimedia.org/quibble/"
+"Bug tracker" = "https://phabricator.wikimedia.org/tag/quibble/"
+"Source code" = "https://gerrit.wikimedia.org/g/integration/quibble"
+"Git clone" = "https://gerrit.wikimedia.org/r/integration/quibble.git"
+
+[project.scripts]
+quibble = "quibble.cmd:main"
+
+[check]
+metadata = true
+# Requires docutils
+#restructuredtext = true
+strict = true
+
 [tool.black]
 skip_string_normalization = true
 # Flake8 default line length
 line-length = 79
+
+[tool.setuptools.package-data]
+"quibble.mediawiki" = ["local_settings.php.tpl"]
+
+[tool.setuptools.packages]
+find = {}
 
 [tool.setuptools-git-versioning]
 enabled = true
