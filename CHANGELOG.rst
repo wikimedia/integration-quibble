@@ -1,9 +1,11 @@
 Quibble changelog
 =================
 
-master (UNRELEASED)
--------------------
+1.5.6 (2023-09-19)
+------------------
 
+Breaking change
+~~~~~~~~~~~~~~~
 * Remove ``MW_QUIBBLE_CI`` environment variable, introduced in 1.5.3.
 
   In PHP, check the ``MW_QUIBBLE_CI`` constant instead. This is set
@@ -13,6 +15,46 @@ master (UNRELEASED)
 
   To detect Apache from within a Node.js process,
   check the ``QUIBBLE_APACHE=1`` environment variable instead.
+
+Features
+~~~~~~~~
+* MariaDB now starts with ``--innodb-print-all-deadlocks`` which emit a
+  detailled report about database dead locks. Emitted to the error log, the
+  output can be found in ``$LOG_DIR/mysql-error.log``.
+  `T342088 <https://phabricator.wikimedia.org/T342088>`_
+  Antoine Musso
+* Replace deprecated setuptools ``license_file`` by ``license_files``.
+  Antoine Musso
+* Raise ``setuptools-git-versioning`` requirements to at least 1.8.0 and move
+  its configuration from ``setup.py``to ``pyproject.toml``.
+  `See changelog <https://setuptools-git-versioning.readthedocs.io/en/stable/changelog.html#change-1.8.0>`_
+  Antoine Musso
+* Remove support for ``--run==all`` to run all stages which is the default.
+  Running all stages is now represented internally by an empty list.
+  Antoine Musso
+* Add experimental ``--change`` to retrieve a change from Wikimedia Gerrit
+  instance. The retrieved metadata are used to set ``ZUUL_URL``,
+  ``ZUUL_PROJECT``, ``ZUUL_BRANCH`` and ``ZUUL_REF`` which overrides the
+  existing environmnent.
+  Antoine Musso
+
+Documentation
+~~~~~~~~~~~~~
+* Document how to test Quibble changes (see "Quick Start" in the readme).
+  Timo Tijhof
+
+
+Internal
+~~~~~~~~
+* Remove parsoid from ``utils/ci-fullrun-extensions.sh``.
+  Antoine Musso
+* Remove files remaining after removal of Docker support in 1.4.2.
+  Timo Tijhof
+* Remove Sphinx setuptools integration (``build_sphinx``) and replace it by
+  ``sphinx-build``.
+  Antoine Musso
+* Refresh Sphinx configuration file removing explicit defaults and comments.
+  Antoine Musso
 
 1.5.5 (2023-07-14)
 -------------------
