@@ -8,6 +8,7 @@ import subprocess
 import sys
 import unittest
 from unittest import mock
+from unittest.mock import call
 
 import quibble.commands
 
@@ -236,11 +237,7 @@ class StartBackendsTest(unittest.TestCase):
 
 
 class InstallMediaWikiTest:
-    @mock.patch('builtins.open', mock.mock_open())
-    @mock.patch('os.rename')
     @mock.patch('quibble.mediawiki.maintenance.rebuildLocalisationCache')
-    @mock.patch('quibble.util.copylog')
-    @mock.patch('subprocess.check_call')
     @mock.patch('quibble.backend.get_backend')
     @mock.patch('quibble.mediawiki.maintenance.install')
     @mock.patch('quibble.mediawiki.maintenance.update')
@@ -270,8 +267,15 @@ class InstallMediaWikiTest:
         with mock.patch.object(
             install_mw, '_get_install_args'
         ) as mock_install_args:
-            install_mw.execute()
-            mock_install_args.assert_called_once()
+            with mock.patch.multiple(
+                quibble.commands.InstallMediaWiki,
+                _expand_localsettings_template=mock.DEFAULT,
+                _apply_custom_settings=mock.DEFAULT,
+            ) as mocks:
+                install_mw.execute()
+                mock_install_args.assert_called_once()
+                mocks['_expand_localsettings_template'].assert_called_once()
+                mocks['_apply_custom_settings'].assert_called_once()
 
         # TODO: Assert that localsettings is edited correctly.
 
@@ -287,6 +291,71 @@ class InstallMediaWikiTest:
                 '--pagepath=%s/index.php?title=$1' % (url),
             ],
             mwdir='/src',
+        )
+
+    def test__expand_localsettings_template(self):
+        template = (
+            "# Token replaced by quibble:\n"
+            "{{params-declaration}}\n"
+            "# End\n"
+        )
+        with mock.patch('builtins.open', mock.mock_open(read_data=template)):
+            InstallMediaWiki = quibble.commands.InstallMediaWiki
+            expanded = InstallMediaWiki._expand_localsettings_template(
+                'fakefile',
+                {
+                    'MW_LOG': '/log',
+                    'SOMECONST': 'hello world',
+                },
+            )
+            assert expanded == (
+                "# Token replaced by quibble:\n"
+                "const MW_LOG = '/log';\n"
+                "const SOMECONST = 'hello world';\n"
+                "# End\n"
+            )
+
+    @mock.patch('os.rename')
+    @mock.patch('quibble.commands.copylog')
+    @mock.patch('subprocess.check_call')
+    def test__apply_custom_settings(
+        self, mock_check_call, mock_copylog, mock_rename
+    ):
+        customized_settings = '# Nothing new to see\n'
+
+        with mock.patch('builtins.open', mock.mock_open()) as mock_open:
+            quibble.commands.InstallMediaWiki._apply_custom_settings(
+                localsettings='/work/LocalSettings.php',
+                installed_copy='/work/opt_subdir/CopyOfInstalledSettings.php',
+                new_settings=customized_settings,
+                log_dir='/LOGS',
+            )
+        mock_rename.assert_called_once_with(
+            '/work/LocalSettings.php',
+            '/work/opt_subdir/CopyOfInstalledSettings.php',
+        )
+        mock_open().write.assert_called_once_with(customized_settings)
+
+        mock_copylog.assert_has_calls(
+            [
+                call('/work/LocalSettings.php', '/LOGS/LocalSettings.php'),
+                call(
+                    '/work/opt_subdir/CopyOfInstalledSettings.php',
+                    '/LOGS/CopyOfInstalledSettings.php',
+                ),
+            ]
+        )
+        mock_check_call.assert_has_calls(
+            [
+                call(
+                    [
+                        'php',
+                        '-l',
+                        '/work/LocalSettings.php',
+                        '/work/opt_subdir/CopyOfInstalledSettings.php',
+                    ]
+                )
+            ]
         )
 
     @mock.patch('quibble.backend.get_backend')

@@ -560,35 +560,22 @@ class InstallMediaWiki:
         localsettings_installer = os.path.join(
             self.mw_install_path, 'LocalSettings-installer.php'
         )
-        quibblesettings = pkg_resources.resource_filename(
-            __name__, 'mediawiki/local_settings.php.tpl'
-        )
 
-        # Wire variables into settings template.
-        with open(quibblesettings, "r") as f:
-            params = {
+        customsettings = InstallMediaWiki._expand_localsettings_template(
+            pkg_resources.resource_filename(
+                __name__, 'mediawiki/local_settings.php.tpl'
+            ),
+            {
                 'MW_LOG_DIR': self.log_dir,
                 'TMPDIR': self.tmp_dir,
-            }
-            params_declaration = "\n".join(
-                "const {} = '{}';".format(key, value)
-                for (key, value) in params.items()
-            )
-            customsettings = f.read().replace(
-                '{{params-declaration}}', params_declaration
-            )
-
-        os.rename(localsettings, localsettings_installer)
-        with open(localsettings, "w") as f:
-            f.write(customsettings)
-
-        copylog(localsettings, os.path.join(self.log_dir, 'LocalSettings.php'))
-        copylog(
-            localsettings_installer,
-            os.path.join(self.log_dir, 'LocalSettings-installer.php'),
+            },
         )
-        subprocess.check_call(
-            ['php', '-l', localsettings, localsettings_installer]
+
+        InstallMediaWiki._apply_custom_settings(
+            localsettings=localsettings,
+            installed_copy=localsettings_installer,
+            new_settings=customsettings,
+            log_dir=self.log_dir,
         )
 
         update_args = []
@@ -649,6 +636,34 @@ class InstallMediaWiki:
             raise Exception('Unsupported database: %s' % self.db.type)
 
         return install_args
+
+    @staticmethod
+    def _expand_localsettings_template(quibblesettings, params):
+        # Wire variables into settings template.
+        with open(quibblesettings, "r") as f:
+            params_declaration = "\n".join(
+                "const {} = '{}';".format(key, value)
+                for (key, value) in params.items()
+            )
+            customsettings = f.read().replace(
+                '{{params-declaration}}', params_declaration
+            )
+        return customsettings
+
+    @staticmethod
+    def _apply_custom_settings(
+        localsettings, installed_copy, new_settings, log_dir
+    ):
+        os.rename(localsettings, installed_copy)
+        with open(localsettings, "w") as f:
+            f.write(new_settings)
+
+        copylog(localsettings, os.path.join(log_dir, 'LocalSettings.php'))
+        copylog(
+            installed_copy,
+            os.path.join(log_dir, os.path.basename(installed_copy)),
+        )
+        subprocess.check_call(['php', '-l', localsettings, installed_copy])
 
     def __str__(self):
         return "Install MediaWiki, db={} vendor={}".format(
