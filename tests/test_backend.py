@@ -1,5 +1,6 @@
 import json
 import os
+import shutil
 import unittest
 from unittest import mock
 import urllib.request
@@ -250,6 +251,10 @@ class TestMySQL(unittest.TestCase):
             MySQL()._createwikidb()
 
 
+@mark.skipif(
+    not shutil.which('pg_virtualenv'),
+    reason='Requires pg_virtualenv PostgreSQL command',
+)
 class TestPostgres(unittest.TestCase):
     @mark.integration
     def test_it_starts(self):
