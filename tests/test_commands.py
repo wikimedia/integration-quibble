@@ -235,7 +235,7 @@ class StartBackendsTest(unittest.TestCase):
         self.assertRegex(log.output[2], "Stopped mock.")
 
 
-class InstallMediaWikiTest(unittest.TestCase):
+class InstallMediaWikiTest:
     @mock.patch('builtins.open', mock.mock_open())
     @mock.patch('os.rename')
     @mock.patch('quibble.mediawiki.maintenance.rebuildLocalisationCache')
@@ -263,24 +263,17 @@ class InstallMediaWikiTest(unittest.TestCase):
         mock_db_factory.return_value = mock.MagicMock(return_value=db)
         url = 'http://192.0.2.1:4321'
 
-        quibble.commands.InstallMediaWiki(
+        install_mw = quibble.commands.InstallMediaWiki(
             '/src', db, url, '/log', '/tmp', True
-        ).execute()
+        )
+
+        with mock.patch.object(
+            install_mw, '_get_install_args'
+        ) as mock_install_args:
+            install_mw.execute()
+            mock_install_args.assert_called_once()
 
         # TODO: Assert that localsettings is edited correctly.
-
-        mock_install_script.assert_called_once_with(
-            args=[
-                '--scriptpath=',
-                '--server=%s' % (url,),
-                '--dbtype=mysql',
-                '--dbname=testwiki',
-                '--dbuser=USER',
-                '--dbpass=PASS',
-                '--dbserver=SERVER',
-            ],
-            mwdir='/src',
-        )
 
         mock_update.assert_called_once_with(
             args=['--skip-external-dependencies'], mwdir='/src'
@@ -295,6 +288,82 @@ class InstallMediaWikiTest(unittest.TestCase):
             ],
             mwdir='/src',
         )
+
+    @mock.patch('quibble.backend.get_backend')
+    @pytest.mark.parametrize(
+        "db_type,db_specific_args, expected_extras",
+        [
+            pytest.param(
+                'sqlite',
+                {
+                    'rootdir': '/tmp/db.sqlite',
+                },
+                ['--dbpath=/tmp/db.sqlite'],
+                id='sqlite',
+            ),
+            pytest.param(
+                'mysql',
+                {
+                    'user': 'USER',
+                    'password': 'PASS',
+                    'dbserver': 'SERVER',
+                },
+                ['--dbuser=USER', '--dbpass=PASS', '--dbserver=SERVER'],
+                id='mysql',
+            ),
+            pytest.param(
+                'postgres',
+                {
+                    'user': 'USER',
+                    'password': 'PASS',
+                    'dbserver': 'SERVER',
+                },
+                ['--dbuser=USER', '--dbpass=PASS', '--dbserver=SERVER'],
+                id='postgres',
+            ),
+        ],
+    )
+    def test__get_install_args(
+        self, mock_db_factory, db_type, db_specific_args, expected_extras
+    ):
+        db = mock.MagicMock(
+            dbname='testwiki',
+            type=db_type,
+            **db_specific_args,
+        )
+        mock_db_factory.return_value = mock.MagicMock(return_value=db)
+        url = 'http://192.0.2.1:4321'
+
+        install_mw = quibble.commands.InstallMediaWiki(
+            '/src', db, url, '/log', '/tmp', True
+        )
+        assert (
+            install_mw._get_install_args()
+            == [
+                '--scriptpath=',
+                '--server=%s' % (url,),
+                '--dbtype=%s' % db_type,
+                '--dbname=testwiki',
+            ]
+            + expected_extras
+        )
+
+    @mock.patch('quibble.backend.get_backend')
+    def test__get_install_args_raises_on_unknown_db_type(
+        self, mock_db_factory
+    ):
+        db = mock.MagicMock(
+            dbname='testwiki',
+            type='unsupported_db_type',
+        )
+        mock_db_factory.return_value = db
+        install_mw = quibble.commands.InstallMediaWiki(
+            '/src', db, 'http://example.org/', '/log', '/tmp', True
+        )
+        with pytest.raises(
+            Exception, match='Unsupported database: unsupported_db_type'
+        ):
+            install_mw._get_install_args()
 
 
 class PhpUnitDatabaseTest(unittest.TestCase):

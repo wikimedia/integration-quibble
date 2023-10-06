@@ -552,33 +552,8 @@ class InstallMediaWiki:
         self.use_vendor = use_vendor
 
     def execute(self):
-        # TODO: Better if we can calculate the install args before
-        # instantiating the database.
-        install_args = [
-            '--scriptpath=',
-            '--server=%s' % self.web_url,
-            '--dbtype=%s' % self.db.type,
-            '--dbname=%s' % self.db.dbname,
-        ]
-        if self.db.type == 'sqlite':
-            install_args.extend(
-                [
-                    '--dbpath=%s' % self.db.rootdir,
-                ]
-            )
-        elif self.db.type in ('mysql', 'postgres'):
-            install_args.extend(
-                [
-                    '--dbuser=%s' % self.db.user,
-                    '--dbpass=%s' % self.db.password,
-                    '--dbserver=%s' % self.db.dbserver,
-                ]
-            )
-        else:
-            raise Exception('Unsupported database: %s' % self.db.type)
-
         quibble.mediawiki.maintenance.install(
-            args=install_args, mwdir=self.mw_install_path
+            args=self._get_install_args(), mwdir=self.mw_install_path
         )
 
         localsettings = os.path.join(self.mw_install_path, 'LocalSettings.php')
@@ -646,6 +621,34 @@ class InstallMediaWiki:
         quibble.mediawiki.maintenance.rebuildLocalisationCache(
             lang=['en'], mwdir=self.mw_install_path
         )
+
+    def _get_install_args(self):
+        # TODO: Better if we can calculate the install args before
+        # instantiating the database.
+        install_args = [
+            '--scriptpath=',
+            '--server=%s' % self.web_url,
+            '--dbtype=%s' % self.db.type,
+            '--dbname=%s' % self.db.dbname,
+        ]
+        if self.db.type == 'sqlite':
+            install_args.extend(
+                [
+                    '--dbpath=%s' % self.db.rootdir,
+                ]
+            )
+        elif self.db.type in ('mysql', 'postgres'):
+            install_args.extend(
+                [
+                    '--dbuser=%s' % self.db.user,
+                    '--dbpass=%s' % self.db.password,
+                    '--dbserver=%s' % self.db.dbserver,
+                ]
+            )
+        else:
+            raise Exception('Unsupported database: %s' % self.db.type)
+
+        return install_args
 
     def __str__(self):
         return "Install MediaWiki, db={} vendor={}".format(
