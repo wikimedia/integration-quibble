@@ -15,21 +15,17 @@ EXT_DEPENDENCIES="mediawiki/extensions/AbuseFilter\nmediawiki/extensions/AntiSpo
 SKIN_DEPENDENCIES="mediawiki/skins/MinervaNeue"
 MEDIAWIKI_BRANCH=master
 
-QUIBBLE_INSTALL_DIR=/tmp/quibble
+# Use the system packages to avoid having to reinstall Quibble requirements and
+# upgrade pip & setuptools.
+QUIBBLE_VENV=/tmp/quibble
+python3 -m venv --system-site-packages $QUIBBLE_VENV
 
-# Find python version
-_py3_bin=$(which python3)
-_py3_real=$(readlink -f "$_py3_bin")
-py3_version=$(basename "$_py3_real")
+# shellcheck disable=SC1091
+source $QUIBBLE_VENV/bin/activate
 
-PYTHONPATH="$QUIBBLE_INSTALL_DIR/lib/$py3_version/site-packages"
-export PYTHONPATH
-mkdir -p "$PYTHONPATH"
-python3 -s -c 'import pprint,sys; pprint.pprint(sys.path)'
-
-python3 -s setup.py install --prefix "$QUIBBLE_INSTALL_DIR"
+pip3 install "$(realpath "$(dirname "$0")"/../)"
 
 ZUUL_PROJECT=$TEST_PROJECT \
 	EXT_DEPENDENCIES=$EXT_DEPENDENCIES \
 	SKIN_DEPENDENCIES=$SKIN_DEPENDENCIES \
-	exec python3 -s "$QUIBBLE_INSTALL_DIR"/bin/quibble --branch "$MEDIAWIKI_BRANCH" "${@}"
+	exec quibble --branch "$MEDIAWIKI_BRANCH" "${@}"
