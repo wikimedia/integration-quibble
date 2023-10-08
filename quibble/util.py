@@ -18,16 +18,11 @@ import contextlib
 import json
 import logging
 import os
-import re
 import urllib.request
 from shutil import copyfile
-import subprocess
 import sys
 import threading
 import time
-
-from pkg_resources import Requirement
-from pkg_resources import parse_version
 
 log = logging.getLogger(__name__)
 
@@ -60,20 +55,6 @@ def move_item_to_head(dependencies, project):
     repos = list(dependencies)
     repos.insert(0, repos.pop(repos.index(project)))
     return repos
-
-
-def php_version(specifier):
-    spec = Requirement.parse('PHP%s' % specifier)
-    try:
-        full_version = subprocess.check_output(
-            ['php', '--version'], stderr=None
-        )
-        m = re.match('PHP (?P<version>.+?) ', full_version)
-        if m:
-            return parse_version(m.group('version')) in spec
-
-    except subprocess.CalledProcessError:
-        pass
 
 
 @contextlib.contextmanager
