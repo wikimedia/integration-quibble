@@ -1,10 +1,42 @@
 Quibble changelog
 =================
 
-master (UNRELEASED)
--------------------
+1.6.0 (2023-12-13)
+------------------
 
-* …
+Breaking changes
+~~~~~~~~~~~~~~~~
+
+* Migrate from ``setup.py`` to ``pyproject.toml`` (PEP 517). This requires your
+  local copies of ``pip`` and ``setuptools`` to be upgraded to a sufficiently
+  recent version.
+  `T345093 <https://phabricator.wikimedia.org/T345093>`_
+
+* Require tox version 4, which only affects Quibble developers. One can create
+  a local environment using ``tox devenv``. The optimization to share
+  environment directories betwen tox test envs have been removed since that is
+  no more supported by tox v4.
+  `T345695 <https://phabricator.wikimedia.org/T345695>`_
+  `T348434 <https://phabricator.wikimedia.org/T348434>`_
+  Antoine Musso
+
+Internal
+~~~~~~~~
+* Move MediaWiki install arguments to a standalone function and add unit
+  testing.
+  Antoine Musso
+* Move ``LocalSettings.template`` logic to a method.
+  Antoine Musso
+* Skip PostgreSQL test when it is not available.
+  Antoine Musso
+* Remove unused ``util.php_version()``.
+  Antoine Musso
+* In the CI full run tests, use a virtualenv to setup Quibble in order to
+  upgrade dependencies required to support ``pyproject.toml``
+  Antoine Musso
+* Add support for ``importlib.resources`` under python 3.9+. The deprecated
+  ``pkg_resources`` is still used under python 3.7/3.8.
+  Antoine Musso
 
 1.5.6 (2023-09-19)
 ------------------
