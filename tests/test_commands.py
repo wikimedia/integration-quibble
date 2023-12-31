@@ -209,6 +209,7 @@ class VendorComposerDependenciesTest(unittest.TestCase):
                 '--dev',
                 '--ansi',
                 '--no-progress',
+                '--no-interaction',
                 '--prefer-dist',
                 '-v',
                 'justinrainbow/jsonschema=^1.2.3',

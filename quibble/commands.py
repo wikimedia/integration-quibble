@@ -452,6 +452,7 @@ class VendorComposerDependencies:
             '--dev',
             '--ansi',
             '--no-progress',
+            '--no-interaction',
             '--prefer-dist',
             '-v',
         ]
