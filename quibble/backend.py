@@ -462,10 +462,8 @@ class ExternalWebserver(WebserverEngine):
 @web_backend('php')
 class PhpWebserver(WebserverEngine):
     default_url = 'http://127.0.0.1:9412'
-    default_router = 'maintenance/dev/includes/router.php'
 
-    def __init__(self, router=default_router, workers=False, **kwargs):
-        self.router = router
+    def __init__(self, workers=False, **kwargs):
         self.workers = workers
 
         super(PhpWebserver, self).__init__(**kwargs)
@@ -478,8 +476,6 @@ class PhpWebserver(WebserverEngine):
             '-S', '%s:%s' % (self.host, self.port),
             # fmt: on
         ]
-        if self.router:
-            server_cmd.append(os.path.join(self.mwdir, self.router))
 
         server_env = {}
         if self.workers:

@@ -3,6 +3,7 @@ Quibble changelog
 
 master (UNRELEASED)
 --------------------
+* Remove use of `router.php` from PhpWebserver.
 * …
 
 1.6.0 (2023-12-13)

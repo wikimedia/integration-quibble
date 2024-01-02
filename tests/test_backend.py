@@ -156,13 +156,13 @@ class TestPhpWebserver(unittest.TestCase):
         # Loopback interface has 127.0.0.1/8, so we can pick any IP address in
         # that range.
         url = 'http://127.0.0.2:4880'
-        with PhpWebserver(mwdir=PHPDOCROOT, url=url, router=None):
+        with PhpWebserver(mwdir=PHPDOCROOT, url=url):
             self.assertServerRespond('zend', url)
 
     @mark.integration
     def test_server_respond(self):
         url = 'http://127.0.0.1:4881'
-        with PhpWebserver(mwdir=PHPDOCROOT, url=url, router=None):
+        with PhpWebserver(mwdir=PHPDOCROOT, url=url):
             self.assertServerRespond('zend', url)
 
     @mark.integration
@@ -177,7 +177,7 @@ class TestPhpWebserver(unittest.TestCase):
             clear=True,
         ):
             url = 'http://127.0.0.1:4885'
-            with PhpWebserver(mwdir=PHPDOCROOT, url=url, router=None):
+            with PhpWebserver(mwdir=PHPDOCROOT, url=url):
                 env_url = url + '/env.php'
                 with urllib.request.urlopen(env_url) as resp:
                     env_resp = resp.read().decode()
