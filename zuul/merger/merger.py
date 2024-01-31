@@ -202,4 +202,4 @@ class Repo(object):
             # --tags' is all that is necessary.  See
             # https://github.com/git/git/blob/master/Documentation/RelNotes/1.9.0.txt#L18-L20
             origin.fetch()
-        origin.fetch(tags=True)
+        origin.fetch(tags=True, force=True)
