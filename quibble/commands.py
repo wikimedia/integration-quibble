@@ -56,6 +56,15 @@ def run(cmd: list, cwd: str, shell=False, env=None):
     :param shell: Whether to set shell=True, default to False.
     :param env: The optional environment override, default to None.
     """
+
+    # We run attached to a terminal (ex: quibble -c bash), in which case there
+    # is no need for capturing output and we want stdout/stderr/stdin to remain
+    # attached to a tty, else the commands would think they run non
+    # interactively (ex: bash shows no prompt)
+    if sys.stdin.isatty() and sys.stdout.isatty():
+        subprocess.check_call(cmd, cwd=cwd, shell=shell, env=env)
+        return
+
     collected_output = b''
     with subprocess.Popen(
         cmd,
