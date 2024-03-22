@@ -579,33 +579,13 @@ class InstallMediaWiki:
             self.mw_install_path, 'LocalSettings-installer.php'
         )
 
-        quibble_settings = {
-            'MW_LOG_DIR': self.log_dir,
-            'TMPDIR': self.tmp_dir,
-        }
-
-        if HAS_IMPORTLIB_RESOURCES_AS_FILE:
-            ref = (
-                importlib.resources.files(__package__)
-                / 'mediawiki/local_settings.php.tpl'
-            )
-            with importlib.resources.as_file(ref) as quibblesettings_file:
-                customsettings = (
-                    InstallMediaWiki._expand_localsettings_template(
-                        quibblesettings_file, quibble_settings
-                    )
-                )
-        else:
-            # Fallback to legacy pkg_resources
-            customsettings = InstallMediaWiki._expand_localsettings_template(
-                # use a Path for consistency with importlib.resources.as_file()
-                pathlib.Path(
-                    pkg_resources.resource_filename(
-                        __name__, 'mediawiki/local_settings.php.tpl'
-                    )
-                ),
-                quibble_settings,
-            )
+        customsettings = self._expand_template(
+            'mediawiki/local_settings.php.tpl',
+            settings={
+                'MW_LOG_DIR': self.log_dir,
+                'TMPDIR': self.tmp_dir,
+            },
+        )
 
         InstallMediaWiki._apply_custom_settings(
             localsettings=localsettings,
@@ -672,6 +652,33 @@ class InstallMediaWiki:
             raise Exception('Unsupported database: %s' % self.db.type)
 
         return install_args
+
+    @staticmethod
+    def _expand_template(template_file, settings):
+        if HAS_IMPORTLIB_RESOURCES_AS_FILE:
+            ref = (
+                importlib.resources.files(__package__)
+                / 'mediawiki/local_settings.php.tpl'
+            )
+            with importlib.resources.as_file(ref) as quibblesettings_file:
+                customsettings = (
+                    InstallMediaWiki._expand_localsettings_template(
+                        quibblesettings_file, settings
+                    )
+                )
+        else:
+            # Fallback to legacy pkg_resources
+            customsettings = InstallMediaWiki._expand_localsettings_template(
+                # use a Path for consistency with importlib.resources.as_file()
+                pathlib.Path(
+                    pkg_resources.resource_filename(
+                        __name__, 'mediawiki/local_settings.php.tpl'
+                    )
+                ),
+                settings,
+            )
+
+        return customsettings
 
     @staticmethod
     def _expand_localsettings_template(quibblesettings, params):

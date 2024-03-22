@@ -272,25 +272,18 @@ class InstallMediaWikiTest:
         ) as mock_install_args:
             with mock.patch.multiple(
                 quibble.commands.InstallMediaWiki,
-                _expand_localsettings_template=mock.DEFAULT,
+                _expand_template=mock.DEFAULT,
                 _apply_custom_settings=mock.DEFAULT,
             ) as mocks:
                 install_mw.execute()
                 mock_install_args.assert_called_once()
 
-                mocks[
-                    '_expand_localsettings_template'
-                ].assert_called_once_with(
-                    # Import lib returns a NtPath or PosixPath
-                    pathlib.Path(
-                        # Assuming we run tests from a source tree (and not a
-                        # wheel), we already know where the file is.
-                        os.path.join(
-                            os.path.dirname(os.path.dirname(__file__)),
-                            'quibble/mediawiki/local_settings.php.tpl',
-                        )
-                    ),
-                    {'MW_LOG_DIR': '/log', 'TMPDIR': '/tmp'},
+                mocks['_expand_template'].assert_called_with(
+                    'mediawiki/local_settings.php.tpl',
+                    settings={
+                        'MW_LOG_DIR': '/log',
+                        'TMPDIR': '/tmp',
+                    },
                 )
                 mocks['_apply_custom_settings'].assert_called_once()
 
@@ -307,6 +300,30 @@ class InstallMediaWikiTest:
             ],
             mwdir='/src',
         )
+
+    def test_expand_template(self):
+        with mock.patch(
+            'quibble.commands.InstallMediaWiki._expand_localsettings_template'
+        ) as mock_expand_localsettings_template:
+            quibble.commands.InstallMediaWiki._expand_template(
+                'mediawiki/local_settings.php.tpl',
+                settings={
+                    'MW_LOG_DIR': '/log',
+                    'TMPDIR': '/tmp',
+                },
+            )
+            mock_expand_localsettings_template.assert_called_once_with(
+                # Import lib returns a NtPath or PosixPath
+                pathlib.Path(
+                    # Assuming we run tests from a source tree (and not a
+                    # wheel), we already know where the file is.
+                    os.path.join(
+                        os.path.dirname(os.path.dirname(__file__)),
+                        'quibble/mediawiki/local_settings.php.tpl',
+                    )
+                ),
+                {'MW_LOG_DIR': '/log', 'TMPDIR': '/tmp'},
+            )
 
     def test__expand_localsettings_template(self):
         template = (
