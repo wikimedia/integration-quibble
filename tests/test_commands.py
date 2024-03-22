@@ -6,6 +6,7 @@ import logging
 import os.path
 import pathlib
 import pytest
+import re
 import subprocess
 import sys
 import unittest
@@ -324,6 +325,59 @@ class InstallMediaWikiTest:
                 ),
                 {'MW_LOG_DIR': '/log', 'TMPDIR': '/tmp'},
             )
+
+    def test_execute_clears_localsettings(self):
+        install_mw = quibble.commands.InstallMediaWiki('/somepath', *range(5))
+
+        # Make it an exception to early abort execute() so we don't have to
+        # mock everything else.
+        with mock.patch.object(
+            install_mw, 'clearQuibbleLocalSettings'
+        ) as clear:
+            clear.side_effect = Exception("clearQuibbleLocalSettings called")
+            with pytest.raises(
+                Exception, match="clearQuibbleLocalSettings called"
+            ):
+                install_mw.execute()
+
+    def test_clearQuibbleLocalSettings_skips_non_existing(self):
+        install_mw = quibble.commands.InstallMediaWiki('/somepath', *range(5))
+        with mock.patch('os.path.exists', return_value=False):
+            install_mw.clearQuibbleLocalSettings()
+
+    @mock.patch('os.path.exists', return_value=True)
+    @mock.patch('os.unlink')
+    def test_clearQuibbleLocalSettings_deletes_file_from_template(
+        self, unlink, _
+    ):
+        install_mw = quibble.commands.InstallMediaWiki('/somepath', *range(5))
+
+        localsettings = quibble.commands.InstallMediaWiki._expand_template(
+            'mediawiki/local_settings.php.tpl', {}
+        )
+
+        with mock.patch(
+            'builtins.open', mock.mock_open(read_data=localsettings)
+        ):
+            install_mw.clearQuibbleLocalSettings()
+            unlink.assert_called_once()
+
+    @mock.patch('os.path.exists', return_value=True)
+    @mock.patch('os.unlink')
+    def test_clearQuibbleLocalSettings_raises_on_unknown_settings_file(
+        self, unlink, _
+    ):
+        install_mw = quibble.commands.InstallMediaWiki('/somepath', *range(5))
+        with mock.patch('builtins.open', mock.mock_open()):
+            with pytest.raises(
+                Exception,
+                match=re.escape(
+                    "Unknown configuration file /somepath/LocalSettings.php\n"
+                    "Marker not found: '# Quibble MediaWiki configuration\\n'"
+                ),
+            ):
+                install_mw.clearQuibbleLocalSettings()
+            unlink.assert_not_called()
 
     def test__expand_localsettings_template(self):
         template = (

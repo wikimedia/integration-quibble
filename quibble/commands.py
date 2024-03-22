@@ -570,6 +570,7 @@ class InstallMediaWiki:
         self.use_vendor = use_vendor
 
     def execute(self):
+        self.clearQuibbleLocalSettings()
         quibble.mediawiki.maintenance.install(
             args=self._get_install_args(), mwdir=self.mw_install_path
         )
@@ -624,6 +625,24 @@ class InstallMediaWiki:
         quibble.mediawiki.maintenance.rebuildLocalisationCache(
             lang=['en'], mwdir=self.mw_install_path
         )
+
+    def clearQuibbleLocalSettings(self):
+        marker = "# Quibble MediaWiki configuration\n"
+        quibbleLocalSettings = os.path.join(
+            self.mw_install_path, 'LocalSettings.php'
+        )
+
+        if not os.path.exists(quibbleLocalSettings):
+            return
+
+        with open(quibbleLocalSettings) as f:
+            if marker in f.readlines():
+                os.unlink(quibbleLocalSettings)
+                return
+            raise Exception(
+                "Unknown configuration file %s\nMarker not found: '%s'"
+                % (quibbleLocalSettings, marker.replace("\n", "\\n"))
+            )
 
     def _get_install_args(self):
         # TODO: Better if we can calculate the install args before
