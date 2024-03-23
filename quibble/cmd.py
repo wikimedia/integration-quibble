@@ -618,7 +618,10 @@ def get_arg_parser():
         '--color',
         dest='color',
         action='store_true',
-        help='Enable colorful output.',
+        help=(
+            'Enable colorful output '
+            '(or set the FORCE_COLOR environment variable)'
+        ),
     )
     global_opts.add_argument(
         '--no-color',
@@ -626,7 +629,9 @@ def get_arg_parser():
         action='store_false',
         help='Disable colorful output.',
     )
-    global_opts.set_defaults(color=sys.stdin.isatty())
+    global_opts.set_defaults(
+        color=sys.stdin.isatty() or os.getenv('FORCE_COLOR')
+    )
 
     global_opts.add_argument(
         '-n',
