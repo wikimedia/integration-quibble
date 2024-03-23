@@ -626,9 +626,6 @@ def get_arg_parser():
         action='store_false',
         help='Disable colorful output.',
     )
-    # Disable by default for Jenkins to avoid triggering a bug in
-    # the "Console Section" plugin which gets confused if a line
-    # starts with color code (T236222).
     global_opts.set_defaults(color=sys.stdin.isatty())
 
     global_opts.add_argument(
