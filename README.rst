@@ -117,6 +117,7 @@ To test a change to Quibble itself, it is recommended that you run it with
 a modified version of the same Docker image as used by Wikimedia CI.
 
 Prerequisites from <https://www.mediawiki.org/wiki/Continuous_integration/Docker>:
+
 * Docker
 * docker-pkg
 * clone of `integration/config <https://gerrit.wikimedia.org/g/integration/config>`_ from Gerrit
