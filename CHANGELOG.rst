@@ -3,7 +3,14 @@ Quibble changelog
 
 1.8.1 (UNRELEASED)
 ------------------
-* …
+
+Feature
+~~~~~~~
+* Add support for running some PHPUnit test suites in Parallel. Can be
+  enabled for a specific run by setting QUIBBLE_PHPUNIT_PARALLEL, or
+  explicitly specifying `phpunit-parallel` in the `--run` list.
+  `T361190 <https://phabricator.wikimedia.org/T361190>`
+  Arthur Taylor
 
 1.8.0 (2024-05-30)
 ------------------

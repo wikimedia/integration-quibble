@@ -38,6 +38,7 @@ known_stages = [
     'phpbench',
     'phpunit',
     'phpunit-standalone',
+    'phpunit-parallel',
     'npm-test',
     'composer-test',
     'qunit',
@@ -167,10 +168,10 @@ class QuibbleCmd(object):
         stages = default_stages
         if skip:
             stages = [s for s in stages if s not in skip]
-        if run == []:
-            return stages
-        if run:
+        if len(run) > 0:
             stages = run
+        if os.getenv('QUIBBLE_PHPUNIT_PARALLEL') and 'phpunit' in stages:
+            stages.append('phpunit-parallel')
         return stages
 
     def build_execution_plan(self, args):
@@ -237,6 +238,10 @@ class QuibbleCmd(object):
 
         stages = self._stages_to_run(args.run, args.skip, args.commands)
         log.debug('Running stages: %s', ', '.join(stages))
+        log.debug(
+            'QUIBBLE_PHPUNIT_PARALLEL: %s',
+            os.getenv('QUIBBLE_PHPUNIT_PARALLEL'),
+        )
 
         run_composer = 'composer-test' in stages
         run_npm = 'npm-test' in stages
@@ -385,7 +390,32 @@ class QuibbleCmd(object):
         elif is_skin:
             phpunit_testsuite = 'skins'
 
-        if 'phpunit' in stages:
+        if phpunit_testsuite != 'extensions' and 'phpunit-parallel' in stages:
+            log.warning(
+                'phpunit-parallel in stages, but only currently supported for'
+                'extensions test suite - reverting to serial run'
+            )
+            stages.remove('phpunit-parallel')
+
+        if 'phpunit-parallel' in stages:
+            plan.append(
+                quibble.commands.PhpUnitPrepareParallelRun(
+                    mw_install_path,
+                    phpunit_testsuite,
+                    log_dir,
+                    args.phpunit_junit,
+                )
+            )
+            plan.append(
+                quibble.commands.PhpUnitDatabaselessParallel(
+                    mw_install_path,
+                    phpunit_testsuite,
+                    log_dir,
+                    args.phpunit_junit,
+                ).generate_parallel_command()
+            )
+
+        if 'phpunit' in stages and 'phpunit-parallel' not in stages:
             plan.append(
                 quibble.commands.PhpUnitDatabaseless(
                     mw_install_path,
@@ -516,7 +546,7 @@ class QuibbleCmd(object):
                 )
             )
 
-        if 'phpunit' in stages:
+        if 'phpunit' in stages and 'phpunit-parallel' not in stages:
             plan.append(
                 quibble.commands.PhpUnitDatabase(
                     mw_install_path,
@@ -524,6 +554,16 @@ class QuibbleCmd(object):
                     log_dir,
                     args.phpunit_junit,
                 )
+            )
+
+        if 'phpunit-parallel' in stages:
+            plan.append(
+                quibble.commands.PhpUnitDatabaseParallel(
+                    mw_install_path,
+                    phpunit_testsuite,
+                    log_dir,
+                    args.phpunit_junit,
+                ).generate_parallel_command()
             )
 
         if args.commands:

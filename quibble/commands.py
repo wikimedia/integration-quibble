@@ -13,6 +13,7 @@ import yaml
 
 from quibble.gitchangedinhead import GitChangedInHead
 from quibble.util import copylog, isExtOrSkin, ProgressReporter
+from quibble.phpunit_split import Splitter
 import quibble.mediawiki.registry
 import quibble.zuul
 import subprocess
@@ -820,6 +821,9 @@ class AbstractPhpUnit:
             phpunit_command = ['php', 'tests/phpunit/phpunit.php']
         if repo_path:
             phpunit_command.append(repo_path)
+        if self.cache_result_file is not None:
+            phpunit_command.append('--cache-result-file')
+            phpunit_command.append(self.cache_result_file)
         return phpunit_command
 
     def _run_phpunit(self, group=[], exclude_group=[], cmd=None):
@@ -850,12 +854,20 @@ class AbstractPhpUnit:
 
 
 class PhpUnitDatabaseless(AbstractPhpUnit):
-    def __init__(self, mw_install_path, testsuite, log_dir, junit=False):
+    def __init__(
+        self,
+        mw_install_path,
+        testsuite,
+        log_dir,
+        junit=False,
+        cache_result_file=None,
+    ):
         self.mw_install_path = mw_install_path
         self.testsuite = testsuite
         self.log_dir = log_dir
         self.junit_file = os.path.join(self.log_dir, 'junit-dbless.xml')
         self.junit = junit
+        self.cache_result_file = cache_result_file
 
     def execute(self):
         # XXX might want to run the triggered extension first then the
@@ -872,7 +884,13 @@ class PhpUnitDatabaseless(AbstractPhpUnit):
 
 class PhpUnitStandalone(AbstractPhpUnit):
     def __init__(
-        self, mw_install_path, testsuite, log_dir, repo_path, junit=False
+        self,
+        mw_install_path,
+        testsuite,
+        log_dir,
+        repo_path,
+        junit=False,
+        cache_result_file=None,
     ):
         self.mw_install_path = mw_install_path
         self.testsuite = testsuite
@@ -880,6 +898,7 @@ class PhpUnitStandalone(AbstractPhpUnit):
         self.repo_path = repo_path
         self.junit_file = os.path.join(self.log_dir, 'junit-standalone.xml')
         self.junit = junit
+        self.cache_result_file = cache_result_file
 
     def execute(self):
         self._run_phpunit(
@@ -894,12 +913,15 @@ class PhpUnitStandalone(AbstractPhpUnit):
 
 
 class PhpUnitUnit(AbstractPhpUnit):
-    def __init__(self, mw_install_path, log_dir, junit=False):
+    def __init__(
+        self, mw_install_path, log_dir, junit=False, cache_result_file=None
+    ):
         self.mw_install_path = mw_install_path
         self.log_dir = log_dir
         self.testsuite = None
         self.junit_file = os.path.join(self.log_dir, 'junit-unit.xml')
         self.junit = junit
+        self.cache_result_file = cache_result_file
 
     def execute(self):
         if _repo_has_composer_script(self.mw_install_path, 'phpunit:unit'):
@@ -913,6 +935,131 @@ class PhpUnitUnit(AbstractPhpUnit):
 
 
 class PhpUnitDatabase(AbstractPhpUnit):
+    def __init__(
+        self,
+        mw_install_path,
+        testsuite,
+        log_dir,
+        junit=False,
+        cache_result_file=None,
+    ):
+        self.mw_install_path = mw_install_path
+        self.testsuite = testsuite
+        self.log_dir = log_dir
+        self.junit_file = os.path.join(self.log_dir, 'junit-db.xml')
+        self.junit = junit
+        self.cache_result_file = cache_result_file
+
+    def execute(self):
+        self._run_phpunit(group=['Database'], exclude_group=['Standalone'])
+
+    def __str__(self):
+        return "PHPUnit {} suite (with database)".format(
+            self.testsuite or 'default'
+        )
+
+
+class PhpUnitPrepareParallelRun:
+    """To run tests in parallel, we need to split the tests that
+    will be run into smaller suites that we can execute individually
+    and in parallel. This command runs the phpunit `--list-tests-xml`
+    function, which dumps out a list of which test classes would be
+    included in a run of the provided test suite.
+
+    Note that this command is not sensitive to `--group` or
+    `--exclude-group` - that filtering happens later when the suites
+    are actually executed. This can lead to the situation of a test
+    class being included where no tests are then run.
+
+    We dump the list of tests into the file
+    `test-cases-integration.xml`, which is then picked up by
+    `phpunit_split.Splitter` to create the new, smaller suites that
+    we will use. `Splitter` copies `phpunit.dist.xml` to
+    `phpunit.xml` and adds new test suites named `split_group_X`
+    where `X` is a number.
+
+    Once the modified `phpunit.xml` exists, it has priority over
+    `phpunit.dist.xml` and is used by default by `phpunit`
+    commands. This also means that we can run the split test suites
+    normally from the command line with the `--testsuite` argument
+    to `phpunit`.
+
+    @see T365978
+    """
+
+    def __init__(
+        self,
+        mw_install_path,
+        testsuite='extensions',
+        log_dir=None,
+        junit=False,
+    ):
+        self.mw_install_path = mw_install_path
+        self.testsuite = testsuite
+        self.log_dir = log_dir
+        self.junit = junit
+
+    def _do_generate_test_list(self):
+        """Use phpunit's `--list-tests-xml` function to generate a
+        list of test classes that would be included in the suite"""
+        phpunit_env = {}
+        phpunit_env.update(os.environ)
+        phpunit_env.update({'LANG': 'C.UTF-8'})
+
+        phpunit_command = [
+            'composer',
+            'run',
+            '--timeout=0',
+            'phpunit:entrypoint',
+            '--',
+        ]
+
+        if self.testsuite is not None:
+            phpunit_command.append('--testsuite')
+            phpunit_command.append(self.testsuite)
+
+        phpunit_command.append('--list-tests-xml')
+        phpunit_command.append('test-cases-integration.xml')
+
+        run(phpunit_command, cwd=self.mw_install_path, env=phpunit_env)
+
+    def _do_generate_split_suite(self):
+        """Split the test suite into smaller chunks.
+
+        We create 8 chunks - 7 chunks of split out tests, and 1 chunk
+        for the `ParserIntegrationTest.php` and `SandboxTest.php` tests
+        (which are their own special test generating magic). Anecdotally,
+        8 chunks is enough to max out the CPU on my development machine
+        (8 cores on an 11th Gen Intel(R) Core(TM) i7-11), and to arrange
+        that the chunks of split tests take approximately as long as the
+        `ParserIntegrationTest.php` suite of tests.
+
+        The result of the splitting will be the updated `phpunit.xml` file"""
+        splitter = Splitter(self.mw_install_path)
+        # Pass 7 here for 7 chunks. We pass None for the
+        # `phpunit.results.cache` file, since we're not using that (yet)
+        splitter.split(
+            os.path.join(self.mw_install_path, 'test-cases-integration.xml'),
+            7,
+            None,
+        )
+
+    def execute(self):
+        self._do_generate_test_list()
+        self._do_generate_split_suite()
+
+    def __str__(self):
+        return "PHPUnit Prepare Parallel Run"
+
+
+class AbstractParallelPhpUnit:
+    """Parent class for running the parallel phpunit test suites.
+
+    Subclasses can use `_get_phpunit_command` to generate a composer
+    command for running one of the split-out test suites (e.g.
+    `split_group_1`).
+    """
+
     def __init__(self, mw_install_path, testsuite, log_dir, junit=False):
         self.mw_install_path = mw_install_path
         self.testsuite = testsuite
@@ -920,11 +1067,67 @@ class PhpUnitDatabase(AbstractPhpUnit):
         self.junit_file = os.path.join(self.log_dir, 'junit-db.xml')
         self.junit = junit
 
-    def execute(self):
-        self._run_phpunit(group=['Database'], exclude_group=['Standalone'])
+
+class PhpUnitDatabaselessParallel(AbstractParallelPhpUnit):
+    """Run the tests in the provided suite in parallel, excluding
+    Database and Standalone tests.
+
+    Will create 7 parallel runners, and requires
+    PhpUnitPrepareParallelRun to have been executed beforehand to
+    setup the `phpunit.xml` file with the expect `split_group_X`
+    suites.
+
+    Not that the splitting process places ExtensionsParserTestSuite
+    alone in split_group_7. Since all of the ExtensionsParserTestSuite
+    requires the database, we don't need to run that group here
+    (and doing so would cause PHPUnit to exit with a positive exit
+    status, failing the test run).
+    """
+
+    def _get_phpunit_command(self, split_group_id):
+        return PhpUnitDatabaseless(
+            self.mw_install_path,
+            f"split_group_{split_group_id}",
+            self.log_dir,
+            self.junit,
+            f".phpunit_group_{split_group_id}_databaseless.result.cache",
+        )
+
+    def generate_parallel_command(self):
+        commands = [self._get_phpunit_command(i) for i in range(0, 7)]
+        return Parallel(name=str(self), steps=commands)
 
     def __str__(self):
-        return "PHPUnit {} suite (with database)".format(
+        return (
+            "PHPUnit {} suite (without database "
+            "or standalone) parallel run".format(self.testsuite or 'default')
+        )
+
+
+class PhpUnitDatabaseParallel(AbstractParallelPhpUnit):
+    """Run the tests in the provided suite in parallel, excluding
+    Standalone tests but including Database tests.
+
+    Will create 8 parallel runners, and requires
+    PhpUnitPrepareParallelRun to have been executed beforehand to
+    setup the `phpunit.xml` file with the expect `split_group_X`
+    suites."""
+
+    def _get_phpunit_command(self, split_group_id):
+        return PhpUnitDatabase(
+            self.mw_install_path,
+            f"split_group_{split_group_id}",
+            self.log_dir,
+            self.junit,
+            f".phpunit_group_{split_group_id}_database.result.cache",
+        )
+
+    def generate_parallel_command(self):
+        commands = [self._get_phpunit_command(i) for i in range(0, 8)]
+        return Parallel(name=str(self), steps=commands)
+
+    def __str__(self):
+        return "PHPUnit {} suite (with database) parallel run".format(
             self.testsuite or 'default'
         )
 

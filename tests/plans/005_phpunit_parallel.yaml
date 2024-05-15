@@ -1,0 +1,48 @@
+env:
+    ZUUL_PROJECT: mediawiki/extensions/Foobar
+    QUIBBLE_PHPUNIT_PARALLEL: "1"
+args: ['--git-cache=/var/cache/git', '--workspace=/WORKSPACE']
+
+plan:
+ -  'Versions'
+ -  "Ensure dir: '/WORKSPACE/log'"
+ -  'Zuul clone {"cache_dir": "/var/cache/git", "projects": ["mediawiki/core", "mediawiki/extensions/Foobar", "mediawiki/skins/Vector", "mediawiki/vendor"], "workers": 4, "workspace": "/WORKSPACE/src", "zuul_project": "mediawiki/extensions/Foobar"}'
+ -  'Submodule update: /WORKSPACE/src'
+ - |-
+    Run npm and composer tests, if present in parallel (concurrency=2):
+    * composer test in /WORKSPACE/src/extensions/Foobar
+    * npm test in /WORKSPACE/src/extensions/Foobar
+ -  'Revert to git clean -xqdf in /WORKSPACE/src/extensions/Foobar'
+ -  'Install composer dev-requires for vendor.git'
+ -  'Start backends: <MySQL (no socket)>'
+ - |-
+  Run Post-dependency install, pre-database dependent steps in parallel (concurrency=2):
+  * Install MediaWiki, db=<MySQL (no socket)> vendor=True
+  * npm install in /WORKSPACE/src
+ -  'PHPUnit unit tests'
+ -  'PHPUnit Prepare Parallel Run'
+ -  |-
+   Run PHPUnit extensions suite (without database or standalone) parallel run in parallel (concurrency=7):
+   * PHPUnit split_group_0 suite (without database or standalone)
+   * PHPUnit split_group_1 suite (without database or standalone)
+   * PHPUnit split_group_2 suite (without database or standalone)
+   * PHPUnit split_group_3 suite (without database or standalone)
+   * PHPUnit split_group_4 suite (without database or standalone)
+   * PHPUnit split_group_5 suite (without database or standalone)
+   * PHPUnit split_group_6 suite (without database or standalone)
+ -  'PHPUnit default standalone suite on extensions/Foobar'
+ -  'Run phpbench'
+ -  'Start backends: <PhpWebserver http://127.0.0.1:9412 /WORKSPACE/src> <Xvfb :94> <ChromeWebDriver :94>'
+ -  'Run Qunit tests'
+ -  'Browser tests: mediawiki/extensions/Foobar, mediawiki/core, mediawiki/skins/Vector, mediawiki/vendor'
+ -  'Run API-Testing'
+ -  |-
+   Run PHPUnit extensions suite (with database) parallel run in parallel (concurrency=8):
+   * PHPUnit split_group_0 suite (with database)
+   * PHPUnit split_group_1 suite (with database)
+   * PHPUnit split_group_2 suite (with database)
+   * PHPUnit split_group_3 suite (with database)
+   * PHPUnit split_group_4 suite (with database)
+   * PHPUnit split_group_5 suite (with database)
+   * PHPUnit split_group_6 suite (with database)
+   * PHPUnit split_group_7 suite (with database)
