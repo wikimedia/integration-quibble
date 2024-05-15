@@ -961,6 +961,57 @@ class PhpUnitDatabase(AbstractPhpUnit):
         )
 
 
+class PhpUnitPrepareParallelRunComposer:
+    """To run tests in parallel, we need to split the tests that
+    will be run into smaller suites that we can execute individually
+    and in parallel. This command runs the phpunit `--list-tests-xml`
+    function, which dumps out a list of which test classes would be
+    included in a run of the provided test suite. Composer does this
+    preparation for us
+
+    @see T365978
+    """
+
+    def __init__(
+        self,
+        mw_install_path,
+        testsuite='extensions',
+        log_dir=None,
+        junit=False,
+    ):
+        self.mw_install_path = mw_install_path
+        self.testsuite = testsuite
+        self.log_dir = log_dir
+        self.junit = junit
+
+    def execute(self):
+        """Use phpunit's `--list-tests-xml` function to generate a
+        list of test classes that would be included in the suite
+        and split that list into smaller groups that we can have
+        composer run in parallel"""
+        phpunit_env = {}
+        phpunit_env.update(os.environ)
+        phpunit_env.update({'LANG': 'C.UTF-8'})
+
+        composer_command = 'phpunit:prepare-parallel:default'
+        if self.testsuite == 'extensions':
+            composer_command = 'phpunit:prepare-parallel:extensions'
+
+        phpunit_command = ['composer', composer_command]
+
+        run(phpunit_command, cwd=self.mw_install_path, env=phpunit_env)
+        # To support developers in reproducing failed test runs, we
+        # make a copy of the phpunit.xml file in the logs folder -
+        # this adds the file to the artefacts collected by Jenkins
+        copylog(
+            os.path.join(self.mw_install_path, 'phpunit.xml'),
+            os.path.join(self.log_dir, 'phpunit-parallel.xml'),
+        )
+
+    def __str__(self):
+        return "PHPUnit Prepare Parallel Run (Composer)"
+
+
 class PhpUnitPrepareParallelRun:
     """To run tests in parallel, we need to split the tests that
     will be run into smaller suites that we can execute individually
@@ -987,6 +1038,9 @@ class PhpUnitPrepareParallelRun:
     to `phpunit`.
 
     @see T365978
+    @deprecated - this implementation is deprecated since the
+    introduction of `PhpUnitPrepareParallelRunComposer`, and will
+    be removed in a future release.
     """
 
     def __init__(
@@ -1062,12 +1116,7 @@ class PhpUnitPrepareParallelRun:
 
 
 class AbstractParallelPhpUnit:
-    """Parent class for running the parallel phpunit test suites.
-
-    Subclasses can use `_get_phpunit_command` to generate a composer
-    command for running one of the split-out test suites (e.g.
-    `split_group_1`).
-    """
+    """Parent class for running the parallel phpunit test suites."""
 
     def __init__(self, mw_install_path, testsuite, log_dir, junit=False):
         self.mw_install_path = mw_install_path
@@ -1075,6 +1124,33 @@ class AbstractParallelPhpUnit:
         self.log_dir = log_dir
         self.junit_file = os.path.join(self.log_dir, 'junit-db.xml')
         self.junit = junit
+
+
+class PhpUnitDatabaselessParallelComposer(AbstractParallelPhpUnit):
+    """Run the tests in the provided suite in parallel, excluding
+    Database and Standalone tests."""
+
+    def execute(self):
+        """Execute the parallel databaseless test suite"""
+        phpunit_env = {}
+        phpunit_env.update(os.environ)
+        phpunit_env.update({'LANG': 'C.UTF-8'})
+
+        phpunit_command = [
+            'composer',
+            'run',
+            '--timeout=0',
+            'phpunit:parallel:databaseless',
+            '--',
+        ]
+
+        run(phpunit_command, cwd=self.mw_install_path, env=phpunit_env)
+
+    def __str__(self):
+        return (
+            "PHPUnit {} suite (without database "
+            "or standalone) parallel run (Composer)"
+        ).format(self.testsuite or 'default')
 
 
 class PhpUnitDatabaselessParallel(AbstractParallelPhpUnit):
@@ -1116,6 +1192,32 @@ class PhpUnitDatabaselessParallel(AbstractParallelPhpUnit):
         )
 
 
+class PhpUnitDatabaseParallelComposer(AbstractParallelPhpUnit):
+    """Run the tests in the provided suite in parallel, excluding
+    Standalone tests and including the Database tests."""
+
+    def execute(self):
+        """Execute the parallel databaseless test suite"""
+        phpunit_env = {}
+        phpunit_env.update(os.environ)
+        phpunit_env.update({'LANG': 'C.UTF-8'})
+
+        phpunit_command = [
+            'composer',
+            'run',
+            '--timeout=0',
+            'phpunit:parallel:database',
+            '--',
+        ]
+
+        run(phpunit_command, cwd=self.mw_install_path, env=phpunit_env)
+
+    def __str__(self):
+        return (
+            "PHPUnit {} suite (with database) parallel run (Composer)"
+        ).format(self.testsuite or 'default')
+
+
 class PhpUnitDatabaseParallel(AbstractParallelPhpUnit):
     """Run the tests in the provided suite in parallel, excluding
     Standalone tests but including Database tests.
@@ -1123,7 +1225,12 @@ class PhpUnitDatabaseParallel(AbstractParallelPhpUnit):
     Will create 8 parallel runners, and requires
     PhpUnitPrepareParallelRun to have been executed beforehand to
     setup the `phpunit.xml` file with the expect `split_group_X`
-    suites."""
+    suites.
+
+    @deprecated - this implementation is deprecated since the
+    introduction of `PhpUnitDatabaseParallelComposer`, and will
+    be removed in a future release.
+    """
 
     def _get_phpunit_command(self, split_group_id):
         return PhpUnitDatabase(

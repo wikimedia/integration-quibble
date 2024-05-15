@@ -20,30 +20,13 @@ plan:
   * Install MediaWiki, db=<MySQL (no socket)> vendor=True
   * npm install in /WORKSPACE/src
  -  'PHPUnit unit tests'
- -  'PHPUnit Prepare Parallel Run'
- -  |-
-   Run PHPUnit extensions suite (without database or standalone) parallel run in parallel (concurrency=7):
-   * PHPUnit split_group_0 suite (without database or standalone)
-   * PHPUnit split_group_1 suite (without database or standalone)
-   * PHPUnit split_group_2 suite (without database or standalone)
-   * PHPUnit split_group_3 suite (without database or standalone)
-   * PHPUnit split_group_4 suite (without database or standalone)
-   * PHPUnit split_group_5 suite (without database or standalone)
-   * PHPUnit split_group_6 suite (without database or standalone)
+ -  'PHPUnit Prepare Parallel Run (Composer)'
+ -  'PHPUnit extensions suite (without database or standalone) parallel run (Composer)'
  -  'PHPUnit default standalone suite on extensions/Foobar'
  -  'Run phpbench'
  -  'Start backends: <PhpWebserver http://127.0.0.1:9412 /WORKSPACE/src> <Xvfb :94> <ChromeWebDriver :94>'
  -  'Run Qunit tests'
  -  'Browser tests: mediawiki/extensions/Foobar, mediawiki/core, mediawiki/skins/Vector, mediawiki/vendor'
  -  'Run API-Testing'
- -  |-
-   Run PHPUnit extensions suite (with database) parallel run in parallel (concurrency=8):
-   * PHPUnit split_group_0 suite (with database)
-   * PHPUnit split_group_1 suite (with database)
-   * PHPUnit split_group_2 suite (with database)
-   * PHPUnit split_group_3 suite (with database)
-   * PHPUnit split_group_4 suite (with database)
-   * PHPUnit split_group_5 suite (with database)
-   * PHPUnit split_group_6 suite (with database)
-   * PHPUnit split_group_7 suite (with database)
- - PHPUnit Parallel Notice
+ -  'PHPUnit extensions suite (with database) parallel run (Composer)'
+ -  'PHPUnit Parallel Notice'

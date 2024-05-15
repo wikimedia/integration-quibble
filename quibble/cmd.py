@@ -404,7 +404,7 @@ class QuibbleCmd(object):
 
         if 'phpunit-parallel' in stages:
             plan.append(
-                quibble.commands.PhpUnitPrepareParallelRun(
+                quibble.commands.PhpUnitPrepareParallelRunComposer(
                     mw_install_path,
                     phpunit_testsuite,
                     log_dir,
@@ -412,12 +412,12 @@ class QuibbleCmd(object):
                 )
             )
             plan.append(
-                quibble.commands.PhpUnitDatabaselessParallel(
+                quibble.commands.PhpUnitDatabaselessParallelComposer(
                     mw_install_path,
                     phpunit_testsuite,
                     log_dir,
                     args.phpunit_junit,
-                ).generate_parallel_command()
+                )
             )
 
         if 'phpunit' in stages and 'phpunit-parallel' not in stages:
@@ -563,12 +563,12 @@ class QuibbleCmd(object):
 
         if 'phpunit-parallel' in stages:
             plan.append(
-                quibble.commands.PhpUnitDatabaseParallel(
+                quibble.commands.PhpUnitDatabaseParallelComposer(
                     mw_install_path,
                     phpunit_testsuite,
                     log_dir,
                     args.phpunit_junit,
-                ).generate_parallel_command()
+                )
             )
 
         if args.commands:

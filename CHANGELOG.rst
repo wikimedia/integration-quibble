@@ -4,7 +4,13 @@ Quibble changelog
 master (unreleased)
 -------------------
 
-* ...
+Feature
+~~~~~~~
+* Switch to using the composer-native implementation of PHPUnit
+  parallel testing. Retain the Python implementation for now in
+  case we need to switch back.
+  `T365976 <https://phabricator.wikimedia.org/T365976>`_
+  Arthur Taylor
 
 1.9.4 (2024-07-19)
 ------------------

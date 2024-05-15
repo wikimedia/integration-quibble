@@ -521,6 +521,32 @@ class InstallMediaWikiTest:
             install_mw._get_install_args()
 
 
+class PhpUnitPrepareParallelRunComposerTest(unittest.TestCase):
+    @mock.patch.dict('os.environ', {'somevar': '42'}, clear=True)
+    @mock.patch('quibble.commands.copylog')
+    @mock.patch('quibble.commands.run')
+    def test_execute(self, mock_run, mock_copylog):
+        quibble.commands.PhpUnitPrepareParallelRunComposer(
+            mw_install_path='/tmp',
+            testsuite='extensions',
+            log_dir='/log',
+            junit=True,
+        ).execute()
+
+        mock_run.assert_called_once_with(
+            [
+                'composer',
+                'phpunit:prepare-parallel:extensions',
+            ],
+            cwd='/tmp',
+            env={'LANG': 'C.UTF-8', 'somevar': '42'},
+        )
+        mock_copylog.assert_called_once_with(
+            '/tmp/phpunit.xml',
+            '/log/phpunit-parallel.xml',
+        )
+
+
 class PhpUnitPrepareParallelRunTest(unittest.TestCase):
     @mock.patch.dict('os.environ', {'somevar': '42'}, clear=True)
     @mock.patch('quibble.commands.copylog')
