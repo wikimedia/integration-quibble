@@ -1,9 +1,19 @@
 Quibble changelog
 =================
 
-1.7.1 (UNRELEASED)
+1.8.0 (2024-05-30)
 ------------------
-* …
+
+Feature
+~~~~~~~
+* local_settings: Load DevelopmentSettings.php after setting MW_QUIBBLE_CI
+  `T359043 <https://phabricator.wikimedia.org/T359043>`_
+  Kosta Harlan
+
+Documentation
+~~~~~~~~~~~~~
+* Add instructions for debugging Quibble runs.
+  Arthur Taylor
 
 1.7.0 (2024-03-25)
 ------------------
