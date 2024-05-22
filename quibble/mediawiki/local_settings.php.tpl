@@ -17,6 +17,13 @@
 // MW_LOG_DIR is used by DevelopmentSettings.php
 putenv( "MW_LOG_DIR=" . MW_LOG_DIR );
 
+// This allows MediaWiki core and extensions to behave
+// differently when being run on Wikimedia Jenkins CI. That is more or less
+// needed when running Wikibase under Apache for QUnit, since the Jenkins
+// environment variables are not available to the Apache process.
+define( 'MW_QUIBBLE_CI', true ); // since Quibble 1.4.3
+$wgWikimediaJenkinsCI = true; // deprecated since Quibble 1.4.3
+
 // Use MediaWiki's development setting
 require_once "$IP/includes/DevelopmentSettings.php";
 
@@ -28,13 +35,6 @@ require_once "$IP/includes/DevelopmentSettings.php";
  * the default one day, should go to DevelopmentSettings.php
  * in MediaWiki core instead.
  */
-
-// This is a horrrrible hack to let extensions (such as Wikibase) behave
-// differently when being run on Wikimedia Jenkins CI.  That is more or less
-// needed when running Wikibase under Apache for QUnit, since the Jenkins
-// environment variables are not available to the Apache process.
-define( 'MW_QUIBBLE_CI', true ); // since Quibble 1.4.3
-$wgWikimediaJenkinsCI = true; // deprecated since Quibble 1.4.3
 
 // Configure $wgDjvu for the MediaWiki core DJVU unit tests
 $wgDjvuDump = '/usr/bin/djvudump';
