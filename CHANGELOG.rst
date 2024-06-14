@@ -1,7 +1,7 @@
 Quibble changelog
 =================
 
-1.8.1 (UNRELEASED)
+1.9.0 (2024-06-14)
 ------------------
 
 Feature
