@@ -15,6 +15,9 @@ EXT_DEPENDENCIES="mediawiki/extensions/AbuseFilter\nmediawiki/extensions/AntiSpo
 SKIN_DEPENDENCIES="mediawiki/skins/MinervaNeue"
 MEDIAWIKI_BRANCH=master
 
+# Enable parallel test execution for PHPUnit extensions test suite
+export QUIBBLE_PHPUNIT_PARALLEL=1
+
 # Use the system packages to avoid having to reinstall Quibble requirements and
 # upgrade pip & setuptools.
 QUIBBLE_VENV=/tmp/quibble
