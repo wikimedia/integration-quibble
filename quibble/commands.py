@@ -822,6 +822,8 @@ class AbstractPhpUnit:
         if repo_path:
             phpunit_command.append(repo_path)
         if self.cache_result_file is not None:
+            # The path for the file is set in the classes that
+            # extend AbstractPhpUnit
             phpunit_command.append('--cache-result-file')
             phpunit_command.append(self.cache_result_file)
         return phpunit_command
@@ -1043,6 +1045,13 @@ class PhpUnitPrepareParallelRun:
             7,
             None,
         )
+        # To support developers in reproducing failed test runs, we
+        # make a copy of the phpunit.xml file in the logs folder -
+        # this adds the file to the artefacts collected by Jenkins
+        copylog(
+            os.path.join(self.mw_install_path, 'phpunit.xml'),
+            os.path.join(self.log_dir, 'phpunit-parallel.xml'),
+        )
 
     def execute(self):
         self._do_generate_test_list()
@@ -1090,7 +1099,10 @@ class PhpUnitDatabaselessParallel(AbstractParallelPhpUnit):
             f"split_group_{split_group_id}",
             self.log_dir,
             self.junit,
-            f".phpunit_group_{split_group_id}_databaseless.result.cache",
+            os.path.join(
+                self.log_dir,
+                ".phpunit_group_{split_group_id}_databaseless.result.cache",
+            ),
         )
 
     def generate_parallel_command(self):
@@ -1119,7 +1131,10 @@ class PhpUnitDatabaseParallel(AbstractParallelPhpUnit):
             f"split_group_{split_group_id}",
             self.log_dir,
             self.junit,
-            f".phpunit_group_{split_group_id}_database.result.cache",
+            os.path.join(
+                self.log_dir,
+                f".phpunit_group_{split_group_id}_database.result.cache",
+            ),
         )
 
     def generate_parallel_command(self):

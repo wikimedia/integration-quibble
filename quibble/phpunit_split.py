@@ -286,7 +286,8 @@ class Splitter:
         tests = TestListParser().parse_test_list(xml_file, timing_data)
         test_files = FilesystemScanner(self.project_dir).find_test_files(tests)
         suites = SuiteBuilder().make_suites(test_files, group_count)
-        PhpUnitXmlManager(self.project_dir).generate_phpunit_xml(suites)
+        phpunitxml_manager = PhpUnitXmlManager(self.project_dir)
+        phpunitxml_manager.generate_phpunit_xml(suites)
 
 
 if __name__ == "__main__":
@@ -302,4 +303,6 @@ if __name__ == "__main__":
     if len(sys.argv) == 4:
         cache_file = sys.argv[3]
 
-    Splitter(os.getcwd()).split(sys.argv[1], int(sys.argv[2]), cache_file)
+    Splitter(os.getcwd(), os.getcwd()).split(
+        sys.argv[1], int(sys.argv[2]), cache_file
+    )
