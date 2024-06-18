@@ -1101,7 +1101,7 @@ class PhpUnitDatabaselessParallel(AbstractParallelPhpUnit):
             self.junit,
             os.path.join(
                 self.log_dir,
-                ".phpunit_group_{split_group_id}_databaseless.result.cache",
+                ".phpunit_group_{split_group_id}_databaseless.cache.json",
             ),
         )
 
@@ -1133,7 +1133,7 @@ class PhpUnitDatabaseParallel(AbstractParallelPhpUnit):
             self.junit,
             os.path.join(
                 self.log_dir,
-                f".phpunit_group_{split_group_id}_database.result.cache",
+                f".phpunit_group_{split_group_id}_database.cache.json",
             ),
         )
 
