@@ -1,8 +1,19 @@
 Quibble changelog
 =================
 
-1.9.1 (Unreleased)
+1.9.1 (2024-06-18)
 ------------------
+
+Fixes and cleanups
+~~~~~~~~~~~~~~~~~~
+
+For the PHPUnit parallel run:
+
+* Copy the cache result files and  generated configuration
+  (``phpunit-parallel.xml``) under ``$LOG_DIR`` to allow their archival by CI.
+  Kosta Harlan
+* Specify ``.json`` suffix for result cache files.
+  Kosta Harlan
 
 1.9.0 (2024-06-14)
 ------------------
@@ -12,7 +23,7 @@ Feature
 * Add support for running some PHPUnit test suites in Parallel. Can be
   enabled for a specific run by setting QUIBBLE_PHPUNIT_PARALLEL, or
   explicitly specifying `phpunit-parallel` in the `--run` list.
-  `T361190 <https://phabricator.wikimedia.org/T361190>`
+  `T361190 <https://phabricator.wikimedia.org/T361190>`_
   Arthur Taylor
 
 1.8.0 (2024-05-30)
