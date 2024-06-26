@@ -576,6 +576,9 @@ class QuibbleCmd(object):
                 )
             )
 
+        if 'phpunit-parallel' in stages:
+            plan.append(quibble.commands.PhpUnitParallelNotice())
+
         return project_dir, plan
 
     def execute(self, plan, project_dir, reporting_url=None, dry_run=False):

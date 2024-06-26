@@ -46,3 +46,4 @@ plan:
    * PHPUnit split_group_5 suite (with database)
    * PHPUnit split_group_6 suite (with database)
    * PHPUnit split_group_7 suite (with database)
+ - PHPUnit Parallel Notice

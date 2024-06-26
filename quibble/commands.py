@@ -1147,6 +1147,31 @@ class PhpUnitDatabaseParallel(AbstractParallelPhpUnit):
         )
 
 
+class PhpUnitParallelNotice:
+    """Write a notice to the end of the log output so that users
+    know that this has been a parallel test run and know where to
+    report issues in the event of failures."""
+
+    def execute(self):
+        log.info(
+            'NOTICE: These tests have been executed with '
+            'PHPUnit Parallel enabled.'
+        )
+        log.info(
+            'If you encounter unexpected test failures or '
+            'notice incomplete execution of test suites, '
+            'please let us know!'
+        )
+        log.info(
+            'For more information, and to report parallel-'
+            'testing-related failures, please visit '
+            'https://phabricator.wikimedia.org/T361190'
+        )
+
+    def __str__(self):
+        return "PHPUnit Parallel Notice"
+
+
 class QunitTests:
     def __init__(self, mw_install_path, web_url):
         self.mw_install_path = mw_install_path

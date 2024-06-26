@@ -4,6 +4,16 @@ Quibble changelog
 1.9.2 (Unreleased)
 ------------------
 
+Fixes and cleanups
+~~~~~~~~~~~~~~~~~~
+
+For the PHPUnit parallel run:
+
+* Add a log notice to the end of parallel runs to support developers
+  who run into issues with the new config.
+  `T361190 <https://phabricator.wikimedia.org/T361190>`_
+  Arthur Taylor
+
 1.9.1 (2024-06-18)
 ------------------
 
