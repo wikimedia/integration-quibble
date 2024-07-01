@@ -236,13 +236,16 @@ class PhpUnitXmlManager:
             for filename in suite["list"]:
                 if filename:
                     ET.SubElement(testsuite, "file").text = filename
-            if i == 0:
+            sandbox_test_path = (
+                "extensions/Scribunto/tests/phpunit/Engines/"
+                "LuaSandbox/SandboxTest.php"
+            )
+            if i == 0 and os.path.exists(
+                os.path.join(self.project_dir, sandbox_test_path)
+            ):
                 # Add SandboxTest back here. It will be skipped, but
                 # should be included here for completeness.
-                ET.SubElement(testsuite, "file").text = (
-                    "extensions/Scribunto/tests/phpunit/Engines/"
-                    "LuaSandbox/SandboxTest.php"
-                )
+                ET.SubElement(testsuite, "file").text = sandbox_test_path
         testsuite = ET.SubElement(
             root.find("testsuites"),
             "testsuite",
