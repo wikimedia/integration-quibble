@@ -1,7 +1,7 @@
 Quibble changelog
 =================
 
-1.9.2 (Unreleased)
+1.9.2 (2024-07-03)
 ------------------
 
 Fixes and cleanups
@@ -12,6 +12,7 @@ For the PHPUnit parallel run:
 * Only add the Scribunto Sandbox test to the split groups if
   Scribunto is present.
   `T368783 <https://phabricator.wikimedia.org/T368783>`_
+  Arthur Taylor
 * Add a log notice to the end of parallel runs to support developers
   who run into issues with the new config.
   `T361190 <https://phabricator.wikimedia.org/T361190>`_
