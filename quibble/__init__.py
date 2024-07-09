@@ -66,7 +66,11 @@ def use_headless():
 
 
 def chromium_flags():
-    args = [os.environ.get('CHROMIUM_FLAGS', '')]
+    args = []
+
+    flags_from_env = os.environ.get('CHROMIUM_FLAGS', None)
+    if flags_from_env:
+        args.append(flags_from_env)
 
     # play() would fail if the user didn't interact with the document
     # first. The autoplay policy got changed with v66

@@ -80,6 +80,23 @@ class QuibbleTest(unittest.TestCase):
     def test_chrome_does_not_throttle_history_state_changes(self):
         self.assertIn('--disable-pushstate-throttle', quibble.chromium_flags())
 
+    # Chrome 111 no more accepts multiple arguments when running in headless
+    # mode, we have to ensure we do not pass an empty string which counts
+    # against the quota.
+    # https://phabricator.wikimedia.org/T366799
+    # https://chromium-review.googlesource.com/c/chromium/src/+/4160268
+    @mock.patch.dict(os.environ, clear=True)
+    def test_chromium_flags_with_empty_env_variable(self):
+        self.assertNotIn(
+            '',
+            quibble.chromium_flags().split(' '),
+            'Must not insert empty arguments',
+        )
+
+    @mock.patch.dict(os.environ, {'CHROMIUM_FLAGS': '--foo'}, clear=True)
+    def test_chromium_flags_with_flags_in_env_variable(self):
+        self.assertIn('--foo', quibble.chromium_flags().split(' '))
+
     @mock.patch('time.time')
     def test_chronometer(self, mock_time):
         mock_time.side_effect = [1.5, 2.5]

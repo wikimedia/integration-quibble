@@ -4,7 +4,13 @@ Quibble changelog
 1.9.3 (unreleased)
 ------------------
 
-* ...
+Fix
+~~~
+
+* Fix "Multiple targets are not supported" when running QUnit tests with
+  Chrome.
+  `T366799 <https://phabricator.wikimedia.org/T366799>`_
+  Antoine Musso
 
 1.9.2 (2024-07-03)
 ------------------
