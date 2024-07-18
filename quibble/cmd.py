@@ -78,7 +78,7 @@ class QuibbleCmd(object):
         mw_install_path,
         log_dir,
         tmp_dir,
-        use_vendor=False,
+        is_vendor=False,
         zuul_env={},
     ):
         """
@@ -102,14 +102,18 @@ class QuibbleCmd(object):
         os.environ['LOG_DIR'] = log_dir
         os.environ['TMPDIR'] = tmp_dir
 
-        # In the mediawiki/vendor update workflow, we patch vendor (and its
-        # lock file) first, and update the mediawiki/core composer.json after.
-        # As such, when testing mediawiki/vendor, it's normal that its lock
-        # file doesn't match mediawiki/core. This is tested by the
-        # mediawiki/core commit instead.
+        # When updating mediawiki/vendor, the workflow is:
+        # 1. write patch for vendor.git (and its lock file)
+        # 2. write patch for mediawiki/core.git and its composer.json file
+        #    (with Depends-On #1).
         #
-        # T333412
-        if use_vendor:
+        # As such, when we run MediaWiki tests on mediawiki/vendor patches, is
+        # is impossible for its lock file to match mediawiki/core. Instead,
+        # we test this during the next mediawiki/core commit instead, via
+        # the "mediawiki-vendor"-quibble job, where checks are NOT skipped.
+        #
+        # T333412, T370380
+        if is_vendor:
             os.environ['MW_SKIP_EXTERNAL_DEPENDENCIES'] = '1'
 
         if zuul_env:
@@ -216,12 +220,13 @@ class QuibbleCmd(object):
             or zuul_project == 'mediawiki/services/parsoid'
         )
         is_skin = zuul_project.startswith('mediawiki/skins/')
+        is_vendor = zuul_project == 'mediawiki/vendor'
 
         use_composer = args.packages_source == 'composer'
         use_vendor = args.packages_source == 'vendor'
 
         self._setup_environment(
-            workspace, mw_install_path, log_dir, tmp_dir, use_vendor
+            workspace, mw_install_path, log_dir, tmp_dir, is_vendor=is_vendor
         )
 
         dependencies = self._repos_to_clone(

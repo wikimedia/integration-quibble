@@ -350,8 +350,10 @@ class CmdTest(unittest.TestCase):
                 mock_clone.call_args[1]['projects'],
             )
 
-    def test_build_execution_plan_MW_SKIP_EXTERNAL_DEPENDENCIES_vendor(self):
-        with mock.patch.dict('os.environ', clear=True):
+    def test_skip_lock_check_for_patches_to_vendor(self):
+        with mock.patch.dict(
+            'os.environ', {'ZUUL_PROJECT': 'mediawiki/vendor'}, clear=True
+        ):
             q = cmd.QuibbleCmd()
             args = cmd._parse_arguments(['--packages-source', 'vendor'])
             with mock.patch('quibble.commands.ZuulClone'):
@@ -359,8 +361,20 @@ class CmdTest(unittest.TestCase):
             self.assertIn('MW_SKIP_EXTERNAL_DEPENDENCIES', os.environ)
             self.assertEqual('1', os.environ['MW_SKIP_EXTERNAL_DEPENDENCIES'])
 
-    def test_build_execution_plan_MW_SKIP_EXTERNAL_DEPENDENCIES_composer(self):
-        with mock.patch.dict('os.environ', clear=True):
+    def test_skip_lock_check_for_patches_to_core_with_vendor(self):
+        with mock.patch.dict(
+            'os.environ', {'ZUUL_PROJECT': 'mediawiki/core'}, clear=True
+        ):
+            q = cmd.QuibbleCmd()
+            args = cmd._parse_arguments(['--packages-source', 'vendor'])
+            with mock.patch('quibble.commands.ZuulClone'):
+                q.build_execution_plan(args)
+            self.assertNotIn('MW_SKIP_EXTERNAL_DEPENDENCIES', os.environ)
+
+    def test_skip_lock_check_for_patches_to_core_with_composer(self):
+        with mock.patch.dict(
+            'os.environ', {'ZUUL_PROJECT': 'mediawiki/core'}, clear=True
+        ):
             q = cmd.QuibbleCmd()
             args = cmd._parse_arguments(['--packages-source', 'composer'])
             with mock.patch('quibble.commands.ZuulClone'):
