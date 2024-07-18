@@ -369,6 +369,21 @@ class CmdTest(unittest.TestCase):
             # Ensure setup_environment applied
             self.assertIn('LOG_DIR', os.environ)
 
+    def test_build_execution_plan_with_change_option_injects_zuul_env(self):
+        zuul_env = {
+            'ZUUL_URL': 'git://zuulmerger.example.org',
+            'ZUUL_PROJECT': 'mediawiki/core',
+            'ZUUL_BRANCH': 'tartempion',
+            'ZUUL_REF': 'refs/changes/99/12345',
+        }
+        with mock.patch.dict('os.environ', clear=True):
+            q = cmd.QuibbleCmd()
+            args = cmd._parse_arguments(['--change', '12345,99'])
+            with mock.patch('quibble.util.FetchInfo') as fetchinfo:
+                fetchinfo.change.return_value.asZuulEnv.return_value = zuul_env
+                q.build_execution_plan(args)
+            self.assertGreater(dict(os.environ).items(), zuul_env.items())
+
     def test_execute(self):
         q = cmd.QuibbleCmd()
 

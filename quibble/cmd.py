@@ -198,7 +198,7 @@ class QuibbleCmd(object):
         )
 
         self._setup_environment(
-            workspace, mw_install_path, log_dir, tmp_dir, zuul_env
+            workspace, mw_install_path, log_dir, tmp_dir, zuul_env=zuul_env
         )
 
         zuul_project = os.environ.get('ZUUL_PROJECT', None)
