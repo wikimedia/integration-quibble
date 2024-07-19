@@ -1,10 +1,20 @@
 Quibble changelog
 =================
 
-1.9.4 (unreleased)
+1.9.4 (2024-07-19)
 ------------------
 
-* ...
+Fixes
+~~~~~
+
+* Fix ``--change``, introduced in 1.5.6 in September 2023, which never worked.
+  Antoine Musso
+
+* Fix ``MW_SKIP_EXTERNAL_DEPENDENCIES`` which was set whenever
+  ``mediawiki/vendor`` was used when it was only to be set for patch targetting
+  ``mediawiki/vendor`` itself.
+  `T370380 <https://phabricator.wikimedia.org/T370380>`_
+  Timo Tijhof
 
 1.9.3 (2024-07-10)
 ------------------
