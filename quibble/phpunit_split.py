@@ -231,7 +231,7 @@ class PhpUnitXmlManager:
             testsuite = ET.SubElement(
                 root.find("testsuites"),
                 "testsuite",
-                {"name": f"split_group_{i}"},
+                {"name": "split_group_%s" % i},
             )
             for filename in suite["list"]:
                 if filename:
@@ -249,7 +249,7 @@ class PhpUnitXmlManager:
         testsuite = ET.SubElement(
             root.find("testsuites"),
             "testsuite",
-            {"name": f"split_group_{groups}"},
+            {"name": "split_group_%s" % groups},
         )
         # Add the ExtensionsParserTestSuite back here
         ET.SubElement(

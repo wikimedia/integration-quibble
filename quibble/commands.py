@@ -1096,12 +1096,12 @@ class PhpUnitDatabaselessParallel(AbstractParallelPhpUnit):
     def _get_phpunit_command(self, split_group_id):
         return PhpUnitDatabaseless(
             self.mw_install_path,
-            f"split_group_{split_group_id}",
+            'split_group_%s' % split_group_id,
             self.log_dir,
             self.junit,
             os.path.join(
                 self.log_dir,
-                ".phpunit_group_{split_group_id}_databaseless.cache.json",
+                '.phpunit_group_%s_databaseless.cache.json' % split_group_id,
             ),
         )
 
@@ -1128,12 +1128,12 @@ class PhpUnitDatabaseParallel(AbstractParallelPhpUnit):
     def _get_phpunit_command(self, split_group_id):
         return PhpUnitDatabase(
             self.mw_install_path,
-            f"split_group_{split_group_id}",
+            'split_group_%s' % split_group_id,
             self.log_dir,
             self.junit,
             os.path.join(
                 self.log_dir,
-                f".phpunit_group_{split_group_id}_database.cache.json",
+                '.phpunit_group_%s_database.cache.json' % split_group_id,
             ),
         )
 

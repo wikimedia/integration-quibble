@@ -680,6 +680,40 @@ class PhpUnitUnitTest(unittest.TestCase):
         )
 
 
+class ParallelPhpUnitImplementationsTest:
+    @pytest.mark.parametrize(
+        'implementation, short_name',
+        [
+            pytest.param(quibble.commands.PhpUnitDatabaseParallel, 'database'),
+            pytest.param(
+                quibble.commands.PhpUnitDatabaselessParallel, 'databaseless'
+            ),
+        ],
+    )
+    def test_generate(self, implementation, short_name):
+        command = implementation(
+            '/tmp/mw', 'SomeSuite', '/log'
+        ).generate_parallel_command()
+
+        assert len(command.steps) == command.workers
+
+        last_id = command.workers - 1
+
+        assert command.steps[
+            0
+        ].cache_result_file == '/log/.phpunit_group_%s_%s.cache.json' % (
+            0,
+            short_name,
+        )
+        assert command.steps[
+            last_id
+        ].cache_result_file == '/log/.phpunit_group_%s_%s.cache.json' % (
+            last_id,
+            short_name,
+        )
+        assert command.steps[last_id].testsuite == 'split_group_%s' % last_id
+
+
 class QunitTestsTest(unittest.TestCase):
     @mock.patch.dict('os.environ', {'somevar': '42'}, clear=True)
     @mock.patch('quibble.backend.PhpWebserver')
