@@ -34,7 +34,7 @@ class TestMediawikiMaintenance(unittest.TestCase):
     @mock.patch('subprocess.Popen')
     def test_update_php_uses_os_environment(self, mock_popen):
         mock_popen.return_value.returncode = 0
-        quibble.mediawiki.maintenance.update([])
+        quibble.mediawiki.maintenance.update()
 
         (args, kwargs) = mock_popen.call_args
         env = kwargs.get('env', {})
@@ -45,7 +45,7 @@ class TestMediawikiMaintenance(unittest.TestCase):
     @mock.patch('subprocess.Popen')
     def test_update_php_default_to_no_mw_install_path(self, mock_popen):
         mock_popen.return_value.returncode = 0
-        quibble.mediawiki.maintenance.update([])
+        quibble.mediawiki.maintenance.update()
 
         (args, kwargs) = mock_popen.call_args
         env = kwargs.get('env', {})
@@ -56,7 +56,7 @@ class TestMediawikiMaintenance(unittest.TestCase):
     @mock.patch('subprocess.Popen')
     def test_update_php_sets_mw_install_path(self, mock_popen):
         mock_popen.return_value.returncode = 0
-        quibble.mediawiki.maintenance.update([], mwdir='test/sources')
+        quibble.mediawiki.maintenance.update(mwdir='test/sources')
 
         (args, kwargs) = mock_popen.call_args
         env = kwargs.get('env', {})
@@ -70,7 +70,7 @@ class TestMediawikiMaintenance(unittest.TestCase):
         with self.assertRaisesRegex(
             Exception, 'Update failed with exit code: 42'
         ):
-            quibble.mediawiki.maintenance.update([], mwdir='test/sources')
+            quibble.mediawiki.maintenance.update(mwdir='test/sources')
 
     @mock.patch('subprocess.Popen')
     def test_rebuildlocalisationcache_default_lang_parameter(self, mock_popen):

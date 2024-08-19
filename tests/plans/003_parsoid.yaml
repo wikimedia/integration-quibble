@@ -16,7 +16,7 @@ plan:
  - 'Start backends: <MySQL (no socket)>'
  - |-
   Run Post-dependency install, pre-database dependent steps in parallel (concurrency=2):
-  * Install MediaWiki, db=<MySQL (no socket)> vendor=True
+  * Install MediaWiki, db=<MySQL (no socket)>
   * npm install in /WORKSPACE/src
  -  'PHPUnit unit tests'
  - 'PHPUnit extensions suite (without database or standalone)'

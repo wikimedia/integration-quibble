@@ -569,15 +569,12 @@ class StartBackends:
 
 
 class InstallMediaWiki:
-    def __init__(
-        self, mw_install_path, db, web_url, log_dir, tmp_dir, use_vendor
-    ):
+    def __init__(self, mw_install_path, db, web_url, log_dir, tmp_dir):
         self.mw_install_path = mw_install_path
         self.db = db
         self.web_url = web_url
         self.log_dir = log_dir
         self.tmp_dir = tmp_dir
-        self.use_vendor = use_vendor
 
     def execute(self):
         self.clearQuibbleLocalSettings()
@@ -605,21 +602,6 @@ class InstallMediaWiki:
             log_dir=self.log_dir,
         )
 
-        update_args = []
-        if self.use_vendor:
-            # When trying to update a library in mediawiki/core and
-            # mediawiki/vendor, a circular dependency is produced as both
-            # patches depend upon each other.
-            #
-            # All non-mediawiki/vendor jobs will skip checking for matching
-            # versions and continue "at their own risk". mediawiki/vendor will
-            # still check versions to make sure it stays in sync with MediaWiki
-            # core.
-            #
-            # T88211, T333412
-            log.info('mediawiki/vendor is used, skip composer.lock check')
-            update_args.append('--skip-external-dependencies')
-
         quibble.mediawiki.maintenance.addSite(
             args=[
                 self.db.dbname,  # globalid
@@ -629,9 +611,7 @@ class InstallMediaWiki:
             ],
             mwdir=self.mw_install_path,
         )
-        quibble.mediawiki.maintenance.update(
-            args=update_args, mwdir=self.mw_install_path
-        )
+        quibble.mediawiki.maintenance.update(mwdir=self.mw_install_path)
         quibble.mediawiki.maintenance.rebuildLocalisationCache(
             lang=['en'], mwdir=self.mw_install_path
         )
@@ -738,9 +718,7 @@ class InstallMediaWiki:
         subprocess.check_call(['php', '-l', localsettings, installed_copy])
 
     def __str__(self):
-        return "Install MediaWiki, db={} vendor={}".format(
-            self.db, self.use_vendor
-        )
+        return "Install MediaWiki, db={}".format(self.db)
 
 
 class Phpbench:

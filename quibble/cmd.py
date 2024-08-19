@@ -102,17 +102,21 @@ class QuibbleCmd(object):
         os.environ['LOG_DIR'] = log_dir
         os.environ['TMPDIR'] = tmp_dir
 
-        # When updating mediawiki/vendor, the workflow is:
+        # The workflow for updating mediawiki/vendor.git is:
         # 1. write patch for vendor.git (and its lock file)
         # 2. write patch for mediawiki/core.git and its composer.json file
         #    (with Depends-On #1).
         #
-        # As such, when we run MediaWiki tests on mediawiki/vendor patches, is
-        # is impossible for its lock file to match mediawiki/core. Instead,
-        # we test this during the next mediawiki/core commit instead, via
+        # As such, when we run MediaWiki tests for the mediawiki/vendor patch,
+        # it is impossible for its lock file to match mediawiki/core.
+        # To prevent this circular dependency, we tell MediaWiki core to skip
+        # composer lock check (phpunit: TestSetup, and maintenance/update.php)
+        # during the Jenkins job for the mediawiki/vendor patch.
+        #
+        # Instead, we test this during the mediawiki/core commit instead, via
         # the "mediawiki-vendor"-quibble job, where checks are NOT skipped.
         #
-        # T333412, T370380
+        # T333412, T88211, T370380
         if is_vendor:
             os.environ['MW_SKIP_EXTERNAL_DEPENDENCIES'] = '1'
 
@@ -365,7 +369,6 @@ class QuibbleCmd(object):
                     web_url=web_backend.url,
                     log_dir=log_dir,
                     tmp_dir=tmp_dir,
-                    use_vendor=use_vendor,
                 )
             )
 

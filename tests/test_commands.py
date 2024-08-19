@@ -265,7 +265,7 @@ class InstallMediaWikiTest:
         url = 'http://192.0.2.1:4321'
 
         install_mw = quibble.commands.InstallMediaWiki(
-            '/src', db, url, '/log', '/tmp', True
+            '/src', db, url, '/log', '/tmp'
         )
 
         with mock.patch.object(
@@ -288,9 +288,7 @@ class InstallMediaWikiTest:
                 )
                 mocks['_apply_custom_settings'].assert_called_once()
 
-        mock_update.assert_called_once_with(
-            args=['--skip-external-dependencies'], mwdir='/src'
-        )
+        mock_update.assert_called_once_with(mwdir='/src')
 
         mock_addSite.assert_called_once_with(
             args=[
@@ -327,7 +325,7 @@ class InstallMediaWikiTest:
             )
 
     def test_execute_clears_localsettings(self):
-        install_mw = quibble.commands.InstallMediaWiki('/somepath', *range(5))
+        install_mw = quibble.commands.InstallMediaWiki('/somepath', *range(4))
 
         # Make it an exception to early abort execute() so we don't have to
         # mock everything else.
@@ -341,7 +339,7 @@ class InstallMediaWikiTest:
                 install_mw.execute()
 
     def test_clearQuibbleLocalSettings_skips_non_existing(self):
-        install_mw = quibble.commands.InstallMediaWiki('/somepath', *range(5))
+        install_mw = quibble.commands.InstallMediaWiki('/somepath', *range(4))
         with mock.patch('os.path.exists', return_value=False):
             install_mw.clearQuibbleLocalSettings()
 
@@ -350,7 +348,7 @@ class InstallMediaWikiTest:
     def test_clearQuibbleLocalSettings_deletes_file_from_template(
         self, unlink, _
     ):
-        install_mw = quibble.commands.InstallMediaWiki('/somepath', *range(5))
+        install_mw = quibble.commands.InstallMediaWiki('/somepath', *range(4))
 
         localsettings = quibble.commands.InstallMediaWiki._expand_template(
             'mediawiki/local_settings.php.tpl', {}
@@ -367,7 +365,7 @@ class InstallMediaWikiTest:
     def test_clearQuibbleLocalSettings_raises_on_unknown_settings_file(
         self, unlink, _
     ):
-        install_mw = quibble.commands.InstallMediaWiki('/somepath', *range(5))
+        install_mw = quibble.commands.InstallMediaWiki('/somepath', *range(4))
         with mock.patch('builtins.open', mock.mock_open()):
             with pytest.raises(
                 Exception,
@@ -490,7 +488,7 @@ class InstallMediaWikiTest:
         url = 'http://192.0.2.1:4321'
 
         install_mw = quibble.commands.InstallMediaWiki(
-            '/src', db, url, '/log', '/tmp', True
+            '/src', db, url, '/log', '/tmp'
         )
         assert (
             install_mw._get_install_args()
@@ -513,7 +511,7 @@ class InstallMediaWikiTest:
         )
         mock_db_factory.return_value = db
         install_mw = quibble.commands.InstallMediaWiki(
-            '/src', db, 'http://example.org/', '/log', '/tmp', True
+            '/src', db, 'http://example.org/', '/log', '/tmp'
         )
         with pytest.raises(
             Exception, match='Unsupported database: unsupported_db_type'

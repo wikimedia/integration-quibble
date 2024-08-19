@@ -49,7 +49,7 @@ def getMaintenanceScript(script, args=[]):
     return cmd
 
 
-def update(args, mwdir=None):
+def update(mwdir=None, args=[]):
     log = logging.getLogger('mw.maintenance.update')
 
     cmd = getMaintenanceScript('update', '--quick')
