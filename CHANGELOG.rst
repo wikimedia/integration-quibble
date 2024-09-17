@@ -1,7 +1,7 @@
 Quibble changelog
 =================
 
-master (unreleased)
+1.10.0 (2024-09-17)
 -------------------
 
 Feature
