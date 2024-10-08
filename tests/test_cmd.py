@@ -396,6 +396,7 @@ class CmdTest(unittest.TestCase):
             with mock.patch('quibble.util.FetchInfo') as fetchinfo:
                 fetchinfo.change.return_value.asZuulEnv.return_value = zuul_env
                 q.build_execution_plan(args)
+                fetchinfo.change.assert_called_once_with('12345', '99')
             self.assertGreater(dict(os.environ).items(), zuul_env.items())
 
     def test_execute(self):

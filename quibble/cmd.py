@@ -182,6 +182,16 @@ class QuibbleCmd(object):
             stages.append('phpunit-parallel')
         return stages
 
+    def get_zuul_env_from_cli_args(self, args):
+        """Set the initial ZUUL environment based on command-line
+        arguments. Currently, only the `--change` argument is
+        processed here to set ZUUL_REF"""
+        if not args.change:
+            return {}
+        return quibble.util.FetchInfo.change(
+            *args.change.split(',')
+        ).asZuulEnv()
+
     def build_execution_plan(self, args):
         workspace = args.workspace
         mw_install_path = os.path.join(workspace, 'src')
@@ -199,11 +209,7 @@ class QuibbleCmd(object):
         tmp_dir = tempfile.gettempdir()
 
         # Set ZUUL variables when given `--change ###`
-        zuul_env = (
-            quibble.util.FetchInfo.change(args.change).asZuulEnv()
-            if args.change
-            else {}
-        )
+        zuul_env = self.get_zuul_env_from_cli_args(args)
 
         self._setup_environment(
             workspace, mw_install_path, log_dir, tmp_dir, zuul_env=zuul_env

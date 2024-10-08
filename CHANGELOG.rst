@@ -4,7 +4,12 @@ Quibble changelog
 master (unreleased)
 -------------------
 
-* ...
+Feature
+~~~~~~~
+* Add support for specifying patchsets when using the `--change`
+  command-line argument
+  `T376602 <https://phabricator.wikimedia.org/T376602>`_
+  Arthur Taylor
 
 1.10.0 (2024-09-17)
 -------------------
