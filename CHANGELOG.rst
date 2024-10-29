@@ -1,8 +1,14 @@
 Quibble changelog
 =================
 
-master (unreleased)
+1.11.0 (2024-10-29)
 -------------------
+
+Fixes
+~~~~~
+* Remove update.php --skip-external-dependencies option
+  `T370380 <https://phabricator.wikimedia.org/T370380>`_
+  Timo Tijhof
 
 Feature
 ~~~~~~~
