@@ -545,40 +545,6 @@ class PhpUnitPrepareParallelRunComposerTest(unittest.TestCase):
         )
 
 
-class PhpUnitPrepareParallelRunTest(unittest.TestCase):
-    @mock.patch.dict('os.environ', {'somevar': '42'}, clear=True)
-    @mock.patch('quibble.commands.copylog')
-    @mock.patch('quibble.commands.Splitter')
-    @mock.patch('quibble.commands.run')
-    def test_execute(self, mock_run, mock_splitter, mock_copylog):
-        quibble.commands.PhpUnitPrepareParallelRun(
-            mw_install_path='/tmp',
-            testsuite='extensions',
-            log_dir='/log',
-            junit=True,
-        ).execute()
-
-        mock_run.assert_called_once_with(
-            [
-                'composer',
-                'run',
-                '--timeout=0',
-                'phpunit:entrypoint',
-                '--',
-                '--testsuite',
-                'extensions',
-                '--list-tests-xml',
-                'test-cases-integration.xml',
-            ],
-            cwd='/tmp',
-            env={'LANG': 'C.UTF-8', 'somevar': '42'},
-        )
-        mock_copylog.assert_called_once_with(
-            '/tmp/phpunit.xml',
-            '/log/phpunit-parallel.xml',
-        )
-
-
 class PhpUnitDatabaseTest(unittest.TestCase):
     @mock.patch.dict('os.environ', {'somevar': '42'}, clear=True)
     @mock.patch('quibble.commands.run')
@@ -702,40 +668,6 @@ class PhpUnitUnitTest(unittest.TestCase):
             cwd='/tmp',
             env=mock.ANY,
         )
-
-
-class ParallelPhpUnitImplementationsTest:
-    @pytest.mark.parametrize(
-        'implementation, short_name',
-        [
-            pytest.param(quibble.commands.PhpUnitDatabaseParallel, 'database'),
-            pytest.param(
-                quibble.commands.PhpUnitDatabaselessParallel, 'databaseless'
-            ),
-        ],
-    )
-    def test_generate(self, implementation, short_name):
-        command = implementation(
-            '/tmp/mw', 'SomeSuite', '/log'
-        ).generate_parallel_command()
-
-        assert len(command.steps) == command.workers
-
-        last_id = command.workers - 1
-
-        assert command.steps[
-            0
-        ].cache_result_file == '/log/.phpunit_group_%s_%s.cache.json' % (
-            0,
-            short_name,
-        )
-        assert command.steps[
-            last_id
-        ].cache_result_file == '/log/.phpunit_group_%s_%s.cache.json' % (
-            last_id,
-            short_name,
-        )
-        assert command.steps[last_id].testsuite == 'split_group_%s' % last_id
 
 
 class QunitTestsTest(unittest.TestCase):

@@ -4,7 +4,11 @@ Quibble changelog
 master (unreleased)
 -------------------
 
-* ...
+Feature
+~~~~~~~
+* Remove Python implementation of PhpUnit test suites splitting
+  `T365978 <https://phabricator.wikimedia.org/T365978>`_
+  Arthur Taylor
 
 1.11.0 (2024-10-29)
 -------------------
