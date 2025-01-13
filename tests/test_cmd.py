@@ -350,6 +350,22 @@ class CmdTest(unittest.TestCase):
                 mock_clone.call_args[1]['projects'],
             )
 
+    def test_build_execution_plan_with_success_cache(self):
+        args = cmd._parse_arguments(
+            args=[
+                '--memcached=cache.example:11211',
+                '--success-cache-key-data=foo',
+            ]
+        )
+        _, plan = cmd.QuibbleCmd().build_execution_plan(args)
+
+        self.assertEqual(args.success_cache_key_data, ['foo'])
+        self.assertIsInstance(plan[4], quibble.commands.SuccessCache.Check)
+        self.assertIsInstance(plan[-1], quibble.commands.SuccessCache.Save)
+        self.assertEqual(
+            plan[-1].cache.client._client.server, ('cache.example', 11211)
+        )
+
     def test_skip_lock_check_for_patches_to_vendor(self):
         with mock.patch.dict(
             'os.environ', {'ZUUL_PROJECT': 'mediawiki/vendor'}, clear=True

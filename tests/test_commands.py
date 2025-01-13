@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import contextlib
+import hashlib
 import io
 import logging
 import os.path
@@ -1070,3 +1071,99 @@ class ParallelTest(unittest.TestCase):
             "stdout with invalid unicode: \\x80abc"
             "stderr with invalid unicode: \\x80abc"
         )
+
+
+class SuccessCacheTest(unittest.TestCase):
+    @mock.patch('git.Repo')
+    @mock.patch('quibble.zuul.working_trees')
+    @mock.patch('quibble.commands.log')
+    def test_check_execute_miss(self, mock_log, mock_zuul_trees, mock_repo):
+        mock_tree = mock.Mock(return_value=mock.Mock(**{'hexsha': 'abc123'}))
+        mock_repo.return_value = mock.Mock(**{'tree': mock_tree})
+
+        mock_zuul_trees.return_value = {
+            'extensions/Foo': '/mw/src/extensions/Foo',
+        }
+
+        mock_cache_client = mock.Mock(**{'get': mock.Mock(return_value=None)})
+
+        quibble.commands.SuccessCache(
+            mock_cache_client,
+            '/mw/src',
+            ['extensions/Foo'],
+            key_data=['foo-key'],
+        ).check_command().execute()
+
+        mock_repo.assert_called_with('/mw/src/extensions/Foo')
+        mock_tree.assert_called_with('HEAD')
+
+        sha256 = hashlib.new('sha256')
+        sha256.update(b'foo-key')
+        sha256.update(b'abc123')
+        digest = sha256.hexdigest()
+        key = 'successcache/%s' % digest
+
+        mock_cache_client.get.assert_called_with(key)
+        mock_log.info.assert_any_call('Success cache: MISS')
+
+    @mock.patch('git.Repo')
+    @mock.patch('quibble.zuul.working_trees')
+    @mock.patch('quibble.commands.log')
+    def test_check_execute_hit(self, mock_log, mock_zuul_trees, mock_repo):
+        mock_tree = mock.Mock(return_value=mock.Mock(**{'hexsha': 'abc123'}))
+        mock_repo.return_value = mock.Mock(**{'tree': mock_tree})
+
+        mock_zuul_trees.return_value = {
+            'extensions/Foo': '/mw/src/extensions/Foo',
+        }
+
+        mock_cache_client = mock.Mock(**{'get': mock.Mock(return_value='')})
+
+        quibble.commands.SuccessCache(
+            mock_cache_client,
+            '/mw/src',
+            ['extensions/Foo'],
+            key_data=['foo-key'],
+        ).check_command().execute()
+
+        mock_repo.assert_called_with('/mw/src/extensions/Foo')
+        mock_tree.assert_called_with('HEAD')
+
+        sha256 = hashlib.new('sha256')
+        sha256.update(b'foo-key')
+        sha256.update(b'abc123')
+        digest = sha256.hexdigest()
+        key = 'successcache/%s' % digest
+
+        mock_cache_client.get.assert_called_with(key)
+        mock_log.info.assert_any_call('Success cache: HIT')
+
+    @mock.patch('git.Repo')
+    @mock.patch('quibble.zuul.working_trees')
+    def test_save_execute(self, mock_zuul_trees, mock_repo):
+        mock_tree = mock.Mock(return_value=mock.Mock(**{'hexsha': 'abc123'}))
+        mock_repo.return_value = mock.Mock(**{'tree': mock_tree})
+
+        mock_zuul_trees.return_value = {
+            'extensions/Foo': '/mw/src/extensions/Foo',
+        }
+
+        mock_cache_client = mock.Mock(**{'set': mock.Mock()})
+
+        quibble.commands.SuccessCache(
+            mock_cache_client,
+            '/mw/src',
+            ['extensions/Foo'],
+            key_data=['foo-key'],
+        ).save_command().execute()
+
+        mock_repo.assert_called_with('/mw/src/extensions/Foo')
+        mock_tree.assert_called_with('HEAD')
+
+        sha256 = hashlib.new('sha256')
+        sha256.update(b'foo-key')
+        sha256.update(b'abc123')
+        digest = sha256.hexdigest()
+        key = 'successcache/%s' % digest
+
+        mock_cache_client.set.assert_called_with(key, '')

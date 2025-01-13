@@ -25,6 +25,7 @@ import sys
 import tempfile
 
 import quibble
+import quibble.cache
 import quibble.mediawiki.maintenance
 import quibble.backend
 import quibble.zuul
@@ -208,6 +209,10 @@ class QuibbleCmd(object):
 
         tmp_dir = tempfile.gettempdir()
 
+        cache_client = None
+        if args.memcached_server is not None:
+            cache_client = quibble.cache.client(args.memcached_server)
+
         # Set ZUUL variables when given `--change ###`
         zuul_env = self.get_zuul_env_from_cli_args(args)
 
@@ -313,6 +318,16 @@ class QuibbleCmd(object):
             plan.append(
                 quibble.commands.ExtSkinSubmoduleUpdate(mw_install_path)
             )
+
+        success_cache = None
+        if cache_client is not None and args.success_cache_key_data:
+            success_cache = quibble.commands.SuccessCache(
+                cache_client,
+                mw_install_path,
+                dependencies,
+                key_data=args.success_cache_key_data,
+            )
+            plan.append(success_cache.check_command())
 
         # Assume project dir is mediawiki/core by default
         project_dir = mw_install_path
@@ -593,6 +608,9 @@ class QuibbleCmd(object):
         if 'phpunit-parallel' in stages:
             plan.append(quibble.commands.PhpUnitParallelNotice())
 
+        if success_cache is not None:
+            plan.append(success_cache.save_command())
+
         return project_dir, plan
 
     def execute(self, plan, project_dir, reporting_url=None, dry_run=False):
@@ -713,6 +731,18 @@ def get_arg_parser():
         default=None,
         help='HTTP endpoint that Quibble will POST error '
         'messages to, for configured repositories.',
+    )
+    global_opts.add_argument(
+        '--memcached-server',
+        default=None,
+        help='Memcached server to use for caching successful results',
+    )
+    global_opts.add_argument(
+        '--success-cache-key-data',
+        action='append',
+        default=[],
+        help='Data to use when computing a success cache key. Note that the '
+        'cache is enabled only when at least one item is given.',
     )
 
     git_ops = parser.add_argument_group('Git operations')

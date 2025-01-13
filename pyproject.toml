@@ -39,6 +39,7 @@ dependencies = [
   "PyYAML",
   "GitPython ~= 3.1.0",
   "requests",
+  "pymemcache",
 ]
 
 [project.optional-dependencies]

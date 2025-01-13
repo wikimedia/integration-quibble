@@ -1,12 +1,15 @@
 """Encapsulates each step of a job"""
 
 import contextlib
+import git
+import hashlib
 import io
 import json
 import logging
 import multiprocessing
 import os
 import os.path
+import pathlib
 
 import requests
 import yaml
@@ -34,7 +37,6 @@ else:
         message='pkg_resources is deprecated as an API',
     )
     import pkg_resources
-    import pathlib
 
 log = logging.getLogger(__name__)
 monitor_interval = 10
@@ -1349,6 +1351,113 @@ class Parallel:
         return "Run {} in parallel (concurrency={}):".format(
             self.name, self.workers
         ) + "".join(["\n* " + step for step in map(str, self.steps)])
+
+
+class SuccessCache:
+    """
+    SuccessCache looks for a prior success associated with all Git
+    working directories under the given path along with additional base cache
+    key constraints (e.g. project name or build parameters that can determine
+    which tests are run).
+
+    It looks in memcached for the cache key (under a `successcache/` prefix).
+    The cache key is the SHA256 digest of the given key data and the
+    `HEAD^{tree}` hash of each of the sorted cloned repos under the given
+    source path.
+    """
+
+    def __init__(self, client, src_path, projects, key_data=None):
+        """
+        client: Quibble cache client.
+        src_path: Path to the root of the source code being tested
+        projects: Projects that were cloned.
+        key_data: Additional data to use when computing a cache key.
+        """
+        self.client = client
+        self.key_data = []
+        self.src_path = src_path
+        self.projects = projects
+
+        if key_data is not None:
+            self.key_data = key_data
+
+        self.__digest = None
+
+    def check(self):
+        log.info(
+            'Checking success cache for all repos under %s '
+            'and initial key data %s',
+            self.src_path,
+            self.key_data,
+        )
+
+        exists = self.client.get(self._key()) is not None
+
+        if exists:
+            log.info('Success cache: HIT')
+            log.info('(EXPERIMENTAL: Continuing job execution.)')
+        else:
+            log.info('Success cache: MISS')
+
+        return exists
+
+    def save(self):
+        log.info('Saving success cache entry: %s', self._key())
+        self.client.set(self._key(), '')
+
+    def check_command(self):
+        return self.Check(self)
+
+    def save_command(self):
+        return self.Save(self)
+
+    def _key(self):
+        return 'successcache/%s' % self._digest()
+
+    def _digest(self):
+        if self.__digest is None:
+            h = hashlib.new('sha256')
+
+            for key in self.key_data:
+                h.update(key.encode('utf8'))
+
+            for tree in self._trees():
+                h.update(tree.encode('ascii'))
+
+            self.__digest = h.hexdigest()
+
+        return self.__digest
+
+    def _trees(self):
+        for path in sorted(self._repos()):
+            tree = git.Repo(path).tree('HEAD').hexsha
+            log.info('Found repo %s with tree %s', path, tree)
+            yield tree
+
+    def _repos(self):
+        return quibble.zuul.working_trees(
+            self.src_path, self.projects
+        ).values()
+
+    class Check:
+        def __init__(self, cache):
+            self.cache = cache
+
+        def execute(self):
+            self.cache.check()
+
+        def __str__(self):
+            return 'Check success cache'
+
+    class Save:
+        def __init__(self, cache):
+            self.cache = cache
+
+        def execute(self):
+            self.cache.save()
+
+        def __str__(self):
+            return 'Save success cache'
 
 
 def _repo_has_composer_script(project_dir, script_name):
