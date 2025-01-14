@@ -248,3 +248,25 @@ class TestRepoDir(unittest.TestCase):
             'services/parsoid',
             quibble.zuul.repo_dir('mediawiki/services/parsoid'),
         )
+
+
+class TestWorkingTrees(unittest.TestCase):
+    def test_maps_multiple_projects(self):
+        self.assertEqual(
+            {
+                'mediawiki/core': '/tmp/workspace',
+                'mediawiki/skins/NiceSkin': '/tmp/workspace/skins/NiceSkin',
+                'mediawiki/vendor': '/tmp/workspace/vendor',
+            },
+            # CloneMapper yields an OrderedDict
+            dict(
+                quibble.zuul.working_trees(
+                    '/tmp/workspace',
+                    [
+                        'mediawiki/core',
+                        'mediawiki/vendor',
+                        'mediawiki/skins/NiceSkin',
+                    ],
+                )
+            ),
+        )

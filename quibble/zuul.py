@@ -80,8 +80,7 @@ def clone(
 
     # Reimplement Cloner.execute() to make sure mediawiki/core is cloned first
     # and clone the rest in parallel.
-    mapper = CloneMapper(CLONE_MAP, projects)
-    dests = mapper.expand(workspace=workspace)
+    dests = working_trees(workspace, projects)
 
     if workers == 1:
         return zuul_cloner.execute()
@@ -130,3 +129,8 @@ def _clone_worker(can_run, cloner, project, dest):
 def repo_dir(repo):
     mapper = CloneMapper(CLONE_MAP, [repo])
     return mapper.expand(workspace='./')[repo]
+
+
+def working_trees(workspace, projects):
+    mapper = CloneMapper(CLONE_MAP, projects)
+    return mapper.expand(workspace=workspace)
