@@ -1,14 +1,18 @@
 Quibble changelog
 =================
 
-master (unreleased)
+1.12.0 (2025-01-17)
 -------------------
 
-Feature
-~~~~~~~
+Features
+~~~~~~~~
 * Remove Python implementation of PhpUnit test suites splitting
   `T365978 <https://phabricator.wikimedia.org/T365978>`_
   Arthur Taylor
+* Experimental "success cache" support, intended to short circuit a build when
+  the same set of code has been known to already pass.
+  `T383243 <https://phabricator.wikimedia.org/T383243>`_
+  Dan Duvall
 
 1.11.0 (2024-10-29)
 -------------------
