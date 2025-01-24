@@ -980,11 +980,15 @@ class PhpUnitPrepareParallelRunComposer:
 
         run(phpunit_command, cwd=self.mw_install_path, env=phpunit_env)
         # To support developers in reproducing failed test runs, we
-        # make a copy of the phpunit.xml file in the logs folder -
+        # make a copy of the phpunit*.xml files in the logs folder -
         # this adds the file to the artefacts collected by Jenkins
         copylog(
-            os.path.join(self.mw_install_path, 'phpunit.xml'),
-            os.path.join(self.log_dir, 'phpunit-parallel.xml'),
+            os.path.join(self.mw_install_path, 'phpunit-database.xml'),
+            os.path.join(self.log_dir, 'phpunit-parallel-database.xml'),
+        )
+        copylog(
+            os.path.join(self.mw_install_path, 'phpunit-databaseless.xml'),
+            os.path.join(self.log_dir, 'phpunit-parallel-databaseless.xml'),
         )
 
     def __str__(self):

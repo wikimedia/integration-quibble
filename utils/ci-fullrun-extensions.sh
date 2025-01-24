@@ -17,6 +17,8 @@ MEDIAWIKI_BRANCH=master
 
 # Enable parallel test execution for PHPUnit extensions test suite
 export QUIBBLE_PHPUNIT_PARALLEL=1
+# Set the location of the phpunit results cache server (T384925)
+export MW_RESULTS_CACHE_SERVER_BASE_URL="https://phpunit-results-cache.toolforge.org/results"
 
 # Use the system packages to avoid having to reinstall Quibble requirements and
 # upgrade pip & setuptools.

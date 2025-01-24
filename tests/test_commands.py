@@ -540,9 +540,17 @@ class PhpUnitPrepareParallelRunComposerTest(unittest.TestCase):
             cwd='/tmp',
             env={'LANG': 'C.UTF-8', 'somevar': '42'},
         )
-        mock_copylog.assert_called_once_with(
-            '/tmp/phpunit.xml',
-            '/log/phpunit-parallel.xml',
+        mock_copylog.assert_has_calls(
+            [
+                mock.call(
+                    '/tmp/phpunit-database.xml',
+                    '/log/phpunit-parallel-database.xml',
+                ),
+                mock.call(
+                    '/tmp/phpunit-databaseless.xml',
+                    '/log/phpunit-parallel-databaseless.xml',
+                ),
+            ]
         )
 
 
