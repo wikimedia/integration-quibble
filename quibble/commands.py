@@ -1395,11 +1395,9 @@ class SuccessCache:
 
         if exists:
             log.info('Success cache: HIT')
-            log.info('(EXPERIMENTAL: Continuing job execution.)')
-        else:
-            log.info('Success cache: MISS')
+            raise self.Hit()
 
-        return exists
+        log.info('Success cache: MISS')
 
     def save(self):
         log.info('Saving success cache entry: %s', self._key())
@@ -1458,6 +1456,9 @@ class SuccessCache:
 
         def __str__(self):
             return 'Save success cache'
+
+    class Hit(Exception):
+        pass
 
 
 def _repo_has_composer_script(project_dir, script_name):

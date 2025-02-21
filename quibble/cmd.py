@@ -627,6 +627,11 @@ class QuibbleCmd(object):
             for command in plan:
                 try:
                     quibble.commands.execute_command(command)
+                except quibble.commands.SuccessCache.Hit:
+                    log.warning(
+                        'Skipping remaining commands due to success cache hit'
+                    )
+                    break
                 except subprocess.CalledProcessError as called_process_error:
                     # If a command failed, check to see if the repository
                     # is configured so that Quibble should transmit error

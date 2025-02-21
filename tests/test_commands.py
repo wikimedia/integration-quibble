@@ -1119,12 +1119,13 @@ class SuccessCacheTest(unittest.TestCase):
 
         mock_cache_client = mock.Mock(**{'get': mock.Mock(return_value='')})
 
-        quibble.commands.SuccessCache(
-            mock_cache_client,
-            '/mw/src',
-            ['extensions/Foo'],
-            key_data=['foo-key'],
-        ).check_command().execute()
+        with pytest.raises(quibble.commands.SuccessCache.Hit):
+            quibble.commands.SuccessCache(
+                mock_cache_client,
+                '/mw/src',
+                ['extensions/Foo'],
+                key_data=['foo-key'],
+            ).check_command().execute()
 
         mock_repo.assert_called_with('/mw/src/extensions/Foo')
         mock_tree.assert_called_with('HEAD')
