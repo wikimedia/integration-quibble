@@ -1,10 +1,14 @@
 Quibble changelog
 =================
 
-master (unreleased)
+1.13.0 (2025-02-26)
 -------------------
 
-* ...
+Feature
+~~~~~~~
+* Skip execution upon a success cache hit
+  `T383243 <https://phabricator.wikimedia.org/T383243>`_
+  Dan Duvall
 
 1.12.0 (2025-01-17)
 -------------------
