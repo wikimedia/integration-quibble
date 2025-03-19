@@ -197,7 +197,9 @@ class ZuulClone:
             k: v for k, v in self.__dict__.items() if v is not None and v != []
         }
         return "Zuul clone {}".format(
-            json.dumps(pruned_params, sort_keys=True)
+            # JSON serialization falls back to a list since projects can be a
+            # set which is not serializable.
+            json.dumps(pruned_params, sort_keys=True, default=list)
         )
 
 

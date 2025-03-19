@@ -1176,3 +1176,36 @@ class SuccessCacheTest(unittest.TestCase):
         key = 'successcache/%s' % digest
 
         mock_cache_client.set.assert_called_with(key, '')
+
+
+class ResolveRequires(unittest.TestCase):
+    @mock.patch('quibble.mediawiki.registry')
+    @mock.patch('quibble.zuul.clone')
+    def test_clone_logs_list_of_projects(self, _clone, _registry):
+        _registry.from_path.return_value.getRequiredRepos.side_effect = [
+            set(['p1']),
+            [],
+        ]
+
+        zuul_params = {
+            'branch': 'master',
+            'cache_dir': None,
+            'project_branch': None,
+            'workers': 7,
+            'workspace': '/workspace',
+            'zuul_branch': 'master',
+            'zuul_newrev': 'C0FFEE',
+            'zuul_project': 'mediawiki/core',
+            'zuul_ref': 'refs/zuul/Zbaba',
+            'zuul_url': 'git://merger.example.org',
+        }
+        clone = quibble.commands.ResolveRequires(
+            '/mw/src',
+            ['mediawiki/extensions/CirrusSearch'],
+            zuul_params,
+        )
+
+        with self.assertLogs('quibble.commands', level='INFO') as log:
+            quibble.commands.execute_command(clone)
+            print("\n".join(log.output))
+            assert '"projects": ["p1"]' in log.records[4].message
