@@ -1423,10 +1423,10 @@ class SuccessCache:
             h = hashlib.new('sha256')
 
             for key in self.key_data:
-                h.update(key.encode('utf8'))
+                h.update(key.encode('utf8') + b"\x00")
 
             for tree in self._trees():
-                h.update(tree.encode('ascii'))
+                h.update(tree.encode('ascii') + b"\x00")
 
             self.__digest = h.hexdigest()
 

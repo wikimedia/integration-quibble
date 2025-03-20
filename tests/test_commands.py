@@ -1106,8 +1106,8 @@ class SuccessCacheTest(unittest.TestCase):
         mock_tree.assert_called_with('HEAD')
 
         sha256 = hashlib.new('sha256')
-        sha256.update(b'foo-key')
-        sha256.update(b'abc123')
+        sha256.update(b'foo-key\x00')
+        sha256.update(b'abc123\x00')
         digest = sha256.hexdigest()
         key = 'successcache/%s' % digest
 
@@ -1139,8 +1139,8 @@ class SuccessCacheTest(unittest.TestCase):
         mock_tree.assert_called_with('HEAD')
 
         sha256 = hashlib.new('sha256')
-        sha256.update(b'foo-key')
-        sha256.update(b'abc123')
+        sha256.update(b'foo-key\x00')
+        sha256.update(b'abc123\x00')
         digest = sha256.hexdigest()
         key = 'successcache/%s' % digest
 
@@ -1170,8 +1170,8 @@ class SuccessCacheTest(unittest.TestCase):
         mock_tree.assert_called_with('HEAD')
 
         sha256 = hashlib.new('sha256')
-        sha256.update(b'foo-key')
-        sha256.update(b'abc123')
+        sha256.update(b'foo-key\x00')
+        sha256.update(b'abc123\x00')
         digest = sha256.hexdigest()
         key = 'successcache/%s' % digest
 
