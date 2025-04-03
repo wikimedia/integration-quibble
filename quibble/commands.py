@@ -1108,7 +1108,7 @@ class QunitTests:
         )
 
     def __str__(self):
-        return "Run Qunit tests"
+        return "Run QUnit tests"
 
 
 class ApiTesting:

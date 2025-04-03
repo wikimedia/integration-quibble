@@ -23,7 +23,7 @@ plan:
  - 'PHPUnit default standalone suite on services/parsoid'
  - 'Run phpbench'
  - 'Start backends: <PhpWebserver http://127.0.0.1:9412 /WORKSPACE/src> <Xvfb :94> <ChromeWebDriver :94>'
- - 'Run Qunit tests'
+ - 'Run QUnit tests'
  - 'Browser tests: mediawiki/services/parsoid, mediawiki/core, mediawiki/skins/Vector, mediawiki/vendor'
  - 'Run API-Testing'
  - 'PHPUnit extensions suite (with database)'

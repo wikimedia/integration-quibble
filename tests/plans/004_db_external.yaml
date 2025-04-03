@@ -18,7 +18,7 @@ plan:
     * composer test for mediawiki/core
     * npm test in /WORKSPACE/src
  -  'Start backends: <PhpWebserver http://127.0.0.1:9412 /WORKSPACE/src> <Xvfb :94> <ChromeWebDriver :94>'
- -  'Run Qunit tests'
+ -  'Run QUnit tests'
  -  'Browser tests: mediawiki/core, mediawiki/skins/Vector, mediawiki/vendor'
  -  'Run API-Testing'
  -  'PHPUnit default suite (with database)'
