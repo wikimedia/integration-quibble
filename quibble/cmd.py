@@ -377,9 +377,16 @@ class QuibbleCmd(object):
 
         if not args.skip_install:
             if not args.db_is_external:
+                database_backends = [database_backend]
+
+                if quibble.util.strtobool(
+                    os.getenv('QUIBBLE_OPENSEARCH', 'false')
+                ):
+                    database_backends.append(quibble.backend.OpenSearch())
+
                 plan.append(
                     quibble.commands.StartBackends(
-                        self._context_stack, [database_backend]
+                        self._context_stack, database_backends
                     )
                 )
 

@@ -15,7 +15,7 @@ import requests
 import yaml
 
 from quibble.gitchangedinhead import GitChangedInHead
-from quibble.util import copylog, isExtOrSkin, ProgressReporter
+from quibble.util import copylog, isExtOrSkin, ProgressReporter, strtobool
 import quibble.mediawiki.registry
 import quibble.zuul
 import subprocess
@@ -618,6 +618,14 @@ class InstallMediaWiki:
         quibble.mediawiki.maintenance.rebuildLocalisationCache(
             lang=['en'], mwdir=self.mw_install_path
         )
+
+        if strtobool(os.getenv('QUIBBLE_OPENSEARCH', 'false')):
+            quibble.mediawiki.maintenance.updateSearchIndexConfig(
+                mwdir=self.mw_install_path
+            )
+            quibble.mediawiki.maintenance.forceSearchIndex(
+                mwdir=self.mw_install_path
+            )
 
     def clearQuibbleLocalSettings(self):
         marker = "# Quibble MediaWiki configuration\n"

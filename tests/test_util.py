@@ -9,6 +9,7 @@ from quibble.util import (
     isCoreOrVendor,
     isExtOrSkin,
     move_item_to_head,
+    strtobool,
 )
 import sys
 import tempfile
@@ -150,3 +151,16 @@ def test_FetchInfo_with_patchset(fetch):
         'ZUUL_BRANCH': 'master',
         'ZUUL_REF': 'refs/changes/45/12345/42',
     }
+
+
+# The test_strtobool code has been copied from Python which removed it with
+# v3.12. There is most probably NO reason to touch this code.
+def test_strtobool():
+    yes = ('y', 'Y', 'yes', 'True', 't', 'true', 'True', 'On', 'on', '1')
+    no = ('n', 'no', 'f', 'false', 'off', '0', 'Off', 'No', 'N')
+
+    for y in yes:
+        assert bool(strtobool(y)) is True
+
+    for n in no:
+        assert bool(strtobool(n)) is False

@@ -526,3 +526,16 @@ class Xvfb(BackendServer):
 
     def __str__(self):
         return "<Xvfb {}>".format(self.display)
+
+
+class OpenSearch(BackendServer):
+    def __init__(self):
+        super(OpenSearch, self).__init__()
+        self.port = 9200
+
+    def start(self):
+        self.log.info('Waiting for OpenSearch on port %s', self.port)
+        _tcp_wait(host='127.0.0.1', port=self.port, timeout=120)
+
+    def __str__(self):
+        return "<OpenSearch on port {}>".format(self.port)

@@ -125,3 +125,48 @@ def addSite(args, mwdir=None):
     p.communicate()
     if p.returncode > 0:
         raise Exception('addSite failed with exit code: %s' % p.returncode)
+
+
+def updateSearchIndexConfig(mwdir=None):
+    log = logging.getLogger('mw.maintenance.UpdateSearchIndexConfig')
+
+    cmd = [
+        'php',
+        'maintenance/run.php',
+        'CirrusSearch\\Maintenance\\UpdateSearchIndexConfig',
+        '--startOver',
+    ]
+    log.info(' '.join(cmd))
+
+    env = {}
+    if mwdir is not None:
+        env['MW_INSTALL_PATH'] = mwdir
+
+    p = subprocess.Popen(cmd, cwd=mwdir, env=env)
+    p.communicate()
+    if p.returncode > 0:
+        raise Exception(
+            'updateSearchIndexConfig failed with exit code: %s' % p.returncode
+        )
+
+
+def forceSearchIndex(mwdir=None):
+    log = logging.getLogger('mw.maintenance.ForceSearchIndex')
+
+    cmd = [
+        'php',
+        'maintenance/run.php',
+        'CirrusSearch\\Maintenance\\ForceSearchIndex',
+    ]
+    log.info(' '.join(cmd))
+
+    env = {}
+    if mwdir is not None:
+        env['MW_INSTALL_PATH'] = mwdir
+
+    p = subprocess.Popen(cmd, cwd=mwdir, env=env)
+    p.communicate()
+    if p.returncode > 0:
+        raise Exception(
+            'forceSearchIndex failed with exit code: %s' % p.returncode
+        )
