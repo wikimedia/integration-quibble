@@ -1,10 +1,33 @@
 Quibble changelog
 =================
 
-master (unreleased)
+1.14.0 (2025-04-30)
 -------------------
 
-* ...
+Features
+~~~~~~~~
+* Update list of phpunit config files to copy to log directory and set
+  ``MW_RESULTS_CACHE_SERVER_BASE_URL``.
+  `T378797 <https://phabricator.wikimedia.org/T378797>`_
+  `T384927 <https://phabricator.wikimedia.org/T384927>`_
+  Arthur Taylor
+* Add support for OpenSearch. This requires:
+
+  * OpenSearch to be started independently and is expected to be listening on ``127.0.0.1:9200``.
+  * ``mediawiki/extensions/CirrusSearch`` to be cloned.
+  * Setting an environment variable ``QUIBBLE_OPENSEARCH=true``
+
+  `T386691 <https://phabricator.wikimedia.org/T386691>`_
+  Jakob Warkotsch
+
+Fixes
+~~~~~
+* Fix logging exception when using --resolve-requires.
+  Antoine Musso
+* Avoid success cache key data collisions using null separator.
+  Dan Duvall
+* Fix casing in "Run QUnit tests" section label.
+  Timo Tijhof
 
 1.13.0 (2025-02-26)
 -------------------
