@@ -112,7 +112,7 @@ To connect to the running image with PHPStorm, you need to enable XDebug in the 
 
       XDEBUG_CONFIG=client_host=172.17.0.1 output_dir=/workspace/src
       XDEBUG_MODE=develop,debug
-      PHP_IDE_CONFIG="serverName=Local Server"
+      PHP_IDE_CONFIG=serverName=Local Server
 
 to the `--env-file` that you are using to launch your docker image (replacing "Local Server" here with the name of the server you are about to create in PHPStorm). In PHPStorm, you will need to define a new local PHP Server so that PHPStorm can map the source files and find the breakpoints. The server should include a source mapping from `/workspace/src` to the `src` folder on your local machine / in the current working directory. You can also define an HTTP Server at this point - this will be handy if we later expose the Quibble HTTP Server for interactive debugging.
 
