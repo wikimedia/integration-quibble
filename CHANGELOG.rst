@@ -1,10 +1,11 @@
 Quibble changelog
 =================
 
-master (unreleased)
+1.14.1 (2025-05-06)
 -------------------
 
-* ...
+* Ensure environment variables are passed to MediaWiki maintenance scripts.
+  Jakob Warkotsch
 
 1.14.0 (2025-04-30)
 -------------------
