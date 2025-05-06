@@ -9,6 +9,18 @@ from quibble.mediawiki.maintenance import getMaintenanceScript
 class TestMediawikiMaintenance(unittest.TestCase):
     @mock.patch.dict('os.environ', {'BAR': 'foo'}, clear=True)
     @mock.patch('subprocess.Popen')
+    def test_addSite_uses_os_environment(self, mock_popen):
+        mock_popen.return_value.returncode = 0
+        quibble.mediawiki.maintenance.addSite([])
+
+        (args, kwargs) = mock_popen.call_args
+        env = kwargs.get('env', {})
+
+        self.assertIn('BAR', env)
+        self.assertEqual('foo', env['BAR'])
+
+    @mock.patch.dict('os.environ', {'BAR': 'foo'}, clear=True)
+    @mock.patch('subprocess.Popen')
     def test_install_php_uses_os_environment(self, mock_popen):
         mock_popen.return_value.returncode = 0
         quibble.mediawiki.maintenance.install([])
@@ -35,6 +47,28 @@ class TestMediawikiMaintenance(unittest.TestCase):
     def test_update_php_uses_os_environment(self, mock_popen):
         mock_popen.return_value.returncode = 0
         quibble.mediawiki.maintenance.update()
+
+        (args, kwargs) = mock_popen.call_args
+        env = kwargs.get('env', {})
+
+        self.assertEqual({'BAR': 'foo'}, env)
+
+    @mock.patch.dict('os.environ', {'BAR': 'foo'}, clear=True)
+    @mock.patch('subprocess.Popen')
+    def test_updateSearchIndexConfig_uses_os_environment(self, mock_popen):
+        mock_popen.return_value.returncode = 0
+        quibble.mediawiki.maintenance.updateSearchIndexConfig()
+
+        (args, kwargs) = mock_popen.call_args
+        env = kwargs.get('env', {})
+
+        self.assertEqual({'BAR': 'foo'}, env)
+
+    @mock.patch.dict('os.environ', {'BAR': 'foo'}, clear=True)
+    @mock.patch('subprocess.Popen')
+    def test_forceSearchIndex_uses_os_environment(self, mock_popen):
+        mock_popen.return_value.returncode = 0
+        quibble.mediawiki.maintenance.forceSearchIndex()
 
         (args, kwargs) = mock_popen.call_args
         env = kwargs.get('env', {})

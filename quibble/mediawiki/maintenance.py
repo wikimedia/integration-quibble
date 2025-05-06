@@ -118,6 +118,7 @@ def addSite(args, mwdir=None):
     log.info(' '.join(cmd))
 
     addSite_env = {}
+    addSite_env.update(os.environ)
     if mwdir is not None:
         addSite_env['MW_INSTALL_PATH'] = mwdir
 
@@ -139,6 +140,7 @@ def updateSearchIndexConfig(mwdir=None):
     log.info(' '.join(cmd))
 
     env = {}
+    env.update(os.environ)
     if mwdir is not None:
         env['MW_INSTALL_PATH'] = mwdir
 
@@ -161,6 +163,7 @@ def forceSearchIndex(mwdir=None):
     log.info(' '.join(cmd))
 
     env = {}
+    env.update(os.environ)
     if mwdir is not None:
         env['MW_INSTALL_PATH'] = mwdir
 
