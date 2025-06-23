@@ -1272,7 +1272,7 @@ class GitClean:
         leftover_files = subprocess.check_output(
             ['git', 'status', '--ignored', '--porcelain'],
             cwd=self.directory,
-            universal_newlines=True,  # python 3.7: text=True
+            text=True,
         )
         if leftover_files:
             log.warning('git clean left behind some files!!! T321795')

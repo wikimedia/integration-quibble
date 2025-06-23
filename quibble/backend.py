@@ -272,7 +272,7 @@ class MySQL(DatabaseServer):
                 '--datadir=%s' % self.rootdir,
                 '--user=%s' % pwd.getpwuid(os.getuid())[0],
             ],
-            universal_newlines=True,
+            text=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
         )
@@ -289,7 +289,7 @@ class MySQL(DatabaseServer):
             mysql_cmd.append('--socket=%s' % self.socket)
         p = subprocess.Popen(
             mysql_cmd,
-            universal_newlines=True,
+            text=True,
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
@@ -412,7 +412,7 @@ class ChromeWebDriver(BackendServer):
                     '--url-base=%s' % self.url_base,
                 ],
                 env=env,
-                universal_newlines=True,
+                text=True,
                 bufsize=1,  # line buffered
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.PIPE,
@@ -487,7 +487,7 @@ class PhpWebserver(WebserverEngine):
         self.server = subprocess.Popen(
             server_cmd,
             cwd=self.mwdir,
-            universal_newlines=True,
+            text=True,
             bufsize=1,  # line buffered
             stdout=subprocess.DEVNULL,
             stderr=subprocess.PIPE,

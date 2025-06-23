@@ -963,7 +963,7 @@ def test_GitClean(check_output, run, tmp_path, caplog):
     check_output.assert_called_with(
         ['git', 'status', '--ignored', '--porcelain'],
         cwd=tmp_path,
-        universal_newlines=True,
+        text=True,
     )
     assert [rec.message for rec in caplog.records] == [
         mock.ANY,
