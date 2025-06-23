@@ -11,7 +11,7 @@ name = "quibble"
 # Version is set dynamically
 description = "A test runner for MediaWiki"
 readme = "README.rst"
-requires-python = ">=3.7"
+requires-python = ">=3.9"
 license = { text = "Apache License Version 2.0" }
 maintainers = [
     {name = "Wikimedia Release Engineering", email = "qa@lists.wikimedia.org"},
@@ -25,9 +25,9 @@ classifiers = [
   "Intended Audience :: Developers",
   "License :: OSI Approved :: Apache Software License",
   "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.7",
-  "Programming Language :: Python :: 3.8",
   "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
   "Topic :: Software Development :: Testing",
   "Topic :: Software Development :: Version Control :: Git",
 ]
