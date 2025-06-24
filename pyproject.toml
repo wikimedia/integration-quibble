@@ -35,7 +35,6 @@ dynamic = ["version"]
 dependencies = [
   # For zuul-cloner
   "extras",
-  "six",
   "PyYAML",
   "GitPython ~= 3.1.0",
   "requests",
