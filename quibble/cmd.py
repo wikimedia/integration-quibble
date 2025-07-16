@@ -88,9 +88,6 @@ class QuibbleCmd(object):
         TODO: Can we deprecate any of these in favor of explicit
         parameters?
         """
-        if 'EXECUTOR_NUMBER' not in os.environ:
-            os.environ['EXECUTOR_NUMBER'] = '1'
-
         if quibble.is_in_docker() or 'WORKSPACE' not in os.environ:
             # Override WORKSPACE in Docker, we really want /workspace or
             # whatever was given from the command line.
