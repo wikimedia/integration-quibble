@@ -87,7 +87,7 @@ if ( is_dir( $parsoidDir ) ) {
     spl_autoload_register( 'wfInterceptParsoidLoading', true, true );
     // Keep this in sync with the "autoload" clause in
     // $PARSOID_INSTALL_DIR/composer.json
-    $parsoidNamespace = [ 'Wikimedia\\Parsoid\\' => "$parsoidDir/src" ];
+    $parsoidNamespace = [ 'Wikimedia\\Parsoid\\' => "$parsoidDir/src/" ];
     if ( method_exists( 'AutoLoader', 'registerNamespaces' ) ) {
         AutoLoader::registerNamespaces( $parsoidNamespace );
     } else {
