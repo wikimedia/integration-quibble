@@ -1,10 +1,35 @@
 Quibble changelog
 =================
 
-master (unreleased)
+1.14.2 (2025-07-24)
 -------------------
 
-* ...
+Features
+~~~~~~~~
+* ci-fullrun-extensions: add IPInfo as a dependency
+  Antoine Musso
+* Accept multiple --run --skip
+  Antoine Musso
+* Use trailing slash for Parsoid autoload directory
+  `T195211 <https://phabricator.wikimedia.org/T195211>`_
+  `T400299 <https://phabricator.wikimedia.org/T400299>`_
+  C. Scott Ananian
+
+Fixes
+~~~~~
+
+* doc: Remove quotes from env var value
+  Jakob Warkotsch
+* build: raise required python from 3.7 to 3.9
+  `T396670 <https://phabricator.wikimedia.org/T396670>`_
+  Antoine Musso
+* Replace subprocess `universal_newlines` by `text`
+  Antoine Musso
+* Drop six dependency by using Python 3 dict.items()
+  Antoine Musso
+* Stop setting EXECUTOR_NUMBER environment variable
+  `T399283 <https://phabricator.wikimedia.org/T399283>`_
+  Antoine Musso
 
 1.14.1 (2025-05-06)
 -------------------
