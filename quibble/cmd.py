@@ -978,6 +978,16 @@ def get_arg_parser():
         metavar='COMMAND',
         help=('DEPRECATED: use -c COMMAND -c COMMAND'),
     )
+    current_shell = os.environ.get('SHELL')
+    command_args.add_argument(
+        '--shell',
+        action='store_const',
+        const=[current_shell],
+        dest='shell',
+        help=(
+            'Drop you in CLI as set by $SHELL (current: %s)' % (current_shell)
+        ),
+    )
 
     return parser
 
@@ -991,15 +1001,22 @@ def main():
     if args.color:
         quibble.colored_logging()
 
+    if args.shell:
+        args.commands = args.shell
+
     cmd = QuibbleCmd()
     project_dir, plan = cmd.build_execution_plan(args)
 
-    cmd.execute(
-        plan,
-        project_dir=project_dir,
-        reporting_url=args.reporting_url,
-        dry_run=args.dry_run,
-    )
+    try:
+        cmd.execute(
+            plan,
+            project_dir=project_dir,
+            reporting_url=args.reporting_url,
+            dry_run=args.dry_run,
+        )
+    except subprocess.CalledProcessError as e:
+        if not args.shell:
+            raise e
 
 
 if __name__ == '__main__':

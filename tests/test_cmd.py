@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+import subprocess
 import unittest
 from unittest import mock
 
@@ -289,6 +290,46 @@ class CmdTest(unittest.TestCase):
     def test_command_used_multiple_times(self):
         args = cmd._parse_arguments(args=['-c', 'true', '-c', 'false'])
         self.assertEqual(['true', 'false'], args.commands)
+
+    @mock.patch('quibble.cmd.QuibbleCmd')
+    def test_shell_option_sets_commands(self, QuibbleCmd):
+        user_shell = '/bin/magicsh'
+        env = {
+            'SHELL': user_shell,
+        }
+        with mock.patch.dict('os.environ', env, clear=True):
+            with mock.patch('sys.argv', ['quibble', '--shell']):
+                QuibbleCmd().build_execution_plan.return_value = ('', [])
+                cmd.main()
+
+                args = QuibbleCmd().build_execution_plan.call_args[0][0]
+                assert args.shell == [user_shell]
+                assert args.commands == [user_shell]
+
+    @mock.patch('quibble.commands.execute_command')
+    def test_user_command_non_zero_exit_status_raises(self, execute_command):
+        execute_command.side_effect = subprocess.CalledProcessError(
+            3, 'Command failed'
+        )
+        with mock.patch('sys.argv', ['quibble', '-c', 'somecommand']):
+            with self.assertRaises(
+                subprocess.CalledProcessError,
+                msg='Command failed',
+            ):
+                cmd.main()
+
+    @mock.patch('quibble.commands.execute_command')
+    def test_shell_non_zero_exit_status_does_not_raise(self, execute_command):
+        execute_command.side_effect = subprocess.CalledProcessError(
+            2, 'Shell failed'
+        )
+        user_shell = '/bin/magicsh'
+        env = {
+            'SHELL': user_shell,
+        }
+        with mock.patch.dict('os.environ', env, clear=True):
+            with mock.patch('sys.argv', ['quibble', '--shell']):
+                cmd.main()
 
     def test_project_branch_arg(self):
         args = cmd._parse_arguments(args=[])
