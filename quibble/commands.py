@@ -767,18 +767,14 @@ class Phpbench:
 
 class AbstractPhpUnit:
     def get_phpunit_command(self, repo_path=None):
-        if _repo_has_composer_script(
-            self.mw_install_path, 'phpunit:entrypoint'
-        ):
-            phpunit_command = [
-                'composer',
-                'run',
-                '--timeout=0',
-                'phpunit:entrypoint',
-                '--',
-            ]
-        else:
-            phpunit_command = ['php', 'tests/phpunit/phpunit.php']
+        phpunit_command = [
+            'composer',
+            'run',
+            '--timeout=0',
+            'phpunit',
+            '--',
+        ]
+
         if repo_path:
             phpunit_command.append(repo_path)
         if self.cache_result_file is not None:

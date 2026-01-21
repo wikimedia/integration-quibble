@@ -567,8 +567,11 @@ class PhpUnitDatabaseTest(unittest.TestCase):
 
         mock_run.assert_called_once_with(
             [
-                'php',
-                'tests/phpunit/phpunit.php',
+                'composer',
+                'run',
+                '--timeout=0',
+                'phpunit',
+                '--',
                 '--testsuite',
                 'extensions',
                 '--group',
@@ -595,8 +598,11 @@ class PhpUnitDatabaselessTest(unittest.TestCase):
 
         mock_run.assert_called_once_with(
             [
-                'php',
-                'tests/phpunit/phpunit.php',
+                'composer',
+                'run',
+                '--timeout=0',
+                'phpunit',
+                '--',
                 '--testsuite',
                 'extensions',
                 '--exclude-group',
@@ -623,8 +629,11 @@ class PhpUnitStandaloneTest(unittest.TestCase):
 
         mock_run.assert_called_once_with(
             [
-                'php',
-                'tests/phpunit/phpunit.php',
+                'composer',
+                'run',
+                '--timeout=0',
+                'phpunit',
+                '--',
                 '../extensions/Scribunto',
                 '--group',
                 'Standalone',
