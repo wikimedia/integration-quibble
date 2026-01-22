@@ -787,7 +787,7 @@ class AbstractPhpUnit:
     def _run_phpunit(self, group=[], exclude_group=[], cmd=None):
         log.info(self)
 
-        always_excluded = ['Broken', 'ParserFuzz', 'Stub']
+        always_excluded = ['Broken']
         if not cmd:
             cmd = self.get_phpunit_command()
         if self.testsuite:

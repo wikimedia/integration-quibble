@@ -151,7 +151,7 @@ The commands for executing the individual build steps can also be copied from th
 
       $ composer run --timeout=0 phpunit:entrypoint \
         -- --testsuite extensions --exclude-group \
-        Broken,ParserFuzz,Stub,Database,Standalone
+        Broken,Database,Standalone
 
 You should now see the tests run in an environment that is more or less identical to the CI setup. If the command hangs, check to see if `XDEBUG_TRIGGER` is set or if your IDE has paused the execution at a breakpoint.
 
