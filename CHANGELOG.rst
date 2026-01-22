@@ -1,10 +1,28 @@
 Quibble changelog
 =================
 
-master (unreleased)
+1.15.0 (2026-01-23)
 -------------------
 
-* …
+Features
+~~~~~~~~
+* Add --shell to start an user shell
+  Antoine Musso
+
+Fixes
+~~~~~
+* Always use `composer phpunit` for PHPUnit tests
+  `T395470 <https://phabricator.wikimedia.org/T395470>`_
+  Daimona Eaytoy
+* PHPUnit: Stop excluding the ParserFuzz and Stub groups
+  `T415230 <https://phabricator.wikimedia.org/T415230>`_
+  James D. Forrester
+
+Internal
+~~~~~~~~
+* utils: fullrun-extensions: shrink GrowthExperiments deps
+  `T389998 <https://phabricator.wikimedia.org/T389998>`_
+  Antoine Musso
 
 1.14.2 (2025-07-24)
 -------------------
