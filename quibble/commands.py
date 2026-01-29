@@ -1344,14 +1344,17 @@ class UserScripts:
         if self.web_backend == 'external':
             userscripts_env.update({'QUIBBLE_APACHE': '1'})
 
+        multiple_commands = len(self.commands) > 1
         for cmd in self.commands:
-            log.info(cmd)
-            run(
-                cmd,
-                shell=True,
-                cwd=self.mw_install_path,
-                env=userscripts_env,
-            )
+            with contextlib.ExitStack() as stack:
+                if multiple_commands:
+                    stack.enter_context(quibble.Chronometer(cmd, log.info))
+                run(
+                    cmd,
+                    shell=True,
+                    cwd=self.mw_install_path,
+                    env=userscripts_env,
+                )
 
     def __str__(self):
         return "User commands: {}".format(", ".join(self.commands))

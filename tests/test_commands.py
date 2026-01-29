@@ -1085,6 +1085,27 @@ class UserScriptsTest(unittest.TestCase):
         )
 
     @mock.patch('quibble.backend.PhpWebserver')
+    @mock.patch('quibble.commands.run')
+    def test_single_command_has_no_chronometer(self, mock_run, *_):
+        with mock.patch('quibble.Chronometer') as chron:
+            quibble.commands.UserScripts(
+                '/tmp', ['true'], 'http://192.0.2.1:9413', 'external'
+            ).execute()
+
+            chron.assert_not_called
+
+    @mock.patch('quibble.backend.PhpWebserver')
+    @mock.patch('quibble.commands.run')
+    def test_multiple_commands_each_use_chronometer(self, mock_run, *_):
+        with mock.patch('quibble.Chronometer') as chron:
+            quibble.commands.UserScripts(
+                '/tmp', ['true', 'false'], 'http://192.0.2.1:9413', 'external'
+            ).execute()
+
+            chron.assert_any_call('true', mock.ANY)
+            chron.assert_any_call('false', mock.ANY)
+
+    @mock.patch('quibble.backend.PhpWebserver')
     @mock.patch('os.environ', clear=True)
     @mock.patch('quibble.commands.run')
     def test_mediawiki_environment_variables(self, mock_run, *_):
