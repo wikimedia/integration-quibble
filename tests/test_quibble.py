@@ -4,6 +4,8 @@ import quibble
 import unittest
 from unittest import mock
 
+from quibble import CommandTiming
+
 
 class QuibbleTest(unittest.TestCase):
     def test_logginglevel(self):
@@ -109,3 +111,26 @@ class QuibbleTest(unittest.TestCase):
                 mock.call('<<< Finish: method, in 1.000 s'),
             ]
         )
+
+    @mock.patch('quibble.DURATIONS', new=[])
+    def test_chronometer_global_tracking(self):
+        assert [] == quibble.DURATIONS
+
+        # fmt: off
+        with mock.patch('quibble.time.time', side_effect=[
+            10, 10 + 3,
+            20, 20 + 2,
+            30, 30 + 1,
+        ]):
+            # fmt: on
+            for x in range(2):
+                with quibble.Chronometer('command #%s' % x, mock.MagicMock()):
+                    pass
+            with quibble.Chronometer('other', mock.MagicMock()):
+                pass
+
+        assert quibble.DURATIONS == [
+            CommandTiming(command='command #0', seconds=3),
+            CommandTiming(command='command #1', seconds=2),
+            CommandTiming(command='other', seconds=1),
+        ]

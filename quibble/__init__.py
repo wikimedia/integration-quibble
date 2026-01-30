@@ -14,6 +14,7 @@
 #     limitations under the License.
 
 from contextlib import contextmanager
+from collections import namedtuple
 import logging
 import os
 import time
@@ -108,8 +109,30 @@ def get_npm_command():
     return os.getenv('NPM_COMMAND') or 'npm'
 
 
+# Keep track of Chronometer usage
+DURATIONS = []
+
+# fmt: off
+CommandTiming = namedtuple('Timing', [
+    'seconds',
+    'command',
+])
+# fmt: on
+
+
 @contextmanager
 def Chronometer(name, logger):
+    """Context wrapper to log duration
+
+    Arguments:
+     - name -- string identifying the command
+     - logger - logging function to report beginning and completion of the
+       command. The total duration is reported in seconds.
+
+    Durations are globally tracked in the global list quibble.DURATIONS. Each
+    entry is a `CommandTiming` tuple made of the elapsed time in second and the
+    command description.
+    """
     start = time.time()
     logger('>>> Start: %s' % name)
     try:
@@ -117,3 +140,6 @@ def Chronometer(name, logger):
     finally:
         duration = time.time() - start
         logger('<<< Finish: %s, in %.03f s' % (name, duration))
+
+        global DURATIONS
+        DURATIONS.append(CommandTiming(command=name, seconds=duration))
