@@ -637,45 +637,46 @@ class QuibbleCmd(object):
                     )
                     break
                 except subprocess.CalledProcessError as called_process_error:
-                    # If a command failed, check to see if the repository
-                    # is configured so that Quibble should transmit error
-                    # data to an endpoint for further processing.
-                    if not quibble.commands.repo_has_quibble_config(
-                        project_dir
-                    ):
-                        log.debug('No quibble.yaml in %s', project_dir)
-                        raise called_process_error
-                    if not reporting_url:
-                        log.debug('No reporting URL specified.')
-                        raise called_process_error
-                    config = quibble.commands.repo_load_quibble_config(
-                        project_dir
-                    )
-                    if not config.get('earlywarning'):
-                        log.debug(
-                            'No earlywarning section found in quibble.yaml'
-                        )
-                        raise called_process_error
-
-                    called_process_error_cmd = called_process_error.cmd
-                    if isinstance(called_process_error_cmd, list):
-                        called_process_error_cmd = " ".join(
-                            called_process_error_cmd
-                        )
-                    quibble.commands.transmit_error(
-                        should_comment=config.get('earlywarning').get(
-                            'should_comment', 0
-                        ),
-                        should_vote=config.get('earlywarning').get(
-                            'should_vote', 0
-                        ),
-                        phase=str(command),
-                        command=called_process_error_cmd,
-                        reporting_url=reporting_url,
-                        api_key=os.getenv("QUIBBLE_API_KEY"),
-                        called_process_error=called_process_error,
+                    # Report exception to a remote service if configured
+                    self.earlywarn(
+                        called_process_error,
+                        command,
+                        project_dir,
+                        reporting_url,
                     )
                     raise called_process_error
+
+    def earlywarn(
+        self, called_process_error, command, project_dir, reporting_url=None
+    ):
+        """
+        If a command failed, check to see if the repository is configured so
+        that Quibble should transmit error data to an endpoint for further
+        processing.
+        """
+        if not quibble.commands.repo_has_quibble_config(project_dir):
+            log.debug('No quibble.yaml in %s', project_dir)
+            return
+        if not reporting_url:
+            log.debug('No reporting URL specified.')
+            return
+        config = quibble.commands.repo_load_quibble_config(project_dir)
+        if not config.get('earlywarning'):
+            log.debug('No earlywarning section found in quibble.yaml')
+            return
+
+        called_process_error_cmd = called_process_error.cmd
+        if isinstance(called_process_error_cmd, list):
+            called_process_error_cmd = " ".join(called_process_error_cmd)
+        quibble.commands.transmit_error(
+            should_comment=config.get('earlywarning').get('should_comment', 0),
+            should_vote=config.get('earlywarning').get('should_vote', 0),
+            phase=str(command),
+            command=called_process_error_cmd,
+            reporting_url=reporting_url,
+            api_key=os.getenv("QUIBBLE_API_KEY"),
+            called_process_error=called_process_error,
+        )
 
 
 def _parse_arguments(args):

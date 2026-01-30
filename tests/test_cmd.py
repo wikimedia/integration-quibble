@@ -473,3 +473,27 @@ class CmdTest(unittest.TestCase):
         self.assertRegex(
             log.output[0], "DEBUG:quibble.cmd:Project dir: /workspace/src"
         )
+
+    def test_execute_called_process_error_calls_earlywarns(self):
+        failingCmd = mock.MagicMock()
+        failingCmd.execute.side_effect = subprocess.CalledProcessError(
+            42, 'fail'
+        )
+        failingCmd.__str__.return_value = '<FailingCmdMock>'
+
+        otherCmd = mock.MagicMock()
+
+        plan = [
+            failingCmd,
+            otherCmd,
+        ]
+
+        with self.assertRaisesRegex(
+            subprocess.CalledProcessError,
+            "Command 'fail' returned non-zero exit status 42",
+        ):
+            with mock.patch('quibble.cmd.QuibbleCmd.earlywarn'):
+                quibbleCmd = cmd.QuibbleCmd()
+                quibbleCmd.execute(plan, '/tmp')
+                assert quibbleCmd.earlywarn.assert_called_once()
+                assert otherCmd.assert_not_called, 'build plan must be aborted'
