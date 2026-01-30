@@ -351,8 +351,9 @@ class CmdTest(unittest.TestCase):
         args = cmd._parse_arguments(args=[])
         project_dir, plan = cmd.QuibbleCmd().build_execution_plan(args)
 
-        self.assertIsInstance(plan[0], quibble.commands.ReportVersions)
-        self.assertIsInstance(plan[1], quibble.commands.EnsureDirectory)
+        self.assertIsInstance(plan[0], quibble.commands.ReportDurations)
+        self.assertIsInstance(plan[1], quibble.commands.ReportVersions)
+        self.assertIsInstance(plan[2], quibble.commands.EnsureDirectory)
 
     @mock.patch.dict('os.environ', clear=True)
     @mock.patch('quibble.commands.execute_command')
@@ -423,11 +424,26 @@ class CmdTest(unittest.TestCase):
         _, plan = cmd.QuibbleCmd().build_execution_plan(args)
 
         self.assertEqual(args.success_cache_key_data, ['foo'])
-        self.assertIsInstance(plan[4], quibble.commands.SuccessCache.Check)
+        self.assertIsInstance(plan[5], quibble.commands.SuccessCache.Check)
         self.assertIsInstance(plan[-1], quibble.commands.SuccessCache.Save)
         self.assertEqual(
             plan[-1].cache.client._client.server, ('cache.example', 11211)
         )
+
+    def test_build_execution_plan_shell_does_not_report_duration(self):
+        args = cmd._parse_arguments(args=['--shell'])
+        _, plan = cmd.QuibbleCmd().build_execution_plan(args)
+
+        self.assertNotIn(
+            quibble.commands.ReportDurations, [type(step) for step in plan]
+        )
+        self.assertIsInstance(plan[0], quibble.commands.ReportVersions)
+
+    def test_build_execution_plan_user_command_does_report_duration(self):
+        args = cmd._parse_arguments(args=['-c', '/bin/true'])
+        _, plan = cmd.QuibbleCmd().build_execution_plan(args)
+
+        self.assertIsInstance(plan[0], quibble.commands.ReportDurations)
 
     def test_skip_lock_check_for_patches_to_vendor(self):
         with mock.patch.dict(

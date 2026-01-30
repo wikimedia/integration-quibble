@@ -278,6 +278,11 @@ class QuibbleCmd(object):
         )
 
         plan = []
+
+        # Interactive shell does not need a report
+        if args.shell is None:
+            plan.append(quibble.commands.ReportDurations(self._context_stack))
+
         plan.append(quibble.commands.ReportVersions())
 
         plan.append(quibble.commands.EnsureDirectory(log_dir))

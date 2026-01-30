@@ -10,6 +10,7 @@ import logging
 import multiprocessing
 import os
 import os.path
+import textwrap
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -155,6 +156,81 @@ class ReportVersions:
 
     def __str__(self):
         return 'Versions'
+
+
+class ReportDurations:
+    def __init__(self, context_stack):
+        context_stack.enter_context(self)
+
+    def __enter__(self):
+        pass
+
+    def __exit__(self, *args):
+        self.printReport()
+
+    def execute(self):
+        pass
+
+    def printReport(self):
+        print(self._build_report())
+
+    def _build_report(self):
+        if not quibble.DURATIONS:
+            return
+
+        # We cant use a dict comprehension since it does not retain order of
+        # insertion.
+        formatted = {}
+        for duration, command in quibble.DURATIONS:
+            formatted[command] = '%.03fs' % duration
+
+        # Width of terminal, or COLUMN, or 80
+        try:
+            term_width = os.get_terminal_size()[0]
+        except OSError:
+            term_width = int(os.environ.get('COLUMNS', 80))
+
+        d_width = 2 + len(max(formatted.values(), key=len))
+
+        # No need for a table larger than the longest command
+        term_width = min(
+            term_width, d_width + 7 + len(max(formatted.keys(), key=len))
+        )
+        # Ensure it is not too small though
+        term_width = max(term_width, 72)
+        # Reduce width so the table has a margin
+        term_width -= 2
+
+        report = (
+            '\n'
+            + '[ REPORT FOR COMMAND DURATIONS ]'.center(term_width).rstrip()
+            + '\n\n'
+        )
+
+        head = '╒' + '═' * d_width + '╤'
+        tail = '╕'
+        body_len = term_width - len(head) - len(tail)
+        body = '═' * body_len
+        report += head + body + tail + '\n'
+
+        for command, duration in formatted.items():
+            wrapped = textwrap.wrap(
+                command,
+                width=body_len - 2,
+            )
+            for index, line in enumerate(wrapped):
+                # subsequent_indent = '│' + ' ' * d_width + '│ ',
+
+                report += '│ '
+                report += (duration if index == 0 else ' ').rjust(d_width - 2)
+                report += ' │ ' + line.ljust(body_len - 2) + ' │\n'
+
+        report += '╘' + '═' * d_width + '╧' + body + '╛'
+
+        return report
+
+    def __str__(self):
+        return 'Report durations'
 
 
 class ZuulClone:

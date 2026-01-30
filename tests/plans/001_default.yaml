@@ -22,6 +22,7 @@ args: ['--git-cache=/var/cache/git', '--workspace=/WORKSPACE']
 #
 # Required. Any plan test MUST have a plan to assert against.
 plan:
+ -  'Report durations'
  -  'Versions'
  -  "Ensure dir: '/WORKSPACE/log'"
  -  'Zuul clone {"cache_dir": "/var/cache/git", "projects": ["mediawiki/core", "mediawiki/skins/Vector", "mediawiki/vendor"], "workers": 4, "workspace": "/WORKSPACE/src"}'

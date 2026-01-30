@@ -1,6 +1,7 @@
 # --db-is-external does not start the MySQL backend
 args: ['--git-cache=/var/cache/git', '--workspace=/WORKSPACE', '--db-is-external']
 plan:
+ -  'Report durations'
  -  'Versions'
  -  "Ensure dir: '/WORKSPACE/log'"
  -  'Zuul clone {"cache_dir": "/var/cache/git", "projects": ["mediawiki/core", "mediawiki/skins/Vector", "mediawiki/vendor"], "workers": 4, "workspace": "/WORKSPACE/src"}'

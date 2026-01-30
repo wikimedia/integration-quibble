@@ -3,6 +3,7 @@ env:
 args: ['--git-cache=/var/cache/git', '--workspace=/WORKSPACE']
 
 plan:
+ -  'Report durations'
  - 'Versions'
  - "Ensure dir: '/WORKSPACE/log'"
  - 'Zuul clone {"cache_dir": "/var/cache/git", "projects": ["mediawiki/core", "mediawiki/services/parsoid", "mediawiki/skins/Vector", "mediawiki/vendor"], "workers": 4, "workspace": "/WORKSPACE/src", "zuul_project": "mediawiki/services/parsoid"}'
