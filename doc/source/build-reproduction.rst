@@ -11,7 +11,7 @@ You can find them in the Jenkins job parameters, `for example <https://phab.wmfu
     BASE_LOG_PATH=67/545967/1
     EXT_DEPENDENCIES=mediawiki/extensions/AbuseFilter\nmediawiki/extensions/AntiSpoof\nmediawiki/extensions/Babel\nmediawiki/extensions/CheckUser\nmediawiki/extensions/CirrusSearch\nmediawiki/extensions/Cite\nmediawiki/extensions/CiteThisPage\nmediawiki/extensions/CodeEditor\nmediawiki/extensions/ConfirmEdit\nmediawiki/extensions/ContentTranslation\nmediawiki/extensions/Echo\nmediawiki/extensions/Elastica\nmediawiki/extensions/EventLogging\nmediawiki/extensions/FileImporter\nmediawiki/extensions/Flow\nmediawiki/extensions/Gadgets\nmediawiki/extensions/GeoData\nmediawiki/extensions/GlobalCssJs\nmediawiki/extensions/GlobalPreferences\nmediawiki/extensions/GuidedTour\nmediawiki/extensions/ImageMap\nmediawiki/extensions/InputBox\nmediawiki/extensions/Interwiki\nmediawiki/extensions/JsonConfig\nmediawiki/extensions/MobileApp\nmediawiki/extensions/MobileFrontend\nmediawiki/extensions/NavigationTiming\nmediawiki/extensions/ParserFunctions\nmediawiki/extensions/PdfHandler\nmediawiki/extensions/Poem\nmediawiki/extensions/SandboxLink\nmediawiki/extensions/SiteMatrix\nmediawiki/extensions/SpamBlacklist\nmediawiki/extensions/TemplateData\nmediawiki/extensions/Thanks\nmediawiki/extensions/TimedMediaHandler\nmediawiki/extensions/Translate\nmediawiki/extensions/UniversalLanguageSelector\nmediawiki/extensions/VisualEditor\nmediawiki/extensions/WikiEditor\nmediawiki/extensions/Wikibase\nmediawiki/extensions/WikibaseCirrusSearch\nmediawiki/extensions/WikibaseMediaInfo\nmediawiki/extensions/cldr
     EXT_NAME=MobileFrontend
-    LOG_PATH=67/545967/1/test/wmf-quibble-vendor-mysql-php74-docker/55820fc
+    LOG_PATH=67/545967/1/test/wmf-quibble-vendor-mysql-php83-docker/55820fc
     SKIN_DEPENDENCIES=mediawiki/skins/MinervaNeue\nmediawiki/skins/Vector
     ZUUL_CHANGE=545967
     ZUUL_CHANGE_IDS=545967,1
@@ -44,26 +44,26 @@ Choose the right Docker image.
 You must also choose the correct quibble image for the base OS and php interpreter to mirror the job:
 e.g. Debian Buster and php 7.4::
 
-      docker-registry.wikimedia.org/releng/quibble-buster-php74
+      docker-registry.wikimedia.org/releng/quibble-bullseye-php83
 
 You can find the full name of the image associated with a job run by looking through the Jenkins Console Log for the build in question and searching for ``docker`` invocations. Somewhere in the first 10 seconds of logs you should see a docker invocation to run the associated container::
 
       13:05:00 + exec docker run --entrypoint=quibble-with-supervisord
       --tmpfs /workspace/db:size=320M --volume /srv/jenkins/workspace/
-      quibble-composer-mysql-php74-noselenium/src:/workspace/src
-      --volume /srv/jenkins/workspace/quibble-composer-mysql-php74-
+      quibble-composer-mysql-php83-noselenium/src:/workspace/src
+      --volume /srv/jenkins/workspace/quibble-composer-mysql-php83-
       noselenium/cache:/cache --volume /srv/jenkins/workspace/quibble-
-      composer-mysql-php74-noselenium/log:/workspace/log --volume
+      composer-mysql-php83-noselenium/log:/workspace/log --volume
       /srv/git:/srv/git:ro --security-opt seccomp=unconfined --init
-      --rm --label jenkins.job=quibble-composer-mysql-php74-noselenium
+      --rm --label jenkins.job=quibble-composer-mysql-php83-noselenium
       --label jenkins.build=53 --env-file /dev/fd/63
-      docker-registry.wikimedia.org/releng/quibble-buster-php74:1.7.0-s1
+      docker-registry.wikimedia.org/releng/quibble-bullseye-php83:1.15.0
      --reporting-url=https://earlywarningbot.toolforge.org --packages
      -source composer --db mysql --db-dir /workspace/db --git-parallel=8
      --reporting-url=https://earlywarningbot.toolforge.org --skip
      selenium,npm-test,phpunit-standalone,api-testing
 
-(in this case `docker-registry.wikimedia.org/releng/quibble-buster-php74:1.7.0-s1`). Alternatively, you can find the full list of images at the `Wikimedia Docker Registry <https://docker-registry.wikimedia.org/>`_. Or look at the `CI configuration <https://gerrit.wikimedia.org/g/integration/config/+/refs/heads/master/jjb/mediawiki.yaml>`_ to see which image is currently defined.
+(in this case `docker-registry.wikimedia.org/releng/quibble-bullseye-php83:1.15.0`). Alternatively, you can find the full list of images at the `Wikimedia Docker Registry <https://docker-registry.wikimedia.org/>`_. Or look at the `CI configuration <https://gerrit.wikimedia.org/g/integration/config/+/refs/heads/master/jjb/mediawiki.yaml>`_ to see which image is currently defined.
 
 Run quibble with the env file as parameter.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -76,7 +76,7 @@ Run::
       -v "$(pwd)"/log:/log \
       -v "$(pwd)"/ref:/srv/git:ro \
       -v "$(pwd)"/src:/workspace/src \
-      docker-registry.wikimedia.org/releng/quibble-buster-php74:latest
+      docker-registry.wikimedia.org/releng/quibble-bullseye-php83:latest
 
 Optionally skip (slow) installation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -89,7 +89,7 @@ For repeated runs of the same change, assuming you have once successfully execut
       -v "$(pwd)"/log:/log \
       -v "$(pwd)"/ref:/srv/git:ro \
       -v "$(pwd)"/src:/workspace/src \
-      docker-registry.wikimedia.org/releng/quibble-buster-php74:latest \
+      docker-registry.wikimedia.org/releng/quibble-bullseye-php83:latest \
       --skip-zuul \
       --skip-deps
 
@@ -132,9 +132,9 @@ Fortunately, Quibble allows us to specify an arbitrary test command. If we run `
            --volume "$(pwd)"/log:/workspace/log \
            --volume "$(pwd)"/ref:/srv/git:ro \
            --security-opt seccomp=unconfined \
-           --env-file=env-wmf-quibble-vendor-mysql-php74-docker \
+           --env-file=env-wmf-quibble-vendor-mysql-php83-docker \
            --init --rm \
-           docker-registry.wikimedia.org/releng/quibble-buster-php74:1.6.0-s6ubuntu1 \
+           docker-registry.wikimedia.org/releng/quibble-bullseye-php83:1.15.0-s6ubuntu1 \
            --packages-source composer \
            --db mysql --db-dir /workspace/db \
            --git-parallel=8 \

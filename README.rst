@@ -32,7 +32,7 @@ How it works in Wikimedia CI
 
 Get the latest image being run by Wikimedia CI::
 
-  docker pull docker-registry.wikimedia.org/releng/quibble-buster-php74:latest
+  docker pull docker-registry.wikimedia.org/releng/quibble-bullseye-php83:latest
 
 Quibble clones the repositories from Gerrit, and may load additional
 dependencies using composer and npm. At the end of the run, the container will
@@ -98,7 +98,7 @@ The final command::
       -v "$(pwd)"/log:/workspace/log \
       -v "$(pwd)"/ref:/srv/git:ro \
       -v "$(pwd)"/src:/workspace/src \
-      docker-registry.wikimedia.org/releng/quibble-buster-php74:latest
+      docker-registry.wikimedia.org/releng/quibble-bullseye-php83:latest
 
 Quibble will then do the initial cloning of repositories reusing bare
 repositories from ``ref``, being local it is arguably faster than transferring
@@ -127,12 +127,12 @@ To modify and run the image locally:
 * Submit your patch to Gerrit for review. It does not need to be merged yet,
   but this allows the existing logic to fetch and install your version
   in the container.
-* Edit `dockerfiles/quibble-buster/Dockerfile.template` and specify
+* Edit `dockerfiles/quibble-bullseye/Dockerfile.template` and specify
   your commit hash in the `QUIBBLE_VERSION` assignment.
-* Make a temporary bump in the quibble-buster and quibble-buster-php74 changelogs.
+* Make a temporary bump in the quibble-bullseyeand quibble-bullseye-php83 changelogs.
   Use a version like `-dev1` rather than regular semver versions as those builds
   may remain in your local cache and complicate future testing on your machine).
-* Run `dockerfiles/config.yaml build --select '*/quibble-buster:*' dockerfiles/`
+* Run `dockerfiles/config.yaml build --select '*/quibble-bullseye:*' dockerfiles/`
 
 
 TESTING
