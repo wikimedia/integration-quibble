@@ -11,6 +11,8 @@ import multiprocessing
 import os
 import os.path
 
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
 import requests
 import yaml
 
@@ -104,8 +106,19 @@ class ReportVersions:
     def execute(self):
         log.info("Python version: %s", sys.version)
 
-        for cmd in self.getCommands():
-            self._logged_call(cmd)
+        # Run them all in parallel
+        with ThreadPoolExecutor() as executor:
+            futures = [
+                executor.submit(self._logged_call, cmd)
+                for cmd in self.getCommands()
+            ]
+
+            for program, logger, message in sorted(
+                [future.result() for future in as_completed(futures)],
+                key=lambda k: k[0],
+            ):
+                for m in message.splitlines():
+                    logger(m)
 
     def getCommands(self):
         return [
@@ -126,12 +139,19 @@ class ReportVersions:
             message = '{}: {}'.format(
                 ' '.join(cmd), res.strip().decode('utf-8')
             )
-            for line in message.split('\n'):
-                log.info(line)
+            return (cmd[0], log.info, message)
         except subprocess.CalledProcessError:
-            log.warning('Failed to run command: %s', ' '.join(cmd))
+            return (
+                cmd[0],
+                log.warning,
+                'Failed to run command: %s' % ' '.join(cmd),
+            )
         except FileNotFoundError:
-            log.warning('Command not found: %s', ' '.join(cmd))
+            return (
+                cmd[0],
+                log.warning,
+                'Command not found: %s' % ' '.join(cmd),
+            )
 
     def __str__(self):
         return 'Versions'
