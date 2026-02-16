@@ -291,6 +291,7 @@ class CmdTest(unittest.TestCase):
         args = cmd._parse_arguments(args=['-c', 'true', '-c', 'false'])
         self.assertEqual(['true', 'false'], args.commands)
 
+    @mock.patch.dict('os.environ', clear=True)
     @mock.patch('quibble.cmd.QuibbleCmd')
     def test_shell_option_sets_commands(self, QuibbleCmd):
         user_shell = '/bin/magicsh'
@@ -306,6 +307,7 @@ class CmdTest(unittest.TestCase):
                 assert args.shell == [user_shell]
                 assert args.commands == [user_shell]
 
+    @mock.patch.dict('os.environ', clear=True)
     @mock.patch('quibble.commands.execute_command')
     def test_user_command_non_zero_exit_status_raises(self, execute_command):
         execute_command.side_effect = subprocess.CalledProcessError(
@@ -318,6 +320,7 @@ class CmdTest(unittest.TestCase):
             ):
                 cmd.main()
 
+    @mock.patch.dict('os.environ', clear=True)
     @mock.patch('quibble.commands.execute_command')
     def test_shell_non_zero_exit_status_does_not_raise(self, execute_command):
         execute_command.side_effect = subprocess.CalledProcessError(
@@ -342,6 +345,7 @@ class CmdTest(unittest.TestCase):
         self.assertIsInstance(plan[0], quibble.commands.ReportVersions)
         self.assertIsInstance(plan[1], quibble.commands.EnsureDirectory)
 
+    @mock.patch.dict('os.environ', clear=True)
     @mock.patch('quibble.commands.execute_command')
     def test_main_execute_build_plan_without_dry_run(self, execute_command):
         with mock.patch('sys.argv', ['quibble']):
@@ -353,6 +357,7 @@ class CmdTest(unittest.TestCase):
             'execute_command must have been called',
         )
 
+    @mock.patch.dict('os.environ', clear=True)
     @mock.patch('quibble.commands.execute_command')
     def test_main_execute_build_plan_with_dry_run(self, execute_command):
         with mock.patch('sys.argv', ['quibble', '--dry-run']):
