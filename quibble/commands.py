@@ -104,7 +104,11 @@ class ReportVersions:
     def execute(self):
         log.info("Python version: %s", sys.version)
 
-        commands = [
+        for cmd in self.getCommands():
+            self._logged_call(cmd)
+
+    def getCommands(self):
+        return [
             ['chromedriver', '--version'],
             ['chromium', '--version'],
             ['composer', '--version'],
@@ -115,8 +119,6 @@ class ReportVersions:
             [quibble.get_npm_command(), '--version'],
             ['php', '--version'],
         ]
-        for cmd in commands:
-            self._logged_call(cmd)
 
     def _logged_call(self, cmd):
         try:

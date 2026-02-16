@@ -53,6 +53,95 @@ def mock_npm_command_env(env_value):
         return mock.patch.dict('os.environ', {'NPM_COMMAND': env_value})
 
 
+class ReportVersionsTest:
+    @pytest.mark.usefixtures('caplog')
+    @mock.patch('subprocess.check_output')
+    @mock.patch('quibble.commands.ReportVersions.getCommands')
+    def test_reports_builtin_python_version(
+        self, get_commands, check_output, caplog
+    ):
+        caplog.set_level(logging.INFO)
+        get_commands.return_value = []
+
+        c = quibble.commands.ReportVersions()
+        c.execute()
+
+        assert [rec.message for rec in caplog.records] == [
+            'Python version: %s' % sys.version,
+        ]
+
+        assert check_output.assert_not_called
+
+    @pytest.mark.parametrize(*npm_envs_parameters)
+    def test_varies_npm_command(self, npm_command_env, expected_npm_command):
+        c = quibble.commands.ReportVersions()
+        with mock_npm_command_env(npm_command_env):
+            assert [expected_npm_command, '--version'] in c.getCommands()
+
+    @pytest.mark.usefixtures('caplog')
+    @mock.patch('subprocess.check_output')
+    @mock.patch('quibble.commands.ReportVersions.getCommands')
+    def test_formatting(self, get_commands, check_output, caplog):
+        caplog.set_level(logging.INFO)
+
+        get_commands.return_value = [
+            ['antoine', '-v'],
+            ['foo-bar', '--version'],
+            ['multiline', '-version'],
+        ]
+        check_output.side_effect = [
+            b'v15.10\n',
+            b'Foo Bar v42.1   \n',
+            b'Multiline \nv3.14 !!\nThis software is bugged',
+        ]
+
+        c = quibble.commands.ReportVersions()
+        c.execute()
+
+        assert [rec.message for rec in caplog.records] == [
+            'Python version: %s' % sys.version,
+            'antoine -v: v15.10',
+            'foo-bar --version: Foo Bar v42.1',
+            'multiline -version: Multiline ',
+            'v3.14 !!',
+            'This software is bugged',
+        ]
+
+    @pytest.mark.usefixtures('caplog')
+    @mock.patch('subprocess.check_output')
+    @mock.patch('quibble.commands.ReportVersions.getCommands')
+    def test_warn_on_failed_command(self, get_commands, check_output, caplog):
+        caplog.set_level(logging.WARNING)
+
+        get_commands.return_value = [['false']]
+
+        check_output.side_effect = subprocess.CalledProcessError(42, 'false')
+
+        c = quibble.commands.ReportVersions()
+        c.execute()
+
+        assert [(rec.levelname, rec.message) for rec in caplog.records] == [
+            ('WARNING', 'Failed to run command: false'),
+        ]
+
+    @pytest.mark.usefixtures('caplog')
+    @mock.patch('subprocess.check_output')
+    @mock.patch('quibble.commands.ReportVersions.getCommands')
+    def test_warn_on_missing_command(self, get_commands, check_output, caplog):
+        caplog.set_level(logging.WARNING)
+
+        get_commands.return_value = [['no-such_command']]
+
+        check_output.side_effect = FileNotFoundError()
+
+        c = quibble.commands.ReportVersions()
+        c.execute()
+
+        assert [(rec.levelname, rec.message) for rec in caplog.records] == [
+            ('WARNING', 'Command not found: no-such_command'),
+        ]
+
+
 class ExtSkinSubmoduleUpdateTest(unittest.TestCase):
     def test_submodule_update_errors(self):
         c = quibble.commands.ExtSkinSubmoduleUpdate('/tmp')
