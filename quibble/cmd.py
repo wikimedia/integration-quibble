@@ -983,10 +983,11 @@ def get_arg_parser():
     command_args.add_argument(
         '--shell',
         action='store_const',
-        const=[current_shell],
+        const=[current_shell or 'bash'],
         dest='shell',
         help=(
-            'Drop you in CLI as set by $SHELL (current: %s)' % (current_shell)
+            'Drop you in CLI as set by $SHELL (current: %s)'
+            % (current_shell if current_shell else 'bash [SHELL not set]')
         ),
     )
 

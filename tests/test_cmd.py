@@ -307,6 +307,15 @@ class CmdTest(unittest.TestCase):
                 assert args.shell == [user_shell]
                 assert args.commands == [user_shell]
 
+    @mock.patch('quibble.cmd.QuibbleCmd')
+    def test_shell_option_with_no_shell_enviroment_variable(self, QuibbleCmd):
+        with mock.patch.dict('os.environ', clear=True):
+            with mock.patch('sys.argv', ['quibble', '--shell']):
+                QuibbleCmd().build_execution_plan.return_value = ('', [])
+                cmd.main()
+                args = QuibbleCmd().build_execution_plan.call_args[0][0]
+                assert args.shell == ['bash']
+
     @mock.patch.dict('os.environ', clear=True)
     @mock.patch('quibble.commands.execute_command')
     def test_user_command_non_zero_exit_status_raises(self, execute_command):
