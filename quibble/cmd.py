@@ -281,7 +281,9 @@ class QuibbleCmd(object):
 
         # Interactive shell does not need a report
         if args.shell is None:
-            plan.append(quibble.commands.ReportDurations(self._context_stack))
+            plan.append(
+                quibble.commands.ReportDurations(self._context_stack, log_dir)
+            )
 
         plan.append(quibble.commands.ReportVersions())
 

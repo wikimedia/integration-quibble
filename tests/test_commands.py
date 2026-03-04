@@ -14,6 +14,7 @@ import unittest
 from unittest import mock
 from unittest.mock import call
 
+from quibble import CommandTiming
 import quibble.commands
 
 
@@ -140,6 +141,110 @@ class ReportVersionsTest:
         assert [(rec.levelname, rec.message) for rec in caplog.records] == [
             ('WARNING', 'Command not found: no-such_command'),
         ]
+
+
+class ReportDurationsTest:
+    def test_without_a_log_dir_does_not_write_json_report(self):
+        reporter = quibble.commands.ReportDurations(contextlib.ExitStack())
+        with mock.patch.object(
+            quibble.commands.ReportDurations, 'writeJsonReport'
+        ) as writeJsonReport:
+            with reporter:
+                pass
+
+        writeJsonReport.assert_not_called()
+
+    @mock.patch('builtins.open', mock.mock_open())
+    @pytest.mark.usefixtures('caplog')
+    def test_log_the_file_it_writes(self, caplog):
+        caplog.set_level(logging.INFO)
+        test_log_dir = '/tmp/quibble-test-log'
+        reporter = quibble.commands.ReportDurations(
+            contextlib.ExitStack(), log_dir=test_log_dir
+        )
+        with mock.patch('os.path.exists', return_value=True):
+            with reporter:
+                pass
+
+        assert [rec.message for rec in caplog.records] == [
+            'Wrote durations to %s'
+            % os.path.join(test_log_dir, 'quibble-durations.json')
+        ]
+
+    @pytest.mark.usefixtures('caplog')
+    def test_log_a_warning_when_log_dir_is_missing(self, caplog):
+        caplog.set_level(logging.WARNING)
+        reporter = quibble.commands.ReportDurations(
+            contextlib.ExitStack(), log_dir='/nonexistent'
+        )
+        with mock.patch('os.path.exists', return_value=False):
+            with reporter:
+                pass
+
+        assert [rec.message for rec in caplog.records] == [
+            'Can not write JSON duration reports: /nonexistent does not exist'
+        ]
+
+    def results_exceptions():
+        yield pytest.param(
+            {'result': 'SUCCESS', 'success_cache_hit': False},
+            None,
+            id="no exception",
+        )
+        yield pytest.param(
+            {'result': 'FAILURE', 'success_cache_hit': False},
+            subprocess.CalledProcessError,
+            id="CalledProcessError",
+        )
+        yield pytest.param(
+            {'result': 'SUCCESS', 'success_cache_hit': True},
+            quibble.commands.SuccessCache.Hit,
+            id="SuccessCache.Hit",
+        )
+
+    @pytest.mark.parametrize('expected,exc_type', results_exceptions())
+    def test_result_from_exception(self, expected, exc_type):
+        result = quibble.commands.ReportDurations.result_from_exception(
+            exc_type
+        )
+        assert expected == result
+
+    def test_dumps_json(self):
+        reporter = quibble.commands.ReportDurations(
+            contextlib.ExitStack(), log_dir='/tmp/quibble-test-log'
+        )
+        fixture = [
+            CommandTiming(2.0265579223632812e-05, 'Report durations'),
+            CommandTiming(0.6337735652923584, 'Versions'),
+            CommandTiming(7.867813110351562e-05, "Ensure dir: 'wrkspc/log'"),
+        ]
+
+        # py310: use parentheses to break context managers on individual lines
+        with mock.patch('quibble.DURATIONS', fixture):
+            with mock.patch('os.path.exists', return_value=True):
+                with mock.patch('builtins.open', mock.mock_open()) as m:
+                    with reporter:
+                        pass
+
+        # Collect json encoded chunks written individually to the filepointer
+        json_str = "".join(
+            [write_call.args[0] for write_call in m().write.mock_calls]
+        )
+
+        assert json_str == (
+            ' '.join(
+                [
+                    '{"result": "SUCCESS",',
+                    '"success_cache_hit": false,',
+                    '"durations": [' '{"seconds": 2.0265579223632812e-05,',
+                    '"command": "Report durations"},',
+                    '{"seconds": 0.6337735652923584,',
+                    '"command": "Versions"},',
+                    '{"seconds": 7.867813110351562e-05,',
+                    '"command": "Ensure dir: \'wrkspc/log\'"}]}',
+                ]
+            )
+        )
 
 
 class ExtSkinSubmoduleUpdateTest(unittest.TestCase):

@@ -159,13 +159,16 @@ class ReportVersions:
 
 
 class ReportDurations:
-    def __init__(self, context_stack):
+    def __init__(self, context_stack, log_dir=None):
+        self.log_dir = log_dir
         context_stack.enter_context(self)
 
     def __enter__(self):
         pass
 
-    def __exit__(self, *args):
+    def __exit__(self, exc_type, exc_value, traceback):
+        if self.log_dir:
+            self.writeJsonReport(exc_type, exc_value)
         self.printReport()
 
     def execute(self):
@@ -228,6 +231,43 @@ class ReportDurations:
         report += '╘' + '═' * d_width + '╧' + body + '╛'
 
         return report
+
+    @staticmethod
+    def result_from_exception(exc_type=None):
+        # Set all logical conditions first
+        is_success_cache_hit = exc_type == quibble.commands.SuccessCache.Hit
+        is_success = exc_type is None or is_success_cache_hit
+
+        # then format and return the result
+        return {
+            'result': 'SUCCESS' if is_success else 'FAILURE',
+            'success_cache_hit': is_success_cache_hit,
+        }
+
+    def writeJsonReport(self, exc_type=None, exc_value=None):
+        if not os.path.exists(self.log_dir):
+            log.warning(
+                'Can not write JSON duration reports: %s does not exist',
+                self.log_dir,
+            )
+            return
+
+        json_file = os.path.join(self.log_dir, 'quibble-durations.json')
+        # Format the CommandTimingnamed tuple as dict to get a self explanatory
+        # json output.
+        json_report = {}
+        json_report.update(ReportDurations.result_from_exception(exc_type))
+        json_report.update(
+            {
+                'durations': [
+                    timing._asdict() for timing in quibble.DURATIONS
+                ],
+            }
+        )
+
+        json.dump(json_report, open(json_file, 'w'))
+
+        log.info('Wrote durations to %s', json_file)
 
     def __str__(self):
         return 'Report durations'
