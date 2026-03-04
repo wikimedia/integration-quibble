@@ -374,6 +374,15 @@ class CmdTest(unittest.TestCase):
             cmd.main()
         execute_command.assert_not_called()
 
+    @mock.patch.dict('os.environ', clear=True)
+    @mock.patch('quibble.commands.execute_command')
+    def test_main_succeed_on_Success_Cache_Hit_exception(
+        self, execute_command
+    ):
+        execute_command.side_effect = quibble.commands.SuccessCache.Hit()
+        with mock.patch('sys.argv', ['quibble']):
+            cmd.main()
+
     @mock.patch('quibble.is_in_docker', return_value=False)
     def test_build_execution_plan_adds_ZUUL_PROJECT(self, _):
         env = {'ZUUL_PROJECT': 'mediawiki/extensions/ZuulProjectEnvVar'}
@@ -503,6 +512,17 @@ class CmdTest(unittest.TestCase):
         self.assertRegex(
             log.output[0], "DEBUG:quibble.cmd:Project dir: /workspace/src"
         )
+
+    def test_execute_reraise_SuccessCache_Hit(self):
+        q = cmd.QuibbleCmd()
+
+        successCacheHitCmd = mock.MagicMock()
+        successCacheHitCmd.execute.side_effect = (
+            quibble.commands.SuccessCache.Hit()
+        )
+
+        with self.assertRaises(quibble.commands.SuccessCache.Hit):
+            q.execute([successCacheHitCmd], '/workspace/src')
 
     def test_execute_called_process_error_calls_earlywarns(self):
         failingCmd = mock.MagicMock()

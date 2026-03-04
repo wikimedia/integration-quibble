@@ -636,11 +636,8 @@ class QuibbleCmd(object):
             for command in plan:
                 try:
                     quibble.commands.execute_command(command)
-                except quibble.commands.SuccessCache.Hit:
-                    log.warning(
-                        'Skipping remaining commands due to success cache hit'
-                    )
-                    break
+                except quibble.commands.SuccessCache.Hit as success_cache_hit:
+                    raise success_cache_hit
                 except subprocess.CalledProcessError as called_process_error:
                     # Report exception to a remote service if configured
                     self.earlywarn(
@@ -1021,6 +1018,9 @@ def main():
             reporting_url=args.reporting_url,
             dry_run=args.dry_run,
         )
+    except quibble.commands.SuccessCache.Hit:
+        log.warning('Skipping remaining commands due to success cache hit')
+        pass
     except subprocess.CalledProcessError as e:
         if not args.shell:
             raise e
