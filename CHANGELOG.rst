@@ -1,23 +1,64 @@
 Quibble changelog
 =================
 
-
-master (unreleased)
+1.16.0 (2026-03-06)
 -------------------
 
-* …
+Features
+~~~~~~~~
+* Collect program versions in parallel
+  `T417409 <https://phabricator.wikimedia.org/T417409>`_
+  Antoine Musso
+* Report duration for each stages at end of the build.
+  At the end of the build, Quibble will now emit a table reporting how long it
+  took for each stages to run.  This is additionally written as a JSON report
+  at ``$LOG_DIR/quibble-durations.json``.
+  The report is not shown when Quibble is invoked with ``--shell``.
+  `T417399 <https://phabricator.wikimedia.org/T417399>`_
+  Antoine Musso
+* Measure duration of each commands (``-c``) individually.
+  This makes each command to be a section when using the Jenkins collapsible
+  sections plugin and commands are shown individually in the duration report.
+  Antoine Musso
+
+Fixes
+~~~~~
+* Fix ``--shell`` when ``SHELL`` environment variable is not set (for example
+  when invoking Quibble using a container.
+  `TT418461 <https://phabricator.wikimedia.org/T418461>`_
+  Antoine Musso
+
+Documentation
+~~~~~~~~~~~~~
+* Use latest Quibble CI image
+  Peter Hedenskog
+* Fix ``git log`` command in ``RELEASING.md``
+  Antoine Musso
+
+Internal
+~~~~~~~~
+* Move earlywarning processing to a method
+  Antoine Musso
+* tests: fix ``main()`` mangling the logging level name
+  Antoine Musso
+* tests: fully cover quibble.commands.ReportVersions
+  `T417409 <https://phabricator.wikimedia.org/T417409>`_
+  Antoine Musso
+* Propagate ``SuccessCache.Hit()`` to the caller
+  `T417399 <https://phabricator.wikimedia.org/T417399>`_
+  Antoine Musso
 
 1.15.0 (2026-01-23)
 -------------------
 
 Features
 ~~~~~~~~
-* Add --shell to start an user shell
+* Add ``--shell`` to start an user shell
   Antoine Musso
 
 Fixes
 ~~~~~
-* Always use `composer phpunit` for PHPUnit tests
+* Always use ``composer phpunit`` for PHPUnit tests
   `T395470 <https://phabricator.wikimedia.org/T395470>`_
   Daimona Eaytoy
 * PHPUnit: Stop excluding the ParserFuzz and Stub groups
