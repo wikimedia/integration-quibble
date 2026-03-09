@@ -14,8 +14,7 @@ plan:
  -  'Install composer dev-requires for vendor.git'
  -  'Start backends: <MySQL (no socket)>'
  - |-
-   Run Post-dependency install, pre-database dependent steps in parallel (concurrency=2):
+   Run Post-dependency install, pre-database dependent steps in parallel (concurrency=1):
    * Install MediaWiki, db=<MySQL (no socket)>
-   * npm install in /WORKSPACE/src
  -  'Start backends: <PhpWebserver http://127.0.0.1:9412 /WORKSPACE/src> <ChromeWebDriver :0>'
  -  'Run all browser tests'
