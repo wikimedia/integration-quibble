@@ -141,5 +141,4 @@ def Chronometer(name, logger):
         duration = time.time() - start
         logger('<<< Finish: %s, in %.03f s' % (name, duration))
 
-        global DURATIONS
         DURATIONS.append(CommandTiming(command=name, seconds=duration))
