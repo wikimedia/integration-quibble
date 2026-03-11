@@ -1291,10 +1291,14 @@ class BrowserTests:
         for project in self.projects:
             project_dir = get_project_dir(self.mw_install_path, project)
             if repo_has_npm_script(project_dir, 'selenium-test'):
-                self._run_webdriver(project_dir)
+                repo_dir = os.path.relpath(project_dir, self.mw_install_path)
+                chrono_name = "Browser tests in '%s'" % (
+                    os.path.join('./', repo_dir)
+                )
+                with quibble.Chronometer(chrono_name, log.info):
+                    self._run_webdriver(project_dir)
 
     def _run_webdriver(self, project_dir):
-        log.info('Running webdriver test in %s', project_dir)
         webdriver_env = {}
         webdriver_env.update(os.environ)
         webdriver_env.update(
@@ -1319,7 +1323,7 @@ class BrowserTests:
         )
 
     def __str__(self):
-        return "Browser tests: {}".format(", ".join(self.projects))
+        return 'Run all browser tests'
 
 
 class UserScripts:

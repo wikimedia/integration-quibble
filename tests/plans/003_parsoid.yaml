@@ -25,6 +25,6 @@ plan:
  - 'Run phpbench'
  - 'Start backends: <PhpWebserver http://127.0.0.1:9412 /WORKSPACE/src> <Xvfb :94> <ChromeWebDriver :94>'
  - 'Run QUnit tests'
- - 'Browser tests: mediawiki/services/parsoid, mediawiki/core, mediawiki/skins/Vector, mediawiki/vendor'
+ - 'Run all browser tests'
  - 'Run API-Testing'
  - 'PHPUnit extensions suite (with database)'

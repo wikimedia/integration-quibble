@@ -1068,6 +1068,57 @@ class BrowserTestsTest:
         c.execute()
         mock_run.assert_not_called()
 
+    @pytest.mark.usefixtures('caplog')
+    @mock.patch('os.path.exists', return_value=True)
+    @mock.patch('builtins.open', mock.mock_open())
+    @mock.patch('json.load')
+    @mock.patch('quibble.commands.run')
+    @mock.patch('quibble.backend.PhpWebserver')
+    @mock.patch('quibble.backend.ChromeWebDriver')
+    def test_reported_durations(
+        self,
+        mock_driver,
+        mock_server,
+        mock_run,
+        mock_load,
+        mock_path_exists,
+        caplog,
+    ):
+        caplog.set_level(logging.INFO)
+
+        selenium_test_json = {'scripts': {'selenium-test'}}
+        no_test_json = {'scripts': {}}
+        repos_scripts = {
+            'mediawiki/core': selenium_test_json,
+            'mediawiki/extensions/NoTest': no_test_json,
+            'mediawiki/extensions/HasTest': selenium_test_json,
+        }
+
+        mock_load.side_effect = repos_scripts.values()
+
+        c = quibble.commands.BrowserTests(
+            '/workspace/src',
+            repos_scripts.keys(),
+            ':0',
+            'http://192.0.2.1:4321',
+            'php',
+        )
+        # fmt: off
+        with mock.patch('quibble.time.time', side_effect=[
+            # time.time is invoked by Chronometer as well as logging so we need
+            # a few more extras.
+            1, 2, 4, 8, 16, 32, 64, 128,
+        ]):
+            # fmt: on
+            c.execute()
+
+        assert [rec.message for rec in caplog.records] == [
+            ">>> Start: Browser tests in './.'",
+            "<<< Finish: Browser tests in './.', in 3.000 s",
+            ">>> Start: Browser tests in './extensions/HasTest'",
+            "<<< Finish: Browser tests in './extensions/HasTest', in 48.000 s",
+        ]
+
 
 class UserScriptsTest(unittest.TestCase):
     @mock.patch('quibble.backend.PhpWebserver')

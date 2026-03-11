@@ -42,6 +42,6 @@ plan:
     * npm test in /WORKSPACE/src
  -  'Start backends: <PhpWebserver http://127.0.0.1:9412 /WORKSPACE/src> <ChromeWebDriver :0>'
  -  'Run QUnit tests'
- -  'Browser tests: mediawiki/core, mediawiki/skins/Vector, mediawiki/vendor'
+ -  'Run all browser tests'
  -  'Run API-Testing'
  -  'PHPUnit default suite (with database)'
