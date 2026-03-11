@@ -3,7 +3,7 @@
 # For the full list of built-in configuration values, see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
-from pkg_resources import get_distribution
+from importlib.metadata import version as get_version
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
@@ -14,7 +14,7 @@ author = ('Antoine Musso, Kunal Mehta, Timo Tijhof, Tyler Cipriani, '
 copyright = '2014 - 2018, ' + author
 
 # The full version, including alpha/beta/rc tags
-release = get_distribution('quibble').version
+release = get_version('quibble')
 # The short X.Y version
 version = release
 
