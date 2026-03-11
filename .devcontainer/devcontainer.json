@@ -1,0 +1,22 @@
+{
+  "name": "Quibble",
+  "image": "docker-registry.wikimedia.org/releng/tox-v4:latest",
+  "postCreateCommand": "install -d /tmp/userhome",
+  "containerEnv": {
+    "HOME": "/tmp/userhome",
+    "LANG": "${localEnv:LANG}"
+  },
+  "remoteUser": "nobody",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "terminal.integrated.profiles.linux": {
+          "bash": {
+            "path": "/bin/bash"
+          }
+        }
+      }
+    }
+  }
+}
