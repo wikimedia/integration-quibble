@@ -1103,20 +1103,29 @@ class BrowserTestsTest:
             'http://192.0.2.1:4321',
             'php',
         )
-        # fmt: off
-        with mock.patch('quibble.time.time', side_effect=[
-            # time.time is invoked by Chronometer as well as logging so we need
-            # a few more extras.
-            1, 2, 4, 8, 16, 32, 64, 128,
-        ]):
-            # fmt: on
+
+        # time.time is invoked by Chronometer as well as logging so we need
+        # a few more extras. Python 3.13 has a slightly different behavior,
+        # maybe related to how time.time is mocked.
+        if sys.version_info >= (3, 13):
+            mocked_times = [1, 2, 4, 8]
+            first_duration = 1
+            second_duration = 4
+        else:
+            # Remove this branch once we requires Python 3.13
+            mocked_times = [1, 2, 4, 8, 16, 32, 64, 128]
+            first_duration = 3
+            second_duration = 48
+
+        with mock.patch('quibble.time.time', side_effect=mocked_times):
             c.execute()
 
         assert [rec.message for rec in caplog.records] == [
             ">>> Start: Browser tests in './.'",
-            "<<< Finish: Browser tests in './.', in 3.000 s",
+            "<<< Finish: Browser tests in './.', in %.03f s" % first_duration,
             ">>> Start: Browser tests in './extensions/HasTest'",
-            "<<< Finish: Browser tests in './extensions/HasTest', in 48.000 s",
+            "<<< Finish: Browser tests in './extensions/HasTest', in %.03f s"
+            % second_duration,
         ]
 
 
