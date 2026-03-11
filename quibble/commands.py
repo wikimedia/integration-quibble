@@ -425,7 +425,7 @@ class ExtSkinSubmoduleUpdate:
                     try:
                         run(cmd, cwd=dirpath)
                     except subprocess.CalledProcessError as e:
-                        log.error(
+                        log.error(  # noqa: LOG005, we reraise it
                             "Failed to process git submodules for %s", dirpath
                         )
                         raise e

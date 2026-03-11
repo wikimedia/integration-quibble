@@ -1145,7 +1145,7 @@ class EchoCommand:
         self.number = number
 
     def execute(self):
-        logging.error("log line")
+        logging.getLogger(__name__).error("log line")
         print("stdout line")
         print("stderr line", file=sys.stderr)
 
