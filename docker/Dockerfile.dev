@@ -1,0 +1,19 @@
+# Development Dockerfile for testing local Quibble changes.
+#
+# Installs your working copy of Quibble over the system version.
+#
+# Build:
+# docker build --platform linux/amd64 -f docker/Dockerfile.dev -t quibble-dev .
+#
+# Check the README for how to run tests
+
+FROM docker-registry.wikimedia.org/releng/quibble-bullseye-php83:latest
+
+USER root
+
+COPY . /opt/quibble
+RUN pip3 install --no-cache-dir /opt/quibble
+
+USER nobody
+
+ENTRYPOINT ["quibble-with-supervisord"]
