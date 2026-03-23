@@ -73,6 +73,15 @@ skip_string_normalization = true
 # Flake8 default line length
 line-length = 79
 
+[tool.pytest.ini_options]
+# Increase verbosity to have the assertion error message expanded
+# Require markers to be registered, see
+# https://docs.pytest.org/en/stable/how-to/mark.html
+addopts = "--verbose --strict-markers"
+markers = [
+  "integration: tests requiring another software (PHP, PostgreSQL...)"
+]
+
 [tool.setuptools.package-data]
 "quibble.mediawiki" = ["local_settings.php.tpl"]
 
