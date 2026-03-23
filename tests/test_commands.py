@@ -85,16 +85,22 @@ class ReportVersionsTest:
     def test_formatting(self, get_commands, check_output, caplog):
         caplog.set_level(logging.INFO)
 
-        get_commands.return_value = [
-            ['antoine', '-v'],
-            ['foo-bar', '--version'],
-            ['multiline', '-version'],
-        ]
-        check_output.side_effect = [
-            b'v15.10\n',
-            b'Foo Bar v42.1   \n',
-            b'Multiline \nv3.14 !!\nThis software is bugged',
-        ]
+        # fmt: off
+        versions_commands = {
+            ('antoine', '-v'): b'v15.10\n',
+            ('foo-bar', '--version'): b'Foo Bar v42.1   \n',
+            ('multiline', '-version'):
+                b'Multiline \nv3.14 !!\nThis software is bugged',
+        }
+        # fmt: on
+
+        def command_output(*args, **kwargs):
+            return versions_commands[args[0]]
+
+        # Setup the mocks so that a given command we lookup its version from
+        # the versions_commands dict.
+        get_commands.return_value = versions_commands.keys()
+        check_output.side_effect = command_output
 
         c = quibble.commands.ReportVersions()
         c.execute()
