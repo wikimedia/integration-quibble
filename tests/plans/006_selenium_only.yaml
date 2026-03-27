@@ -11,7 +11,6 @@ plan:
  -  "Ensure dir: '/WORKSPACE/log'"
  -  'Zuul clone {"cache_dir": "/var/cache/git", "projects": ["mediawiki/core", "mediawiki/skins/Vector", "mediawiki/vendor"], "workers": 4, "workspace": "/WORKSPACE/src"}'
  -  'Submodule update: /WORKSPACE/src'
- -  'Install composer dev-requires for vendor.git'
  -  'Start backends: <MySQL (no socket)>'
  - |-
    Run Post-dependency install, pre-database dependent steps in parallel (concurrency=1):

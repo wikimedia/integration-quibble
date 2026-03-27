@@ -368,8 +368,11 @@ class QuibbleCmd(object):
             )
 
         if not args.skip_deps:
-            # NPM install is done after MediaWiki installation.
-            if use_vendor:
+            if use_vendor and (
+                # Stages that do not need dev-requires to work
+                set(stages) - {'selenium', 'qunit', 'npm-test', 'api-testing'}
+                or args.commands
+            ):
                 plan.append(
                     quibble.commands.VendorComposerDependencies(
                         mw_install_path, log_dir
