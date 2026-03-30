@@ -1127,11 +1127,13 @@ class BrowserTestsTest:
             c.execute()
 
         assert [rec.message for rec in caplog.records] == [
-            ">>> Start: Browser tests in './.'",
-            "<<< Finish: Browser tests in './.', in %.03f s" % first_duration,
-            ">>> Start: Browser tests in './extensions/HasTest'",
-            "<<< Finish: Browser tests in './extensions/HasTest', in %.03f s"
-            % second_duration,
+            ">>> Start: Browser tests in 'mediawiki/core'",
+            "<<< Finish: Browser tests in 'mediawiki/core',"
+            " in %.03f s" % first_duration,
+            ">>> Start: Browser tests in 'mediawiki/extensions/HasTest'",
+            "<<< Finish: Browser tests in"
+            " 'mediawiki/extensions/HasTest',"
+            " in %.03f s" % second_duration,
         ]
 
 

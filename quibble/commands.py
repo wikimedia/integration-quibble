@@ -1291,10 +1291,7 @@ class BrowserTests:
         for project in self.projects:
             project_dir = get_project_dir(self.mw_install_path, project)
             if repo_has_npm_script(project_dir, 'selenium-test'):
-                repo_dir = os.path.relpath(project_dir, self.mw_install_path)
-                chrono_name = "Browser tests in '%s'" % (
-                    os.path.join('./', repo_dir)
-                )
+                chrono_name = "Browser tests in '%s'" % project
                 with quibble.Chronometer(chrono_name, log.info):
                     self._run_webdriver(project_dir)
 
