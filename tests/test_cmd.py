@@ -291,6 +291,12 @@ class CmdTest(unittest.TestCase):
         args = cmd._parse_arguments(args=['-c', 'true', '-c', 'false'])
         self.assertEqual(['true', 'false'], args.commands)
 
+    @mock.patch.dict('os.environ', {'SHELL': '/bin/somesh'}, clear=True)
+    def test_parse_arguments_has_shell_setting_commands(self):
+        args = cmd._parse_arguments(args=['--shell'])
+        self.assertEqual(['/bin/somesh'], args.commands)
+        self.assertEqual(['/bin/somesh'], args.commands)
+
     @mock.patch.dict('os.environ', clear=True)
     @mock.patch('quibble.cmd.QuibbleCmd')
     def test_shell_option_sets_commands(self, QuibbleCmd):

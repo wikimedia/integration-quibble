@@ -684,7 +684,11 @@ class QuibbleCmd(object):
 
 
 def _parse_arguments(args):
-    return get_arg_parser().parse_args(args)
+    args = get_arg_parser().parse_args(args)
+    if args.shell:
+        args.commands = args.shell
+
+    return args
 
 
 def get_arg_parser():
@@ -1006,9 +1010,6 @@ def main():
 
     if args.color:
         quibble.colored_logging()
-
-    if args.shell:
-        args.commands = args.shell
 
     cmd = QuibbleCmd()
     project_dir, plan = cmd.build_execution_plan(args)
