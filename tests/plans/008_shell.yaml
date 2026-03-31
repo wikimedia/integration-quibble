@@ -1,0 +1,21 @@
+# Running a user command (--commands)
+
+env:
+    DISPLAY: :0
+    SHELL: /bin/bash
+
+args: ['--git-cache=/var/cache/git', '--workspace=/WORKSPACE', '--shell']
+
+plan:
+ -  'Versions'
+ -  "Ensure dir: '/WORKSPACE/log'"
+ -  'Zuul clone {"cache_dir": "/var/cache/git", "projects": ["mediawiki/core", "mediawiki/skins/Vector", "mediawiki/vendor"], "workers": 4, "workspace": "/WORKSPACE/src"}'
+ -  'Submodule update: /WORKSPACE/src'
+ -  'Install composer dev-requires for vendor.git'
+ -  'Start backends: <MySQL (no socket)>'
+ - |-
+   Run Post-dependency install, pre-database dependent steps in parallel (concurrency=2):
+   * Install MediaWiki, db=<MySQL (no socket)>
+   * npm install in /WORKSPACE/src
+ -  'Start backends: <PhpWebserver http://127.0.0.1:9412 /WORKSPACE/src> <ChromeWebDriver :0>'
+ -  'User commands: /bin/bash'
