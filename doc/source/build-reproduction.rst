@@ -1,5 +1,5 @@
 Reproducing a CI build
-----------------------
+======================
 
 Quibble allows you to locally replicate test runs as you witnessed them in CI. This can be useful when debugging integration with projects you are not normally involved with and don't keep a local copy of, or other obscure problems.
 

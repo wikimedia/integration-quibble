@@ -5,9 +5,9 @@
    changelog
    license
    releasing
+   build-reproduction
 
 .. include:: ../../README.rst
-.. include:: build-reproduction.rst
 
 
 Indices and tables
