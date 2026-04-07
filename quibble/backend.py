@@ -202,7 +202,10 @@ class Postgres(DatabaseServer):
         self.conffile = os.path.join(self.rootdir, 'conf')
         self.socket = os.path.join(self.rootdir, 'socket')
 
-        # Start pg_virtualenv and save configuration settings
+        # Start pg_virtualenv with TMPDIR set to rootdir so its working
+        # directory (and the Postgres data dir inside it) lives under
+        # --db-dir.
+        # https://github.com/credativ/postgresql-common/blob/master/pg_virtualenv
         self.server = subprocess.Popen(
             [
                 # fmt: off
@@ -214,7 +217,10 @@ class Postgres(DatabaseServer):
                 '-m', 'quibble.pg_virtualenv_hook'
                 # fmt: on
             ],
-            env={'QUIBBLE_TMPFILE': self.conffile},
+            env={
+                'QUIBBLE_TMPFILE': self.conffile,
+                'TMPDIR': self.rootdir,
+            },
         )
 
         while not os.path.exists(self.conffile):
