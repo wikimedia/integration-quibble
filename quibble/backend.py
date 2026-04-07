@@ -190,6 +190,9 @@ class DatabaseServer(BackendServer):
             '%s does not support dumping database', self.__class__.__name__
         )
 
+    def __str__(self):
+        return "<%s>" % self.__class__.__name__
+
 
 @db_backend('postgres')
 class Postgres(DatabaseServer):
