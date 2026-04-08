@@ -1,10 +1,62 @@
 Quibble changelog
 =================
 
-master (unreleased)
+1.17.0 (2026-04-09)
 -------------------
 
-* …
+Features
+~~~~~~~~
+* Split browser tests duration reports to show per-repository breakdown.
+  `T419683 <https://phabricator.wikimedia.org/T419683>`_
+  Antoine Musso
+* Output project name in browser test log instead of file paths.
+  `T421676 <https://phabricator.wikimedia.org/T421676>`_
+  Peter Hedenskog
+* Add developer Docker file and README for local testing.
+  `T419583 <https://phabricator.wikimedia.org/T419583>`_
+  Peter Hedenskog
+* Add devcontainer.json for developing without local dependencies.
+  `T421236 <https://phabricator.wikimedia.org/T421236>`_
+  Željko Filipin
+
+Fixes
+~~~~~
+* Skip extra npm install for browser test only jobs.
+  `T418743 <https://phabricator.wikimedia.org/T418743>`_
+  Peter Hedenskog
+* Skip composer dev-requires for browser test only jobs.
+  `T421500 <https://phabricator.wikimedia.org/T421500>`_
+  Peter Hedenskog
+* Fix ReportVersion test due to parallelism.
+  `T417409 <https://phabricator.wikimedia.org/T417409>`_
+  Antoine Musso
+* Replace pkg_resources with importlib.metadata to fix ModuleNotFoundError.
+  `T419661 <https://phabricator.wikimedia.org/T419661>`_
+  Željko Filipin
+* Have ``--shell`` set commands when parsing arguments.
+  Antoine Musso
+
+Internal
+~~~~~~~~
+* Replace flake8-logging-format by flake8-logging.
+  `T419675 <https://phabricator.wikimedia.org/T419675>`_
+  Antoine Musso
+* Add Python 3.12 and 3.13 testing.
+  `T419675 <https://phabricator.wikimedia.org/T419675>`_
+  Antoine Musso
+* Upgrade flake8 3.7.x to 7.3.0.
+  Antoine Musso
+* Require pytest marks to be defined.
+  Antoine Musso
+* Pass CI environment variable to tox envs.
+  Antoine Musso
+* Add test plan for ``--commands``.
+  Antoine Musso
+* Add test plan for ``--shell``.
+  Antoine Musso
+* Add selenium test plan as a first step to fix multiple npm install.
+  `T418743 <https://phabricator.wikimedia.org/T418743>`_
+  Peter Hedenskog
 
 1.16.0 (2026-03-06)
 -------------------
