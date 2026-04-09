@@ -8,7 +8,8 @@ plan:
  -  'Submodule update: /WORKSPACE/src'
  -  'Start backends: <MySQL (no socket)>'
  - |-
-   Run Post-dependency install, pre-database dependent steps in parallel (concurrency=1):
+   Run Post-dependency install, pre-database dependent steps in parallel (concurrency=2):
    * Install MediaWiki, db=<MySQL (no socket)>
+   * npm install in /WORKSPACE/src
  -  'Start backends: <PhpWebserver http://127.0.0.1:9412 /WORKSPACE/src> <Xvfb :94> <ChromeWebDriver :94>'
  -  'Run API-Testing'

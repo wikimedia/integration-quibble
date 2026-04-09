@@ -408,7 +408,10 @@ class QuibbleCmd(object):
             )
 
         if not args.skip_deps and (
-            run_npm or 'qunit' in stages or args.commands
+            run_npm
+            or 'qunit' in stages
+            or 'api-testing' in stages
+            or args.commands
         ):
             parallel_steps.append(quibble.commands.NpmInstall(mw_install_path))
 
