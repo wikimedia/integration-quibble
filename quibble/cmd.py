@@ -438,12 +438,24 @@ class QuibbleCmd(object):
         elif is_skin:
             phpunit_testsuite = 'skins'
 
-        if phpunit_testsuite != 'extensions' and 'phpunit-parallel' in stages:
-            log.warning(
-                'phpunit-parallel in stages, but only currently supported for'
-                'extensions test suite - reverting to serial run'
-            )
-            stages.remove('phpunit-parallel')
+        if 'phpunit-parallel' in stages:
+            # We only support parallel for default and extensions suites.
+            if phpunit_testsuite not in (None, 'extensions'):
+                log.warning(
+                    'phpunit-parallel in stages, but only currently supported '
+                    'for default and extensions test suites - reverting to '
+                    'serial run'
+                )
+                stages.remove('phpunit-parallel')
+
+            # MediaWiki has concurrency issues with SQLite.
+            # https://phabricator.wikimedia.org/T407954#11690025
+            if args.db == 'sqlite':
+                log.warning(
+                    'phpunit-parallel not supported with sqlite (T407954)'
+                    ' - reverting to serial run'
+                )
+                stages.remove('phpunit-parallel')
 
         if 'phpunit-parallel' in stages:
             plan.append(
