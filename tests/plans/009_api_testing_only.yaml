@@ -1,0 +1,14 @@
+args: ['--git-cache=/var/cache/git', '--workspace=/WORKSPACE', '--run=api-testing']
+
+plan:
+ -  'Report durations'
+ -  'Versions'
+ -  "Ensure dir: '/WORKSPACE/log'"
+ -  'Zuul clone {"cache_dir": "/var/cache/git", "projects": ["mediawiki/core", "mediawiki/skins/Vector", "mediawiki/vendor"], "workers": 4, "workspace": "/WORKSPACE/src"}'
+ -  'Submodule update: /WORKSPACE/src'
+ -  'Start backends: <MySQL (no socket)>'
+ - |-
+   Run Post-dependency install, pre-database dependent steps in parallel (concurrency=1):
+   * Install MediaWiki, db=<MySQL (no socket)>
+ -  'Start backends: <PhpWebserver http://127.0.0.1:9412 /WORKSPACE/src> <Xvfb :94> <ChromeWebDriver :94>'
+ -  'Run API-Testing'
