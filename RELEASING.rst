@@ -32,3 +32,7 @@ Then begin a new cycle:
 
 * Amend ``CHANGELOG.rst`` and insert an entry for ``master``.
 * git add, commit, send to review, get it merged
+
+To deploy the new release on the Wikimedia CI infrastructure, continue with the
+wiki documentation: `Creating and deploying a new Quibble release
+<https://www.mediawiki.org/wiki/Quibble#Creating_and_deploying_a_new_Quibble_release>`_.
