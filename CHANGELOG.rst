@@ -1,9 +1,23 @@
 Quibble changelog
 =================
 
-master (unreleased)
+1.17.1 (2026-04-10)
 -------------------
-* …
+
+Fixes
+~~~~~
+* Make sure npm install runs for api-testing.
+  `T422843 <https://phabricator.wikimedia.org/T422843>`_
+  Peter Hedenskog
+* Use --db-dir for data directory via TMPDIR for postgres
+  `T422110 <https://phabricator.wikimedia.org/T422110>`_
+  Peter Hedenskog
+
+Internal
+~~~~~~~~
+* Add test plan for for api-testing.
+  `T422843 <https://phabricator.wikimedia.org/T422843>`_
+  Peter Hedenskog
 
 1.17.0 (2026-04-09)
 -------------------
