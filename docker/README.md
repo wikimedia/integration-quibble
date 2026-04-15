@@ -122,6 +122,7 @@ Run browser test stage only:
 
 ```bash
 docker run --platform linux/amd64 -it --rm \
+  --tmpfs /tmp:exec,size=4g \
   -e ZUUL_PROJECT=mediawiki/core \
   -e CI=true \
   -v "$(pwd)/ref:/srv/git:ro" \
@@ -137,6 +138,7 @@ Set `EXT_DEPENDENCIES` and `SKIN_DEPENDENCIES` to include additional projects:
 
 ```bash
 docker run --platform linux/amd64 -it --rm \
+  --tmpfs /tmp:exec,size=4g \
   -e ZUUL_PROJECT=mediawiki/core \
   -e CI=true \
   -v "$(pwd)/ref:/srv/git:ro" \
