@@ -322,7 +322,10 @@ class QuibbleCmd(object):
                 )
 
             plan.append(
-                quibble.commands.ExtSkinSubmoduleUpdate(mw_install_path)
+                quibble.commands.ExtSkinSubmoduleUpdate(
+                    mw_install_path,
+                    jobs=args.git_parallel,
+                )
             )
 
         success_cache = None

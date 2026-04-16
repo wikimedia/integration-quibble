@@ -397,17 +397,33 @@ class ResolveRequires:
 
 
 class ExtSkinSubmoduleUpdate:
-    def __init__(self, mw_install_path):
+    def __init__(self, mw_install_path, jobs=None):
         self.mw_install_path = mw_install_path
+        self.jobs = jobs
+
+    @staticmethod
+    def getCommands(jobs=None):
+        submodule_update = [
+            'git',
+            'submodule',
+            'update',
+            '--init',
+            '--recursive',
+        ]
+
+        if jobs is not None:
+            submodule_update.extend(['--jobs', str(jobs)])
+
+        return [
+            ['git', 'submodule', 'foreach', 'git', 'clean', '-xdff', '-q'],
+            submodule_update,
+            ['git', 'submodule', 'status'],
+        ]
 
     def execute(self):
         log.info('Updating git submodules of extensions and skins')
 
-        cmds = [
-            ['git', 'submodule', 'foreach', 'git', 'clean', '-xdff', '-q'],
-            ['git', 'submodule', 'update', '--init', '--recursive'],
-            ['git', 'submodule', 'status'],
-        ]
+        cmds = self.getCommands(jobs=self.jobs)
 
         tops = [
             os.path.join(self.mw_install_path, top)

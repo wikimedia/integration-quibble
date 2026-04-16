@@ -323,6 +323,26 @@ class ExtSkinSubmoduleUpdateTest(unittest.TestCase):
         else:
             return []
 
+    def test_get_submodule_cmds_default(self):
+        assert [
+            'git',
+            'submodule',
+            'update',
+            '--init',
+            '--recursive',
+        ] in quibble.commands.ExtSkinSubmoduleUpdate.getCommands()
+
+    def test_get_submodule_cmds_with_jobs_set(self):
+        assert [
+            'git',
+            'submodule',
+            'update',
+            '--init',
+            '--recursive',
+            '--jobs',
+            '8',
+        ] in quibble.commands.ExtSkinSubmoduleUpdate.getCommands(jobs=8)
+
 
 class CreateComposerLocalTest(unittest.TestCase):
     @mock.patch('json.dump')
