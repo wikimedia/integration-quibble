@@ -715,7 +715,7 @@ class InstallMediaWiki:
 
         customsettings = self._expand_template(
             'mediawiki/local_settings.php.tpl',
-            settings={
+            php_constants={
                 'MW_LOG_DIR': self.log_dir,
                 'TMPDIR': self.tmp_dir,
             },
@@ -797,28 +797,28 @@ class InstallMediaWiki:
         return install_args
 
     @staticmethod
-    def _expand_template(template_file, settings):
+    def _expand_template(template_file, php_constants):
         ref = (
             importlib.resources.files(__package__)
             / 'mediawiki/local_settings.php.tpl'
         )
         with importlib.resources.as_file(ref) as quibblesettings_file:
             customsettings = InstallMediaWiki._expand_localsettings_template(
-                quibblesettings_file, settings
+                quibblesettings_file, php_constants
             )
 
         return customsettings
 
     @staticmethod
-    def _expand_localsettings_template(quibblesettings, params):
+    def _expand_localsettings_template(quibblesettings, php_constants):
         # Wire variables into settings template.
         with open(quibblesettings, "r") as f:
-            params_declaration = "\n".join(
+            php_constants_declarations = "\n".join(
                 "const {} = '{}';".format(key, value)
-                for (key, value) in params.items()
+                for (key, value) in php_constants.items()
             )
             customsettings = f.read().replace(
-                '{{params-declaration}}', params_declaration
+                '{{constants-declarations}}', php_constants_declarations
             )
         return customsettings
 

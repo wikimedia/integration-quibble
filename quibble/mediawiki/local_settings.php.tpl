@@ -6,9 +6,8 @@
  * Process environment variables
  */
 
-// Set environment from quibble, leaving the ability to override.
-// TODO: Deprecate environment variables in code under test.
-{{params-declaration}}
+// Set PHP constants from Quibble, leaving the ability to override.
+{{constants-declarations}}
 
 /**
  * Development settings

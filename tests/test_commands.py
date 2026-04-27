@@ -482,7 +482,7 @@ class InstallMediaWikiTest:
 
                 mocks['_expand_template'].assert_called_with(
                     'mediawiki/local_settings.php.tpl',
-                    settings={
+                    php_constants={
                         'MW_LOG_DIR': '/log',
                         'TMPDIR': '/tmp',
                     },
@@ -507,7 +507,7 @@ class InstallMediaWikiTest:
         ) as mock_expand_localsettings_template:
             quibble.commands.InstallMediaWiki._expand_template(
                 'mediawiki/local_settings.php.tpl',
-                settings={
+                php_constants={
                     'MW_LOG_DIR': '/log',
                     'TMPDIR': '/tmp',
                 },
@@ -552,7 +552,7 @@ class InstallMediaWikiTest:
         install_mw = quibble.commands.InstallMediaWiki('/somepath', *range(4))
 
         localsettings = quibble.commands.InstallMediaWiki._expand_template(
-            'mediawiki/local_settings.php.tpl', {}
+            'mediawiki/local_settings.php.tpl', php_constants={}
         )
 
         with mock.patch(
@@ -588,7 +588,7 @@ class InstallMediaWikiTest:
             InstallMediaWiki = quibble.commands.InstallMediaWiki
             expanded = InstallMediaWiki._expand_localsettings_template(
                 'fakefile',
-                {
+                php_constants={
                     'MW_LOG': '/log',
                     'SOMECONST': 'hello world',
                 },
