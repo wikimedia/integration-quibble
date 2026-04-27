@@ -1,18 +1,21 @@
 import json
 import os
 import shutil
+import socket
 import unittest
 from unittest import mock
+from unittest.mock import ANY
 import urllib.request
 
 from pytest import mark
-from quibble.backend import getDatabase, get_backend
+from quibble.backend import getDatabase, get_backend, _tcp_wait
 from quibble.backend import DatabaseServer
 from quibble.backend import ChromeWebDriver
 from quibble.backend import PhpWebserver
 from quibble.backend import ExternalWebserver
 from quibble.backend import MySQL
 from quibble.backend import Postgres
+from quibble.backend import Memcached
 
 FIXTURES_DIR = os.path.join(os.path.dirname(__file__), 'fixtures')
 PHPDOCROOT = os.path.join(FIXTURES_DIR, 'phpdocroot')
@@ -263,3 +266,25 @@ class TestPostgres(unittest.TestCase):
             self.assertTrue(
                 os.path.exists(pg.socket), 'PostgreSQL socket has been created'
             )
+
+
+@mark.skipif(
+    not shutil.which('memcached'),
+    reason='Requires memcached command',
+)
+class TestMemcached(unittest.TestCase):
+    @mark.integration
+    def test_it_starts(self):
+        # Get a free port to listen on
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.bind(('localhost', 0))
+            (addr, free_port) = s.getsockname()
+        mc = Memcached(port=free_port)
+
+        with mock.patch(
+            'quibble.backend._tcp_wait', side_effect=_tcp_wait
+        ) as tcp_wait:
+            with mc:
+                tcp_wait.assert_called_once_with(
+                    host=ANY, port=free_port, timeout=ANY
+                )

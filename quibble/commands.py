@@ -126,6 +126,7 @@ class ReportVersions:
             ['chromedriver', '--version'],
             ['chromium', '--version'],
             ['composer', '--version'],
+            ['memcached', '--version'],
             ['mysql', '--version'],
             ['psql', '--version'],
             # ['sqlite', '--version'], php-sqlite3 doesn't provide a CLI
@@ -695,11 +696,14 @@ class StartBackends:
 
 
 class InstallMediaWiki:
-    def __init__(self, mw_install_path, db, web_url, log_dir, tmp_dir):
+    def __init__(
+        self, mw_install_path, db, web_url, log_dir, memcached_port, tmp_dir
+    ):
         self.mw_install_path = mw_install_path
         self.db = db
         self.web_url = web_url
         self.log_dir = log_dir
+        self.memcached_port = memcached_port
         self.tmp_dir = tmp_dir
 
     def execute(self):
@@ -718,6 +722,8 @@ class InstallMediaWiki:
             php_constants={
                 'MW_LOG_DIR': self.log_dir,
                 'TMPDIR': self.tmp_dir,
+                # Passed to $wgMemCachedServers
+                'QUIBBLE_MEMCACHED': '127.0.0.1:%s' % self.memcached_port,
             },
         )
 

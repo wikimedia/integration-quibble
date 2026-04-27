@@ -55,9 +55,9 @@ require_once __DIR__ . '/LocalSettings-installer.php';
 $wgLocalDatabases = [ $wgDBname ];
 
 // Caching settings.
-if ( extension_loaded( 'memcached' ) ) {
+if ( QUIBBLE_MEMCACHED && extension_loaded( 'memcached' ) ) {
     $wgMainCacheType = CACHE_MEMCACHED;
-    $wgMemCachedServers = [ '127.0.0.1:11211' ];
+    $wgMemCachedServers = [ QUIBBLE_MEMCACHED ];
     $wgMemCachedPersistent = true;
 }
 

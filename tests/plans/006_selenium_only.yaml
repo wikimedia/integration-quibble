@@ -15,5 +15,6 @@ plan:
  - |-
    Run Post-dependency install, pre-database dependent steps in parallel (concurrency=1):
    * Install MediaWiki, db=<MySQL (no socket)>
+ -  'Start backends: <Memcached on port 11211>'
  -  'Start backends: <PhpWebserver http://127.0.0.1:9412 /WORKSPACE/src> <ChromeWebDriver :0>'
  -  'Run all browser tests'

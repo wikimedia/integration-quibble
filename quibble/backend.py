@@ -534,6 +534,39 @@ class Xvfb(BackendServer):
         return "<Xvfb {}>".format(self.display)
 
 
+class Memcached(BackendServer):
+    def __init__(self, port=11211):
+        super(Memcached, self).__init__()
+        self.port = port
+
+    def start(self):
+        self.log.info('Starting Memcached on port %s', self.port)
+        self.server = subprocess.Popen(
+            [
+                # fmt: off
+                'memcached',
+                '--memory-limit=64',  # MBytes
+                '--port=%s' % self.port,
+                '--listen=127.0.0.1',
+                # fmt:on
+            ]
+        )
+        # Note if an externally managed memcached server is already running,
+        # the managed process will exit 71:
+        #
+        #   failed to listen on one of interface(s) 127.0.0.1:
+        #   Address already in use
+        #
+        # We do not handle that, as long as we have a Memcached to interact
+        # with, that is good enough.
+
+        self.log.info('Waiting for Memcached on port %s', self.port)
+        _tcp_wait(host='127.0.0.1', port=self.port, timeout=2)
+
+    def __str__(self):
+        return "<Memcached on port {}>".format(self.port)
+
+
 class OpenSearch(BackendServer):
     def __init__(self):
         super(OpenSearch, self).__init__()

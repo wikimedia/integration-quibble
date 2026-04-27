@@ -194,6 +194,8 @@ class QuibbleCmd(object):
         workspace = args.workspace
         mw_install_path = os.path.join(workspace, 'src')
         log_dir = os.path.join(workspace, args.log_dir)
+        memcached_port = 11211
+
         if args.db_dir is not None:
             db_dir = os.path.join(workspace, args.db_dir)
         else:
@@ -403,6 +405,7 @@ class QuibbleCmd(object):
                     db=database_backend,
                     web_url=web_backend.url,
                     log_dir=log_dir,
+                    memcached_port=memcached_port,
                     tmp_dir=tmp_dir,
                 )
             )
@@ -429,6 +432,13 @@ class QuibbleCmd(object):
                     mw_install_path, log_dir, args.phpunit_junit
                 )
             )
+
+        plan.append(
+            quibble.commands.StartBackends(
+                self._context_stack,
+                [quibble.backend.Memcached(port=memcached_port)],
+            )
+        )
 
         phpunit_testsuite = None
         if args.phpunit_testsuite:

@@ -18,6 +18,7 @@ plan:
     * Install MediaWiki, db=<MySQL (no socket)>
     * npm install in /WORKSPACE/src
   -  'PHPUnit unit tests'
+  -  'Start backends: <Memcached on port 11211>'
   -  'PHPUnit Prepare Parallel Run (Composer)'
   -  'PHPUnit default suite (without database or standalone) parallel run (Composer)'
   -  'Run phpbench'
