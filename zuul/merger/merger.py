@@ -16,6 +16,8 @@
 import git
 import os
 import logging
+import shutil
+import time
 
 
 def reset_repo_to_head(repo):
@@ -60,7 +62,10 @@ class Repo(object):
         if not repo_is_cloned:
             self.log.debug("Cloning from %s to %s" % (self.remote_url,
                                                       self.local_path))
-            git.Repo.clone_from(self.remote_url, self.local_path)
+            self._git_with_retry(
+                "Cloning from %s to %s" % (self.remote_url, self.local_path),
+                lambda: git.Repo.clone_from(self.remote_url, self.local_path),
+                cleanup=self._cleanup_failed_clone)
         repo = git.Repo(self.local_path)
         if self.email:
             repo.config_writer().set_value('user', 'email',
@@ -81,6 +86,33 @@ class Repo(object):
         finally:
             config_writer._lock._release_lock()
         self._initialized = True
+
+    def _git_with_retry(self, action, func, cleanup=None):
+        """
+        Retry git commands to handle `GnuTLS recv error (-54)` making CI
+        jobs fail (T421827)
+        """
+        try:
+            return func()
+        except git.GitCommandError as e:
+            stderr = getattr(e, 'stderr') or ''
+            gnutls = 'GnuTLS' in stderr
+            if not gnutls:
+                raise
+            if cleanup:
+                cleanup(e)
+            self.log.warning("%s failed, retrying once", action, exc_info=True)
+            time.sleep(1)
+            return func()
+
+    def _cleanup_failed_clone(self, error):
+        stderr = getattr(error, 'stderr', '') or ''
+        if 'already exists and is not an empty directory' in stderr:
+            return
+        if os.path.exists(self.local_path):
+            self.log.warning("Removing incomplete clone at %s",
+                             self.local_path)
+            shutil.rmtree(self.local_path)
 
     def isInitialized(self):
         return self._initialized
@@ -116,7 +148,9 @@ class Repo(object):
     def prune(self):
         repo = self.createRepoObject()
         origin = repo.remotes.origin
-        stale_refs = origin.stale_refs
+        stale_refs = self._git_with_retry(
+            "Checking stale refs for %s" % self.local_path,
+            lambda: origin.stale_refs)
         if stale_refs:
             self.log.debug("Pruning stale refs: %s", stale_refs)
             git.refs.RemoteReference.delete(repo, *stale_refs)
@@ -165,19 +199,24 @@ class Repo(object):
 
     def fetch(self, ref):
         repo = self.createRepoObject()
+        # _git_with_retry handles transient network errors.
+        # The except guards against GitPython progress bar errors.
         # The git.remote.fetch method may read in git progress info and
         # interpret it improperly causing an AssertionError. Because the
         # data was fetched properly subsequent fetches don't seem to fail.
         # So try again if an AssertionError is caught.
         origin = repo.remotes.origin
+        action = "Fetching ref %s for %s" % (ref, self.local_path)
         try:
-            origin.fetch(ref)
+            self._git_with_retry(action, lambda: origin.fetch(ref))
         except AssertionError:
             origin.fetch(ref)
 
     def fetchFrom(self, repository, refspec):
         repo = self.createRepoObject()
-        repo.git.fetch(repository, refspec)
+        self._git_with_retry(
+            "Fetching %s from %s" % (refspec, repository),
+            lambda: repo.git.fetch(repository, refspec))
 
     def createZuulRef(self, ref, commit='HEAD'):
         repo = self.createRepoObject()
@@ -201,5 +240,9 @@ class Repo(object):
             # commands in that case.  Starting with 1.9, 'git fetch
             # --tags' is all that is necessary.  See
             # https://github.com/git/git/blob/master/Documentation/RelNotes/1.9.0.txt#L18-L20
-            origin.fetch()
-        origin.fetch(tags=True, force=True)
+            self._git_with_retry(
+                "Fetching refs for %s" % self.local_path,
+                lambda: origin.fetch())
+        self._git_with_retry(
+            "Fetching tags for %s" % self.local_path,
+            lambda: origin.fetch(tags=True, force=True))
