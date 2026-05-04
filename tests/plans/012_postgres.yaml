@@ -2,28 +2,28 @@
 # quibble-for-mediawiki-core-vendor-postgres-php83
 
 env:
-    DISPLAY: :0
+  DISPLAY: :0
 
 args: ['--git-cache=/var/cache/git', '--workspace=/WORKSPACE', '--db=postgres', '--skip=selenium,composer-test,npm-test,phpunit-standalone,api-testing']
 
 plan:
- -  'Report durations'
- -  'Versions'
- -  "Ensure dir: '/WORKSPACE/log'"
- -  'Zuul clone {"cache_dir": "/var/cache/git", "projects": ["mediawiki/core", "mediawiki/skins/Vector", "mediawiki/vendor"], "workers": 4, "workspace": "/WORKSPACE/src"}'
- -  'Submodule update: /WORKSPACE/src'
- -  'Install composer dev-requires for vendor.git'
- -  'Start backends: <Postgres>'
- - |-
-   Run Post-dependency install, pre-database dependent steps in parallel (concurrency=2):
-   * Install MediaWiki, db=<Postgres>
-   * npm install in /WORKSPACE/src
- -  'PHPUnit unit tests'
- -  'Start backends: <Memcached on port 11211>'
- -  'PHPUnit Prepare Parallel Run (Composer)'
- -  'PHPUnit default suite (without database or standalone) parallel run (Composer)'
- -  'Run phpbench'
- -  'Start backends: <PhpWebserver http://127.0.0.1:9412 /WORKSPACE/src> <ChromeWebDriver :0>'
- -  'Run QUnit tests'
- -  'PHPUnit default suite (with database) parallel run (Composer)'
- -  'PHPUnit Parallel Notice'
+  - 'Report durations'
+  - 'Versions'
+  - "Ensure dir: '/WORKSPACE/log'"
+  - 'Zuul clone {"cache_dir": "/var/cache/git", "projects": ["mediawiki/core", "mediawiki/skins/Vector", "mediawiki/vendor"], "workers": 4, "workspace": "/WORKSPACE/src"}'
+  - 'Submodule update: /WORKSPACE/src'
+  - 'Install composer dev-requires for vendor.git'
+  - 'Start backends: <Postgres>'
+  - |-
+    Run Post-dependency install, pre-database dependent steps in parallel (concurrency=2):
+    * Install MediaWiki, db=<Postgres>
+    * npm install in /WORKSPACE/src
+  - 'PHPUnit unit tests'
+  - 'Start backends: <Memcached on port 11211>'
+  - 'PHPUnit Prepare Parallel Run (Composer)'
+  - 'PHPUnit default suite (without database or standalone) parallel run (Composer)'
+  - 'Run phpbench'
+  - 'Start backends: <PhpWebserver http://127.0.0.1:9412 /WORKSPACE/src> <ChromeWebDriver :0>'
+  - 'Run QUnit tests'
+  - 'PHPUnit default suite (with database) parallel run (Composer)'
+  - 'PHPUnit Parallel Notice'

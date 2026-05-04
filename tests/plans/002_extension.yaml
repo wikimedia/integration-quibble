@@ -1,31 +1,32 @@
 env:
-    ZUUL_PROJECT: mediawiki/extensions/Foobar
+  ZUUL_PROJECT: mediawiki/extensions/Foobar
+
 args: ['--git-cache=/var/cache/git', '--workspace=/WORKSPACE']
 
 plan:
- -  'Report durations'
- -  'Versions'
- -  "Ensure dir: '/WORKSPACE/log'"
- -  'Zuul clone {"cache_dir": "/var/cache/git", "projects": ["mediawiki/core", "mediawiki/extensions/Foobar", "mediawiki/skins/Vector", "mediawiki/vendor"], "workers": 4, "workspace": "/WORKSPACE/src", "zuul_project": "mediawiki/extensions/Foobar"}'
- -  'Submodule update: /WORKSPACE/src'
- - |-
-    Run npm and composer tests, if present in parallel (concurrency=2):
-    * composer test in /WORKSPACE/src/extensions/Foobar
-    * npm test in /WORKSPACE/src/extensions/Foobar
- -  'Revert to git clean -xqdf in /WORKSPACE/src/extensions/Foobar'
- -  'Install composer dev-requires for vendor.git'
- -  'Start backends: <MySQL (no socket)>'
- - |-
-  Run Post-dependency install, pre-database dependent steps in parallel (concurrency=2):
-  * Install MediaWiki, db=<MySQL (no socket)>
-  * npm install in /WORKSPACE/src
- -  'PHPUnit unit tests'
- -  'Start backends: <Memcached on port 11211>'
- -  'PHPUnit extensions suite (without database or standalone)'
- -  'PHPUnit default standalone suite on extensions/Foobar'
- -  'Run phpbench'
- -  'Start backends: <PhpWebserver http://127.0.0.1:9412 /WORKSPACE/src> <Xvfb :94> <ChromeWebDriver :94>'
- -  'Run QUnit tests'
- -  'Run all browser tests'
- -  'Run API-Testing'
- -  'PHPUnit extensions suite (with database)'
+  - 'Report durations'
+  - 'Versions'
+  - "Ensure dir: '/WORKSPACE/log'"
+  - 'Zuul clone {"cache_dir": "/var/cache/git", "projects": ["mediawiki/core", "mediawiki/extensions/Foobar", "mediawiki/skins/Vector", "mediawiki/vendor"], "workers": 4, "workspace": "/WORKSPACE/src", "zuul_project": "mediawiki/extensions/Foobar"}'
+  - 'Submodule update: /WORKSPACE/src'
+  - |-
+     Run npm and composer tests, if present in parallel (concurrency=2):
+     * composer test in /WORKSPACE/src/extensions/Foobar
+     * npm test in /WORKSPACE/src/extensions/Foobar
+  - 'Revert to git clean -xqdf in /WORKSPACE/src/extensions/Foobar'
+  - 'Install composer dev-requires for vendor.git'
+  - 'Start backends: <MySQL (no socket)>'
+  - |-
+   Run Post-dependency install, pre-database dependent steps in parallel (concurrency=2):
+   * Install MediaWiki, db=<MySQL (no socket)>
+   * npm install in /WORKSPACE/src
+  - 'PHPUnit unit tests'
+  - 'Start backends: <Memcached on port 11211>'
+  - 'PHPUnit extensions suite (without database or standalone)'
+  - 'PHPUnit default standalone suite on extensions/Foobar'
+  - 'Run phpbench'
+  - 'Start backends: <PhpWebserver http://127.0.0.1:9412 /WORKSPACE/src> <Xvfb :94> <ChromeWebDriver :94>'
+  - 'Run QUnit tests'
+  - 'Run all browser tests'
+  - 'Run API-Testing'
+  - 'PHPUnit extensions suite (with database)'
