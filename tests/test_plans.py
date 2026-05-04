@@ -24,6 +24,15 @@ def plans():
 
 @pytest.mark.parametrize('expected,args,env', plans())
 def test_plan(expected, args, env):
+    # Explicitly set options those default value differs when run under a
+    # Docker environment.
+    args.extend(
+        [
+            '--git-cache=/var/cache/git',
+            '--workspace=/WORKSPACE',
+        ]
+    )
+
     with mock.patch.dict('os.environ', env, clear=True):
         cmd_args = cmd._parse_arguments(args)
         project_dir, plan = cmd.QuibbleCmd().build_execution_plan(cmd_args)

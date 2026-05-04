@@ -4,7 +4,7 @@
 env:
   DISPLAY: :0
 
-args: ['--git-cache=/var/cache/git', '--workspace=/WORKSPACE', '--db=sqlite', '--skip=selenium,composer-test,npm-test,phpunit-standalone,api-testing']
+args: ['--db=sqlite', '--skip=selenium,composer-test,npm-test,phpunit-standalone,api-testing']
 
 plan:
   - 'Report durations'

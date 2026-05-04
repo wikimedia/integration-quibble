@@ -1,4 +1,4 @@
-args: ['--git-cache=/var/cache/git', '--workspace=/WORKSPACE', '--run=api-testing']
+args: ['--run=api-testing']
 
 plan:
   - 'Report durations'

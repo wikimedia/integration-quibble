@@ -4,8 +4,6 @@ env:
   QUIBBLE_PHPUNIT_PARALLEL: "1"
   DISPLAY: ':0'
 
-args: ['--git-cache=/var/cache/git', '--workspace=/WORKSPACE']
-
 plan:
   - 'Report durations'
   - 'Versions'

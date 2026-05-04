@@ -1,5 +1,5 @@
 # --db-is-external does not start the MySQL backend
-args: ['--git-cache=/var/cache/git', '--workspace=/WORKSPACE', '--db-is-external']
+args: ['--db-is-external']
 
 plan:
   - 'Report durations'

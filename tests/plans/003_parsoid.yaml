@@ -1,8 +1,6 @@
 env:
   ZUUL_PROJECT: mediawiki/services/parsoid
 
-args: ['--git-cache=/var/cache/git', '--workspace=/WORKSPACE']
-
 plan:
   - 'Report durations'
   - 'Versions'

@@ -3,7 +3,7 @@
 env:
   DISPLAY: :0
 
-args: ['--git-cache=/var/cache/git', '--workspace=/WORKSPACE', '--command=true']
+args: ['--command=true']
 
 plan:
   - 'Report durations'

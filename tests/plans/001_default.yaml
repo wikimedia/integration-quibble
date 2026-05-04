@@ -15,8 +15,13 @@ env:
 #
 # Some options do not affect the execution plan such as `--color`.
 #
+# Since some options default value differs when run under a Docker environment,
+# the test always appends:
+#
+#   --git-cache=/var/cache/git --workspace=/WORKSPACE
+#
 # Optional. Default: []
-args: ['--git-cache=/var/cache/git', '--workspace=/WORKSPACE']
+args: []
 
 # The string representation of the plan, similar to the output of `--dry-run`.
 #

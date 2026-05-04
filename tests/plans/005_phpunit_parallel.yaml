@@ -2,8 +2,6 @@ env:
   ZUUL_PROJECT: mediawiki/extensions/Foobar
   QUIBBLE_PHPUNIT_PARALLEL: "1"
 
-args: ['--git-cache=/var/cache/git', '--workspace=/WORKSPACE']
-
 plan:
   - 'Report durations'
   - 'Versions'
