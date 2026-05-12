@@ -1,6 +1,42 @@
 Quibble changelog
 =================
 
+1.18.0 (2026-05-12)
+-------------------
+
+Features
+~~~~~~~~
+* Add support to spawn Memcached as a backend.
+  `T397810 <https://phabricator.wikimedia.org/T397810>`_
+  Antoine Musso
+* Support parallel execution for core default phpunit suite.
+  `T422108 <https://phabricator.wikimedia.org/T422108>`_
+  Peter Wangai
+* Fetch nested submodules in parallel during submodule-update.
+  Peter Hedenskog
+
+Fixes
+~~~~~
+* Fix semantic for Quibble injected PHP constants.
+  `T397810 <https://phabricator.wikimedia.org/T397810>`_
+  Antoine Musso
+
+Internal
+~~~~~~~~
+* Use tmpfs locally to mimic production for database tests.
+  `T423127 <https://phabricator.wikimedia.org/T423127>`_
+  Peter Hedenskog
+* Add test plan for core phpunit tests.
+  `T422108 <https://phabricator.wikimedia.org/T422108>`_
+  Peter Wangai
+* Add test plans for sqlite and postgres.
+  `T422461 <https://phabricator.wikimedia.org/T422461>`_
+  Peter Hedenskog
+* Fix indentation in yaml test plans.
+  Antoine Musso
+* Avoid repeating common args in test plans.
+  Antoine Musso
+
 1.17.1 (2026-04-10)
 -------------------
 
