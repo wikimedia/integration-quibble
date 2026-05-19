@@ -21,6 +21,7 @@ plan:
   - 'PHPUnit unit tests'
   - 'Start backends: <Memcached on port 11211>'
   - 'PHPUnit Prepare Parallel Run (Composer)'
+  - 'PHPUnit prepare per-worker SQLite databases'
   - 'PHPUnit default suite (without database or standalone) parallel run (Composer)'
   - 'Run phpbench'
   - 'Start backends: <PhpWebserver http://127.0.0.1:9412 /WORKSPACE/src> <ChromeWebDriver :0>'

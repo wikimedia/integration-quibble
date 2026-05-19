@@ -52,6 +52,19 @@ $wgFlowContentFormat = 'wikitext';
 
 require_once __DIR__ . '/LocalSettings-installer.php';
 
+// Per-worker SQLite DB for parallel PHPUnit (T426684).
+//
+// SQLite locks the whole database file, so parallel PHPUnit workers cannot
+// share one. Quibble's PhpUnitPrepareSqliteParallel seeds a copy per split
+// group before the run and each worker selects its own here.
+// MW_PHPUNIT_SPLIT_GROUP_ID is only set for parallel runs, so serial runs
+// keep the plain $wgDBname.
+$mwSplitGroupId = getenv( 'MW_PHPUNIT_SPLIT_GROUP_ID' );
+if ( $mwSplitGroupId !== false && $wgDBtype === 'sqlite' ) {
+	$wgDBname .= '_split_group_' . $mwSplitGroupId;
+}
+unset( $mwSplitGroupId );
+
 $wgLocalDatabases = [ $wgDBname ];
 
 // Caching settings.

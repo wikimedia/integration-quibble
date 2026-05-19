@@ -468,15 +468,6 @@ class QuibbleCli(object):
                 )
                 stages.remove('phpunit-parallel')
 
-            # MediaWiki has concurrency issues with SQLite.
-            # https://phabricator.wikimedia.org/T407954#11690025
-            if args.db == 'sqlite':
-                log.warning(
-                    'phpunit-parallel not supported with sqlite (T407954)'
-                    ' - reverting to serial run'
-                )
-                stages.remove('phpunit-parallel')
-
         if 'phpunit-parallel' in stages:
             plan.append(
                 quibble.commands.PhpUnitPrepareParallelRunComposer(
@@ -486,6 +477,12 @@ class QuibbleCli(object):
                     args.phpunit_junit,
                 )
             )
+            if args.db == 'sqlite':
+                plan.append(
+                    quibble.commands.PhpUnitPrepareSqliteParallel(
+                        database_backend
+                    )
+                )
             if 'phpunit' in stages:
                 plan.append(
                     quibble.commands.PhpUnitDatabaselessParallelComposer(

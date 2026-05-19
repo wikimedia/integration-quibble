@@ -10,6 +10,7 @@ import logging
 import multiprocessing
 import os
 import os.path
+import shutil
 import textwrap
 import time
 
@@ -1168,6 +1169,27 @@ class PhpUnitPrepareParallelRunComposer:
 
     def __str__(self):
         return "PHPUnit Prepare Parallel Run (Composer)"
+
+
+class PhpUnitPrepareSqliteParallel:
+    """Copy wikidb.sqlite to one file per parallel PHPUnit worker (T407954)."""
+
+    def __init__(self, db):
+        self.db = db
+
+    def execute(self):
+        group_count = int(os.getenv('PHPUNIT_PARALLEL_GROUP_COUNT', 8))
+        source = os.path.join(self.db.rootdir, self.db.dbname + '.sqlite')
+        for i in range(group_count):
+            dest = os.path.join(
+                self.db.rootdir,
+                '{}_split_group_{}.sqlite'.format(self.db.dbname, i),
+            )
+            log.info('Seeding SQLite worker DB %s', dest)
+            shutil.copyfile(source, dest)
+
+    def __str__(self):
+        return "PHPUnit prepare per-worker SQLite databases"
 
 
 class AbstractParallelPhpUnit:
