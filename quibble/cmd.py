@@ -859,11 +859,10 @@ def get_arg_parser():
         '--skip-npm-install',
         action='store_true',
         help='Do not run the standalone "npm install" dependency step '
-        '(the step added automatically for --command/--commands, '
-        'npm-test, qunit and api-testing). Intended for jobs whose '
-        'commands do not need Node.js dependencies, for example '
-        'PHP-only PHPUnit coverage runs. Unlike --skip-deps, composer '
-        'dependencies are still installed.',
+        '(the step added automatically for --command, npm-test, qunit '
+        ' and api-testing). Intended for jobs whose commands do not '
+        'need Node.js dependencies, for example PHP-only PHPUnit coverage '
+        'runs. Unlike --skip-deps, composer dependencies are still installed.',
     )
     deps.add_argument(
         '--packages-source',
@@ -1026,13 +1025,6 @@ def get_arg_parser():
             'Each command is executed relatively to '
             'MediaWiki installation path.'
         ),
-    )
-    command_args.add_argument(
-        '--commands',
-        default=[],
-        nargs='*',
-        metavar='COMMAND',
-        help=('DEPRECATED: use -c COMMAND -c COMMAND'),
     )
     current_shell = os.environ.get('SHELL')
     command_args.add_argument(

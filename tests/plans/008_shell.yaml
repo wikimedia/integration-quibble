@@ -1,4 +1,4 @@
-# Running a user command (--commands)
+# Running the --shell command
 
 env:
   DISPLAY: :0
