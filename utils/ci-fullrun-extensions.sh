@@ -11,7 +11,7 @@ set -x
 
 # ZUUL_ parameters passed to Quibble
 TEST_PROJECT="mediawiki/extensions/GrowthExperiments"
-EXT_DEPENDENCIES="mediawiki/extensions/CommunityConfiguration\nmediawiki/extensions/VisualEditor\nmediawiki/extensions/CirrusSearch\nmediawiki/extensions/Echo\nmediawiki/extensions/EventBus\nmediawiki/extensions/EventLogging\nmediawiki/extensions/EventStreamConfig\nmediawiki/extensions/Flow\nmediawiki/extensions/GuidedTour\nmediawiki/extensions/MetricsPlatform\nmediawiki/extensions/MobileFrontend\nmediawiki/extensions/PageImages\nmediawiki/extensions/PageViewInfo\nmediawiki/extensions/Thanks\nmediawiki/extensions/WikimediaMessages\nmediawiki/extensions/Elastica"
+EXT_DEPENDENCIES="mediawiki/extensions/CommunityConfiguration\nmediawiki/extensions/VisualEditor\nmediawiki/extensions/CirrusSearch\nmediawiki/extensions/Echo\nmediawiki/extensions/EventBus\nmediawiki/extensions/EventLogging\nmediawiki/extensions/EventStreamConfig\nmediawiki/extensions/Flow\nmediawiki/extensions/GuidedTour\nmediawiki/extensions/MobileFrontend\nmediawiki/extensions/PageImages\nmediawiki/extensions/PageViewInfo\nmediawiki/extensions/TestKitchen\nmediawiki/extensions/Thanks\nmediawiki/extensions/WikimediaMessages\nmediawiki/extensions/Elastica"
 SKIN_DEPENDENCIES="mediawiki/skins/MinervaNeue"
 MEDIAWIKI_BRANCH=master
 
