@@ -60,7 +60,7 @@ doc = [
 "Git clone" = "https://gerrit.wikimedia.org/r/integration/quibble.git"
 
 [project.scripts]
-quibble = "quibble.cmd:main"
+quibble = "quibble.cli:main"
 
 [check]
 metadata = true

@@ -5,8 +5,8 @@ import os
 import subprocess
 from unittest import mock
 
-from quibble import cmd
-from quibble.cmd import MultipleChoices, default_stages
+from quibble import cli
+from quibble.cli import MultipleChoices, default_stages
 import quibble.commands
 
 import pytest
@@ -42,10 +42,10 @@ class TestMultipleChoices:
         assert ['a' not in 'b', 'c'], subject
 
 
-class TestCmd:
+class TestCli:
     @mock.patch.dict('os.environ', clear=True)
     def test_projects_to_clone(self):
-        q = cmd.QuibbleCmd()
+        q = cli.QuibbleCli()
         assert q._repos_to_clone(
             projects=[], zuul_project=None, clone_vendor=False
         ) == [
@@ -55,7 +55,7 @@ class TestCmd:
 
     @mock.patch.dict('os.environ', clear=True)
     def test_projects_to_clone_with_vendor(self):
-        q = cmd.QuibbleCmd()
+        q = cli.QuibbleCli()
         assert q._repos_to_clone(
             projects=[], zuul_project=None, clone_vendor=True
         ) == [
@@ -66,7 +66,7 @@ class TestCmd:
 
     @mock.patch.dict('os.environ', clear=True)
     def test_projects_to_clone_appends_projects(self):
-        q = cmd.QuibbleCmd()
+        q = cli.QuibbleCli()
 
         assert q._repos_to_clone(
             projects=[
@@ -84,7 +84,7 @@ class TestCmd:
 
     @mock.patch.dict('os.environ', clear=True)
     def test_projects_to_clone_deduplicates(self):
-        q = cmd.QuibbleCmd()
+        q = cli.QuibbleCli()
         assert q._repos_to_clone(
             projects=[
                 'mediawiki/extensions/BoilerPlate',
@@ -107,7 +107,7 @@ class TestCmd:
             ),
         }
         with mock.patch.dict('os.environ', env, clear=True):
-            q = cmd.QuibbleCmd()
+            q = cli.QuibbleCli()
             assert q._repos_to_clone(
                 projects=[], zuul_project=None, clone_vendor=False
             ) == [
@@ -124,21 +124,21 @@ class TestCmd:
             'SKIN_DEPENDENCIES': '',
         }
         with mock.patch.dict('os.environ', env, clear=True):
-            with caplog.at_level(logging.WARNING, logger='quibble.cmd'):
-                q = cmd.QuibbleCmd()
+            with caplog.at_level(logging.WARNING, logger='quibble.cli'):
+                q = cli.QuibbleCli()
                 q._repos_to_clone(
                     projects=[], zuul_project=None, clone_vendor=False
                 )
 
         msg = 'env variable is deprecated. Instead pass projects as arguments.'
         assert caplog.record_tuples == [
-            ('quibble.cmd', logging.WARNING, 'SKIN_DEPENDENCIES ' + msg),
-            ('quibble.cmd', logging.WARNING, 'EXT_DEPENDENCIES ' + msg),
+            ('quibble.cli', logging.WARNING, 'SKIN_DEPENDENCIES ' + msg),
+            ('quibble.cli', logging.WARNING, 'EXT_DEPENDENCIES ' + msg),
         ]
 
     @mock.patch('quibble.is_in_docker', return_value=False)
     def test_args_defaults(self, _):
-        args = cmd._parse_arguments([])
+        args = cli._parse_arguments([])
 
         assert args.git_cache == 'ref'
         assert os.getcwd() == args.workspace
@@ -146,14 +146,14 @@ class TestCmd:
 
     @mock.patch('quibble.is_in_docker', return_value=True)
     def test_args_defaults_in_docker(self, _):
-        args = cmd._parse_arguments([])
+        args = cli._parse_arguments([])
 
         assert args.git_cache == '/srv/git'
         assert args.workspace == '/workspace'
 
     @mock.patch.dict(os.environ, clear=True)
     def test_setup_environment(self):
-        q = cmd.QuibbleCmd()
+        q = cli.QuibbleCli()
 
         with mock.patch('quibble.is_in_docker', return_value=True):
             # In Docker we always use self.workspace
@@ -199,7 +199,7 @@ class TestCmd:
 
     @mock.patch.dict(os.environ, clear=True)
     def test_setup_environment_has_log_directories(self):
-        q = cmd.QuibbleCmd()
+        q = cli.QuibbleCli()
 
         q._setup_environment(
             workspace='/workspace',
@@ -214,99 +214,99 @@ class TestCmd:
         assert os.environ['MW_LOG_DIR'] == '/mylog'
 
     def test_should_run_accepts_all_stages_by_default(self):
-        q = cmd.QuibbleCmd()
-        args = cmd._parse_arguments(args=[])
+        q = cli.QuibbleCli()
+        args = cli._parse_arguments(args=[])
         stages = q._stages_to_run(args.run, args.skip, args.commands)
         assert stages == default_stages, 'must runs all stages by default'
 
     def test_should_run_skippall_runs_no_stage(self):
-        q = cmd.QuibbleCmd()
-        args = cmd._parse_arguments(args=['--skip', 'all'])
+        q = cli.QuibbleCli()
+        args = cli._parse_arguments(args=['--skip', 'all'])
         stages = q._stages_to_run(args.run, args.skip, args.commands)
         assert stages == [], '--skip=all skips all stages'
 
-    @mock.patch('quibble.cmd.default_stages', ['foo', 'phpunit'])
+    @mock.patch('quibble.cli.default_stages', ['foo', 'phpunit'])
     def test_should_run_skips_a_stage(self):
-        q = cmd.QuibbleCmd()
-        args = cmd._parse_arguments(args=['--skip', 'phpunit'])
+        q = cli.QuibbleCli()
+        args = cli._parse_arguments(args=['--skip', 'phpunit'])
         stages = q._stages_to_run(args.run, args.skip, args.commands)
         assert stages == ['foo'], '--skip skips the stage'
 
     def test_should_run_running_a_single_stage(self):
-        q = cmd.QuibbleCmd()
-        args = cmd._parse_arguments(args=['--run', 'phpunit'])
+        q = cli.QuibbleCli()
+        args = cli._parse_arguments(args=['--run', 'phpunit'])
         stages = q._stages_to_run(args.run, args.skip, args.commands)
         assert stages == ['phpunit'], '--run runs exactly the given stage'
 
     def test_command_skip_all_stages(self):
-        q = cmd.QuibbleCmd()
-        args = cmd._parse_arguments(args=['-c', '/bin/true'])
+        q = cli.QuibbleCli()
+        args = cli._parse_arguments(args=['-c', '/bin/true'])
         stages = q._stages_to_run(args.run, args.skip, args.commands)
         assert stages == [], 'User command must skip all stages'
 
     def test_run_option_is_comma_separated(self):
-        args = cmd._parse_arguments(args=['--run=phpunit,qunit'])
+        args = cli._parse_arguments(args=['--run=phpunit,qunit'])
         assert args.run == ['phpunit', 'qunit']
 
     def test_run_option_multiple_times(self):
-        args = cmd._parse_arguments(args=['--run=npm-test', '--run=phpunit'])
+        args = cli._parse_arguments(args=['--run=npm-test', '--run=phpunit'])
         assert args.run == ['npm-test', 'phpunit']
 
     def test_run_option_does_not_shallow_next_arg(self):
-        args = cmd._parse_arguments(args=['--run', 'phpunit', 'repo'])
+        args = cli._parse_arguments(args=['--run', 'phpunit', 'repo'])
         assert args.run == ['phpunit']
         assert args.projects == ['repo']
 
     def test_skip_option_is_comma_separated(self):
-        args = cmd._parse_arguments(args=['--skip=phpunit,qunit'])
+        args = cli._parse_arguments(args=['--skip=phpunit,qunit'])
         assert args.skip == ['phpunit', 'qunit']
 
     def test_skip_option_multiple_times(self):
-        args = cmd._parse_arguments(args=['--skip=qunit', '--skip=selenium'])
+        args = cli._parse_arguments(args=['--skip=qunit', '--skip=selenium'])
         assert args.skip == ['qunit', 'selenium']
 
     def test_skip_option_does_not_shallow_next_arg(self):
-        args = cmd._parse_arguments(args=['--skip', 'phpunit', 'repo'])
+        args = cli._parse_arguments(args=['--skip', 'phpunit', 'repo'])
         assert args.skip == ['phpunit']
         assert args.projects == ['repo']
 
     def test_command_does_not_shallow_next_arg(self):
-        args = cmd._parse_arguments(args=['--command', '/bin/true', 'repo'])
+        args = cli._parse_arguments(args=['--command', '/bin/true', 'repo'])
         assert args.commands == ['/bin/true']
         assert args.projects == ['repo']
 
     def test_command_used_multiple_times(self):
-        args = cmd._parse_arguments(args=['-c', 'true', '-c', 'false'])
+        args = cli._parse_arguments(args=['-c', 'true', '-c', 'false'])
         assert args.commands == ['true', 'false']
 
     @mock.patch.dict('os.environ', {'SHELL': '/bin/somesh'}, clear=True)
     def test_parse_arguments_has_shell_setting_commands(self):
-        args = cmd._parse_arguments(args=['--shell'])
+        args = cli._parse_arguments(args=['--shell'])
         assert args.commands == ['/bin/somesh']
 
     @mock.patch.dict('os.environ', clear=True)
-    @mock.patch('quibble.cmd.QuibbleCmd')
-    def test_shell_option_sets_commands(self, QuibbleCmd):
+    @mock.patch('quibble.cli.QuibbleCli')
+    def test_shell_option_sets_commands(self, QuibbleCli):
         user_shell = '/bin/magicsh'
         env = {
             'SHELL': user_shell,
         }
         with mock.patch.dict('os.environ', env, clear=True):
             with mock.patch('sys.argv', ['quibble', '--shell']):
-                QuibbleCmd().build_execution_plan.return_value = ('', [])
-                cmd.main()
+                QuibbleCli().build_execution_plan.return_value = ('', [])
+                cli.main()
 
-                args = QuibbleCmd().build_execution_plan.call_args[0][0]
+                args = QuibbleCli().build_execution_plan.call_args[0][0]
                 assert args.shell == [user_shell]
                 assert args.commands == [user_shell]
 
-    @mock.patch('quibble.cmd.QuibbleCmd')
-    def test_shell_option_with_no_shell_enviroment_variable(self, QuibbleCmd):
+    @mock.patch('quibble.cli.QuibbleCli')
+    def test_shell_option_with_no_shell_enviroment_variable(self, QuibbleCli):
         with mock.patch.dict('os.environ', clear=True):
             with mock.patch('sys.argv', ['quibble', '--shell']):
-                QuibbleCmd().build_execution_plan.return_value = ('', [])
-                cmd.main()
-                args = QuibbleCmd().build_execution_plan.call_args[0][0]
+                QuibbleCli().build_execution_plan.return_value = ('', [])
+                cli.main()
+                args = QuibbleCli().build_execution_plan.call_args[0][0]
                 assert args.shell == ['bash']
 
     @mock.patch.dict('os.environ', clear=True)
@@ -320,7 +320,7 @@ class TestCmd:
                 subprocess.CalledProcessError,
                 match='Command failed',
             ):
-                cmd.main()
+                cli.main()
 
     @mock.patch.dict('os.environ', clear=True)
     @mock.patch('quibble.commands.execute_command')
@@ -334,15 +334,15 @@ class TestCmd:
         }
         with mock.patch.dict('os.environ', env, clear=True):
             with mock.patch('sys.argv', ['quibble', '--shell']):
-                cmd.main()
+                cli.main()
 
     def test_project_branch_arg(self):
-        args = cmd._parse_arguments(args=[])
+        args = cli._parse_arguments(args=[])
         assert args.project_branch == []
 
     def test_build_execution_plan(self):
-        args = cmd._parse_arguments(args=[])
-        project_dir, plan = cmd.QuibbleCmd().build_execution_plan(args)
+        args = cli._parse_arguments(args=[])
+        project_dir, plan = cli.QuibbleCli().build_execution_plan(args)
 
         assert isinstance(plan[0], quibble.commands.ReportDurations)
         assert isinstance(plan[1], quibble.commands.ReportVersions)
@@ -352,7 +352,7 @@ class TestCmd:
     @mock.patch('quibble.commands.execute_command')
     def test_main_execute_build_plan_without_dry_run(self, execute_command):
         with mock.patch('sys.argv', ['quibble']):
-            cmd.main()
+            cli.main()
 
         assert (
             execute_command.call_count > 2
@@ -362,7 +362,7 @@ class TestCmd:
     @mock.patch('quibble.commands.execute_command')
     def test_main_execute_build_plan_with_dry_run(self, execute_command):
         with mock.patch('sys.argv', ['quibble', '--dry-run']):
-            cmd.main()
+            cli.main()
         execute_command.assert_not_called()
 
     @mock.patch.dict('os.environ', clear=True)
@@ -372,14 +372,14 @@ class TestCmd:
     ):
         execute_command.side_effect = quibble.commands.SuccessCache.Hit()
         with mock.patch('sys.argv', ['quibble']):
-            cmd.main()
+            cli.main()
 
     @mock.patch('quibble.is_in_docker', return_value=False)
     def test_build_execution_plan_adds_ZUUL_PROJECT(self, _):
         env = {'ZUUL_PROJECT': 'mediawiki/extensions/ZuulProjectEnvVar'}
         with mock.patch.dict('os.environ', env, clear=True):
-            q = cmd.QuibbleCmd()
-            args = cmd._parse_arguments(args=['--packages-source=composer'])
+            q = cli.QuibbleCli()
+            args = cli._parse_arguments(args=['--packages-source=composer'])
             with mock.patch('quibble.commands.ZuulClone') as mock_clone:
                 q.build_execution_plan(args)
         assert mock_clone.call_args[1]['projects'] == [
@@ -396,8 +396,8 @@ class TestCmd:
         ]
 
         for repo in hardcoded_repos:
-            q = cmd.QuibbleCmd()
-            args = cmd._parse_arguments(args=['--packages-source=composer'])
+            q = cli.QuibbleCli()
+            args = cli._parse_arguments(args=['--packages-source=composer'])
             with mock.patch.dict(
                 'os.environ', {'ZUUL_PROJECT': repo}, clear=True
             ):
@@ -409,13 +409,13 @@ class TestCmd:
             ]
 
     def test_build_execution_plan_with_success_cache(self):
-        args = cmd._parse_arguments(
+        args = cli._parse_arguments(
             args=[
                 '--memcached=cache.example:11211',
                 '--success-cache-key-data=foo',
             ]
         )
-        _, plan = cmd.QuibbleCmd().build_execution_plan(args)
+        _, plan = cli.QuibbleCli().build_execution_plan(args)
 
         assert args.success_cache_key_data == ['foo']
         assert isinstance(plan[5], quibble.commands.SuccessCache.Check)
@@ -423,8 +423,8 @@ class TestCmd:
         assert plan[-1].cache.client._client.server == ('cache.example', 11211)
 
     def test_build_execution_plan_shell_does_not_report_duration(self):
-        args = cmd._parse_arguments(args=['--shell'])
-        _, plan = cmd.QuibbleCmd().build_execution_plan(args)
+        args = cli._parse_arguments(args=['--shell'])
+        _, plan = cli.QuibbleCli().build_execution_plan(args)
 
         assert quibble.commands.ReportDurations not in [
             type(step) for step in plan
@@ -432,8 +432,8 @@ class TestCmd:
         assert isinstance(plan[0], quibble.commands.ReportVersions)
 
     def test_build_execution_plan_user_command_does_report_duration(self):
-        args = cmd._parse_arguments(args=['-c', '/bin/true'])
-        _, plan = cmd.QuibbleCmd().build_execution_plan(args)
+        args = cli._parse_arguments(args=['-c', '/bin/true'])
+        _, plan = cli.QuibbleCli().build_execution_plan(args)
 
         assert isinstance(plan[0], quibble.commands.ReportDurations)
 
@@ -448,22 +448,22 @@ class TestCmd:
         return types
 
     def test_user_command_triggers_npm_install(self):
-        args = cmd._parse_arguments(args=['-c', '/bin/true'])
-        _, plan = cmd.QuibbleCmd().build_execution_plan(args)
+        args = cli._parse_arguments(args=['-c', '/bin/true'])
+        _, plan = cli.QuibbleCli().build_execution_plan(args)
 
         assert quibble.commands.NpmInstall in self._plan_step_types(plan)
 
     def test_skip_npm_install_removes_npm_install_step(self):
-        args = cmd._parse_arguments(
+        args = cli._parse_arguments(
             args=['-c', '/bin/true', '--skip-npm-install']
         )
-        _, plan = cmd.QuibbleCmd().build_execution_plan(args)
+        _, plan = cli.QuibbleCli().build_execution_plan(args)
 
         assert quibble.commands.NpmInstall not in self._plan_step_types(plan)
 
     def test_skip_npm_install_keeps_composer_dependencies(self):
         # Unlike --skip-deps, the composer install must remain in the plan.
-        args = cmd._parse_arguments(
+        args = cli._parse_arguments(
             args=[
                 '--packages-source=composer',
                 '-c',
@@ -472,7 +472,7 @@ class TestCmd:
             ]
         )
         with mock.patch('quibble.commands.ZuulClone'):
-            _, plan = cmd.QuibbleCmd().build_execution_plan(args)
+            _, plan = cli.QuibbleCli().build_execution_plan(args)
 
         assert (
             quibble.commands.NativeComposerDependencies
@@ -483,8 +483,8 @@ class TestCmd:
         with mock.patch.dict(
             'os.environ', {'ZUUL_PROJECT': 'mediawiki/vendor'}, clear=True
         ):
-            q = cmd.QuibbleCmd()
-            args = cmd._parse_arguments(['--packages-source', 'vendor'])
+            q = cli.QuibbleCli()
+            args = cli._parse_arguments(['--packages-source', 'vendor'])
             with mock.patch('quibble.commands.ZuulClone'):
                 q.build_execution_plan(args)
             assert 'MW_SKIP_EXTERNAL_DEPENDENCIES' in os.environ
@@ -494,8 +494,8 @@ class TestCmd:
         with mock.patch.dict(
             'os.environ', {'ZUUL_PROJECT': 'mediawiki/core'}, clear=True
         ):
-            q = cmd.QuibbleCmd()
-            args = cmd._parse_arguments(['--packages-source', 'vendor'])
+            q = cli.QuibbleCli()
+            args = cli._parse_arguments(['--packages-source', 'vendor'])
             with mock.patch('quibble.commands.ZuulClone'):
                 q.build_execution_plan(args)
             assert 'MW_SKIP_EXTERNAL_DEPENDENCIES' not in os.environ
@@ -504,8 +504,8 @@ class TestCmd:
         with mock.patch.dict(
             'os.environ', {'ZUUL_PROJECT': 'mediawiki/core'}, clear=True
         ):
-            q = cmd.QuibbleCmd()
-            args = cmd._parse_arguments(['--packages-source', 'composer'])
+            q = cli.QuibbleCli()
+            args = cli._parse_arguments(['--packages-source', 'composer'])
             with mock.patch('quibble.commands.ZuulClone'):
                 q.build_execution_plan(args)
             assert 'MW_SKIP_EXTERNAL_DEPENDENCIES' not in os.environ
@@ -520,8 +520,8 @@ class TestCmd:
             'ZUUL_REF': 'refs/changes/99/12345',
         }
         with mock.patch.dict('os.environ', clear=True):
-            q = cmd.QuibbleCmd()
-            args = cmd._parse_arguments(['--change', '12345,99'])
+            q = cli.QuibbleCli()
+            args = cli._parse_arguments(['--change', '12345,99'])
             with mock.patch('quibble.util.FetchInfo') as fetchinfo:
                 fetchinfo.change.return_value.asZuulEnv.return_value = zuul_env
                 q.build_execution_plan(args)
@@ -529,19 +529,19 @@ class TestCmd:
             assert dict(os.environ).items() > zuul_env.items()
 
     def test_execute(self, caplog):
-        q = cmd.QuibbleCmd()
+        q = cli.QuibbleCli()
 
         with caplog.at_level(logging.DEBUG):
             q.execute([], '/workspace/src')
 
         assert caplog.record_tuples[0] == (
-            'quibble.cmd',
+            'quibble.cli',
             logging.DEBUG,
             'Project dir: /workspace/src',
         )
 
     def test_execute_reraise_SuccessCache_Hit(self):
-        q = cmd.QuibbleCmd()
+        q = cli.QuibbleCli()
 
         successCacheHitCmd = mock.MagicMock()
         successCacheHitCmd.execute.side_effect = (
@@ -569,8 +569,8 @@ class TestCmd:
             subprocess.CalledProcessError,
             match="Command 'fail' returned non-zero exit status 42",
         ):
-            with mock.patch('quibble.cmd.QuibbleCmd.earlywarn'):
-                quibbleCmd = cmd.QuibbleCmd()
+            with mock.patch('quibble.cli.QuibbleCli.earlywarn'):
+                quibbleCmd = cli.QuibbleCli()
                 quibbleCmd.execute(plan, '/tmp')
                 assert quibbleCmd.earlywarn.assert_called_once()
                 assert otherCmd.assert_not_called, 'build plan must be aborted'

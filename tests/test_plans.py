@@ -3,7 +3,7 @@ from unittest import mock
 import os.path
 
 import pytest
-from quibble import cmd
+from quibble import cli
 import yaml
 
 PLANS_DIR = os.path.join(os.path.dirname(__file__), 'plans')
@@ -34,8 +34,8 @@ def test_plan(expected, args, env):
     )
 
     with mock.patch.dict('os.environ', env, clear=True):
-        cmd_args = cmd._parse_arguments(args)
-        project_dir, plan = cmd.QuibbleCmd().build_execution_plan(cmd_args)
+        cli_args = cli._parse_arguments(args)
+        project_dir, plan = cli.QuibbleCli().build_execution_plan(cli_args)
 
     printable_plan = [str(command) for command in plan]
 

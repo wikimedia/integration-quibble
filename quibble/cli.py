@@ -32,7 +32,7 @@ import quibble.zuul
 import quibble.commands
 import quibble.util
 
-log = logging.getLogger('quibble.cmd')
+log = logging.getLogger('quibble.cli')
 known_stages = [
     'all',
     'phpunit-unit',
@@ -69,7 +69,7 @@ class MultipleChoices(list):
         return set(item).issubset(set(self))
 
 
-class QuibbleCmd(object):
+class QuibbleCli(object):
     def __init__(self):
         self._context_stack = contextlib.ExitStack()
 
@@ -1050,11 +1050,11 @@ def main():
     if args.color:
         quibble.colored_logging()
 
-    cmd = QuibbleCmd()
-    project_dir, plan = cmd.build_execution_plan(args)
+    cli = QuibbleCli()
+    project_dir, plan = cli.build_execution_plan(args)
 
     try:
-        cmd.execute(
+        cli.execute(
             plan,
             project_dir=project_dir,
             reporting_url=args.reporting_url,
