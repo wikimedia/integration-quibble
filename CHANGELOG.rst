@@ -1,9 +1,14 @@
 Quibble changelog
 =================
 
-master (UNRELEASED)
+1.18.1 (2026-06-02)
 -------------------
-* …
+
+Features
+~~~~~~~~
+* Zuul retry policy on GnuTLS network errors
+  `T420865 <https://phabricator.wikimedia.org/T420865>`_
+  Arnaud Bran
 
 1.18.0 (2026-05-12)
 -------------------
