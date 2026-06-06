@@ -460,6 +460,50 @@ class CmdTest(unittest.TestCase):
 
         self.assertIsInstance(plan[0], quibble.commands.ReportDurations)
 
+    @staticmethod
+    def _plan_step_types(plan):
+        # NpmInstall is appended to a Parallel() block rather than the
+        # top-level plan, so walk one level into any step exposing .steps.
+        types = []
+        for step in plan:
+            types.append(type(step))
+            types.extend(type(sub) for sub in getattr(step, 'steps', []))
+        return types
+
+    def test_user_command_triggers_npm_install(self):
+        args = cmd._parse_arguments(args=['-c', '/bin/true'])
+        _, plan = cmd.QuibbleCmd().build_execution_plan(args)
+
+        self.assertIn(quibble.commands.NpmInstall, self._plan_step_types(plan))
+
+    def test_skip_npm_install_removes_npm_install_step(self):
+        args = cmd._parse_arguments(
+            args=['-c', '/bin/true', '--skip-npm-install']
+        )
+        _, plan = cmd.QuibbleCmd().build_execution_plan(args)
+
+        self.assertNotIn(
+            quibble.commands.NpmInstall, self._plan_step_types(plan)
+        )
+
+    def test_skip_npm_install_keeps_composer_dependencies(self):
+        # Unlike --skip-deps, the composer install must remain in the plan.
+        args = cmd._parse_arguments(
+            args=[
+                '--packages-source=composer',
+                '-c',
+                '/bin/true',
+                '--skip-npm-install',
+            ]
+        )
+        with mock.patch('quibble.commands.ZuulClone'):
+            _, plan = cmd.QuibbleCmd().build_execution_plan(args)
+
+        self.assertIn(
+            quibble.commands.NativeComposerDependencies,
+            self._plan_step_types(plan),
+        )
+
     def test_skip_lock_check_for_patches_to_vendor(self):
         with mock.patch.dict(
             'os.environ', {'ZUUL_PROJECT': 'mediawiki/vendor'}, clear=True

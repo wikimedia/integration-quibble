@@ -413,11 +413,15 @@ class QuibbleCmd(object):
                 )
             )
 
-        if not args.skip_deps and (
-            run_npm
-            or 'qunit' in stages
-            or 'api-testing' in stages
-            or args.commands
+        if (
+            not args.skip_deps
+            and not args.skip_npm_install
+            and (
+                run_npm
+                or 'qunit' in stages
+                or 'api-testing' in stages
+                or args.commands
+            )
         ):
             parallel_steps.append(quibble.commands.NpmInstall(mw_install_path))
 
@@ -850,6 +854,16 @@ def get_arg_parser():
         '--skip-deps',
         action='store_true',
         help='Do not run composer/npm installs',
+    )
+    deps.add_argument(
+        '--skip-npm-install',
+        action='store_true',
+        help='Do not run the standalone "npm install" dependency step '
+        '(the step added automatically for --command/--commands, '
+        'npm-test, qunit and api-testing). Intended for jobs whose '
+        'commands do not need Node.js dependencies, for example '
+        'PHP-only PHPUnit coverage runs. Unlike --skip-deps, composer '
+        'dependencies are still installed.',
     )
     deps.add_argument(
         '--packages-source',

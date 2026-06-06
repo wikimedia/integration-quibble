@@ -3,7 +3,12 @@ Quibble changelog
 
 master (UNRELEASED)
 -------------------
-* …
+* Add ``--skip-npm-install`` to skip the standalone npm install step for
+  jobs whose commands do not need Node.js dependencies (e.g. PHP-only
+  coverage). Composer dependencies are still installed, unlike with
+  ``--skip-deps``.
+  `T427922 <https://phabricator.wikimedia.org/T427922>`_
+  Monte Hurd
 
 1.18.2 (2026-06-18)
 -------------------
