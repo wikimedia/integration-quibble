@@ -89,15 +89,23 @@ class Repo(object):
 
     def _git_with_retry(self, action, func, cleanup=None):
         """
-        Retry git commands to handle `GnuTLS recv error (-54)` making CI
-        jobs fail (T421827)
+        Retry git commands making CI jobs fail (T421827, T420865)
         """
+        retryable_network_errors = (
+            'GnuTLS recv error',
+            'Recv failure',
+            'Connection reset by peer',
+            'Could not resolve host',
+            'Connection timed out',
+            'Failed to connect',
+            'Early EOF',
+            'RPC failed',
+        )
         try:
             return func()
         except git.GitCommandError as e:
             stderr = getattr(e, 'stderr') or ''
-            gnutls = 'GnuTLS' in stderr
-            if not gnutls:
+            if not any(msg in stderr for msg in retryable_network_errors):
                 raise
             if cleanup:
                 cleanup(e)
