@@ -1,9 +1,20 @@
 Quibble changelog
 =================
 
-master (UNRELEASED)
+1.18.2 (2026-06-18)
 -------------------
-* …
+
+Fixes
+~~~~~
+* Zuul retry policy on connection resets, not only GnuTLS errors.
+  `T420865 <https://phabricator.wikimedia.org/T420865>`_
+  Arnaud Bran
+
+Internal
+~~~~~~~~
+* Skip integration tests when generating the coverage report.
+  `T428642 <https://phabricator.wikimedia.org/T428642>`_
+  Antoine Musso
 
 1.18.1 (2026-06-02)
 -------------------
