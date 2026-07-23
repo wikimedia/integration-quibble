@@ -54,6 +54,63 @@ def mock_npm_command_env(env_value):
         return mock.patch.dict('os.environ', {'NPM_COMMAND': env_value})
 
 
+class NpmInstallTest:
+    @pytest.mark.usefixtures('caplog')
+    @mock.patch('quibble.commands.run')
+    @mock.patch('quibble.commands._repo_has_npm_lock', return_value=True)
+    def test_reports_section(self, _has_lock, mock_run, caplog):
+        caplog.set_level(logging.INFO)
+
+        quibble.commands._npm_install(
+            '/src/extensions/Example', label='mediawiki/extensions/Example'
+        )
+
+        messages = [rec.message for rec in caplog.records]
+        assert (
+            ">>> Start: npm install in 'mediawiki/extensions/Example'"
+            in messages
+        )
+        assert any(
+            m.startswith(
+                "<<< Finish: npm install in 'mediawiki/extensions/Example'"
+            )
+            for m in messages
+        )
+
+    @pytest.mark.usefixtures('caplog')
+    @mock.patch('quibble.commands.run')
+    @mock.patch('quibble.commands._repo_has_npm_lock', return_value=True)
+    def test_reports_failure(self, _has_lock, mock_run, caplog):
+        caplog.set_level(logging.INFO)
+        mock_run.side_effect = subprocess.CalledProcessError(1, ['npm', 'ci'])
+
+        with pytest.raises(subprocess.CalledProcessError):
+            quibble.commands._npm_install(
+                '/src/extensions/Example',
+                label='mediawiki/extensions/Example',
+            )
+
+        messages = [rec.message for rec in caplog.records]
+        assert any(
+            m.startswith(
+                "<<< Failed: npm install in 'mediawiki/extensions/Example'"
+            )
+            for m in messages
+        )
+
+    @pytest.mark.usefixtures('caplog')
+    @mock.patch('quibble.commands.run')
+    @mock.patch('quibble.commands._repo_has_npm_lock', return_value=True)
+    def test_no_section_without_label(self, _has_lock, mock_run, caplog):
+        caplog.set_level(logging.INFO)
+
+        quibble.commands._npm_install('/src/extensions/Example')
+
+        messages = [rec.message for rec in caplog.records]
+        assert not any('npm install in' in m for m in messages)
+        mock_run.assert_called()
+
+
 class ReportVersionsTest:
     @pytest.mark.usefixtures('caplog')
     @mock.patch('subprocess.check_output')
@@ -1130,30 +1187,22 @@ class BrowserTestsTest:
             'php',
         )
 
-        # time.time is invoked by Chronometer as well as logging so we need
-        # a few more extras. Python 3.13 has a slightly different behavior,
-        # maybe related to how time.time is mocked.
-        if sys.version_info >= (3, 13):
-            mocked_times = [1, 2, 4, 8]
-            first_duration = 1
-            second_duration = 4
-        else:
-            # Remove this branch once we requires Python 3.13
-            mocked_times = [1, 2, 4, 8, 16, 32, 64, 128]
-            first_duration = 3
-            second_duration = 48
-
-        with mock.patch('quibble.time.time', side_effect=mocked_times):
+        # npm install is now nested per browser stage; ignore durations here.
+        with mock.patch('quibble.time.time', side_effect=range(1000)):
             c.execute()
 
-        assert [rec.message for rec in caplog.records] == [
+        markers = [
+            re.sub(r', in .* s$', '', rec.message) for rec in caplog.records
+        ]
+        assert markers == [
             ">>> Start: Browser tests in 'mediawiki/core'",
-            "<<< Finish: Browser tests in 'mediawiki/core',"
-            " in %.03f s" % first_duration,
+            ">>> Start: npm install in 'mediawiki/core'",
+            "<<< Finish: npm install in 'mediawiki/core'",
+            "<<< Finish: Browser tests in 'mediawiki/core'",
             ">>> Start: Browser tests in 'mediawiki/extensions/HasTest'",
-            "<<< Finish: Browser tests in"
-            " 'mediawiki/extensions/HasTest',"
-            " in %.03f s" % second_duration,
+            ">>> Start: npm install in 'mediawiki/extensions/HasTest'",
+            "<<< Finish: npm install in 'mediawiki/extensions/HasTest'",
+            "<<< Finish: Browser tests in 'mediawiki/extensions/HasTest'",
         ]
 
 
