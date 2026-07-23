@@ -112,6 +112,20 @@ class QuibbleTest(unittest.TestCase):
             ]
         )
 
+    @mock.patch('time.time')
+    def test_chronometer_reports_failure(self, mock_time):
+        mock_time.side_effect = [1.5, 2.5]
+        mock_log = mock.MagicMock()
+        with self.assertRaises(ValueError):
+            with quibble.Chronometer('method', mock_log):
+                raise ValueError('boom')
+        mock_log.assert_has_calls(
+            [
+                mock.call('>>> Start: method'),
+                mock.call('<<< Failed: method, in 1.000 s'),
+            ]
+        )
+
     @mock.patch('quibble.DURATIONS', new=[])
     def test_chronometer_global_tracking(self):
         assert [] == quibble.DURATIONS

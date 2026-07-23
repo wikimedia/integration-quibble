@@ -132,13 +132,22 @@ def Chronometer(name, logger):
     Durations are globally tracked in the global list quibble.DURATIONS. Each
     entry is a `CommandTiming` tuple made of the elapsed time in second and the
     command description.
+
+    On success the command reports `<<< Finish: ...`. When the wrapped block
+    raises, it reports `<<< Failed: ...` instead, so the outcome of each
+    command is machine readable and not only its duration.
     """
     start = time.time()
     logger('>>> Start: %s' % name)
+    failed = False
     try:
         yield
+    except BaseException:
+        failed = True
+        raise
     finally:
         duration = time.time() - start
-        logger('<<< Finish: %s, in %.03f s' % (name, duration))
+        outcome = 'Failed' if failed else 'Finish'
+        logger('<<< %s: %s, in %.03f s' % (outcome, name, duration))
 
         DURATIONS.append(CommandTiming(command=name, seconds=duration))
