@@ -527,7 +527,10 @@ class NpmTest:
     def execute(self):
         if repo_has_npm_script(self.directory, 'test'):
             _npm_install(self.directory, label=self.directory)
-            run([quibble.get_npm_command(), 'test'], cwd=self.directory)
+            with quibble.Chronometer(
+                "npm test run in '%s'" % self.directory, log.info
+            ):
+                run([quibble.get_npm_command(), 'test'], cwd=self.directory)
         else:
             log.warning("%s lacks a package.json", self.directory)
 
@@ -1290,11 +1293,14 @@ class ApiTesting:
             )
             if repo_has_npm_script(project_dir, 'api-testing'):
                 _npm_install(project_dir, label=project)
-                run(
-                    [quibble.get_npm_command(), 'run', 'api-testing'],
-                    cwd=project_dir,
-                    env=quibble_testing_config_env,
-                )
+                with quibble.Chronometer(
+                    "api-testing run in '%s'" % project, log.info
+                ):
+                    run(
+                        [quibble.get_npm_command(), 'run', 'api-testing'],
+                        cwd=project_dir,
+                        env=quibble_testing_config_env,
+                    )
 
     def __str__(self):
         return "Run API-Testing"
@@ -1343,11 +1349,14 @@ class BrowserTests:
 
         if not self.parallel_npm_install:
             _npm_install(project_dir, label=project)
-        run(
-            [quibble.get_npm_command(), 'run', 'selenium-test'],
-            cwd=project_dir,
-            env=webdriver_env,
-        )
+        with quibble.Chronometer(
+            "wdio/cypress tests in '%s'" % project, log.info
+        ):
+            run(
+                [quibble.get_npm_command(), 'run', 'selenium-test'],
+                cwd=project_dir,
+                env=webdriver_env,
+            )
 
     def __str__(self):
         return 'Run all browser tests'
