@@ -84,23 +84,31 @@ def run(cmd: list, cwd: str, shell=False, env=None):
         )
 
 
-def _npm_install(project_dir):
-    if _repo_has_npm_lock(project_dir):
-        cmd = 'ci'
-        if quibble.get_npm_command() == 'pnpm':
-            cmd = 'install'
-        run([quibble.get_npm_command(), cmd], cwd=project_dir)
-    else:
-        run([quibble.get_npm_command(), 'prune'], cwd=project_dir)
-        run(
-            [
-                quibble.get_npm_command(),
-                'install',
-                '--no-progress',
-                '--prefer-offline',
-            ],
-            cwd=project_dir,
-        )
+def _npm_install(project_dir, label=None):
+    # A label wraps npm install in its own timed section named after the
+    # caller; without one it runs unwrapped to avoid a duplicate stage.
+    section = (
+        quibble.Chronometer("npm install in '%s'" % label, log.info)
+        if label
+        else contextlib.nullcontext()
+    )
+    with section:
+        if _repo_has_npm_lock(project_dir):
+            cmd = 'ci'
+            if quibble.get_npm_command() == 'pnpm':
+                cmd = 'install'
+            run([quibble.get_npm_command(), cmd], cwd=project_dir)
+        else:
+            run([quibble.get_npm_command(), 'prune'], cwd=project_dir)
+            run(
+                [
+                    quibble.get_npm_command(),
+                    'install',
+                    '--no-progress',
+                    '--prefer-offline',
+                ],
+                cwd=project_dir,
+            )
 
 
 class ReportVersions:
@@ -518,7 +526,7 @@ class NpmTest:
 
     def execute(self):
         if repo_has_npm_script(self.directory, 'test'):
-            _npm_install(self.directory)
+            _npm_install(self.directory, label=self.directory)
             run([quibble.get_npm_command(), 'test'], cwd=self.directory)
         else:
             log.warning("%s lacks a package.json", self.directory)
@@ -1281,7 +1289,7 @@ class ApiTesting:
                 )
             )
             if repo_has_npm_script(project_dir, 'api-testing'):
-                _npm_install(project_dir)
+                _npm_install(project_dir, label=project)
                 run(
                     [quibble.get_npm_command(), 'run', 'api-testing'],
                     cwd=project_dir,
@@ -1315,9 +1323,9 @@ class BrowserTests:
             if repo_has_npm_script(project_dir, 'selenium-test'):
                 chrono_name = "Browser tests in '%s'" % project
                 with quibble.Chronometer(chrono_name, log.info):
-                    self._run_webdriver(project_dir)
+                    self._run_webdriver(project_dir, project)
 
-    def _run_webdriver(self, project_dir):
+    def _run_webdriver(self, project_dir, project):
         webdriver_env = {}
         webdriver_env.update(os.environ)
         webdriver_env.update(
@@ -1334,7 +1342,7 @@ class BrowserTests:
             webdriver_env.update({'QUIBBLE_APACHE': '1'})
 
         if not self.parallel_npm_install:
-            _npm_install(project_dir)
+            _npm_install(project_dir, label=project)
         run(
             [quibble.get_npm_command(), 'run', 'selenium-test'],
             cwd=project_dir,
