@@ -439,15 +439,25 @@ class ExtSkinComposerTestTest(unittest.TestCase):
 
 
 class NpmTestTest:
+    @pytest.mark.usefixtures('caplog')
     @mock.patch('quibble.commands.repo_has_npm_script', return_value=True)
     @mock.patch('quibble.commands.run')
     @pytest.mark.parametrize(*npm_envs_parameters)
     def test_execute(
-        self, mock_call, mock_has, npm_command_env, expected_npm_command
+        self,
+        mock_call,
+        mock_has,
+        npm_command_env,
+        expected_npm_command,
+        caplog,
     ):
+        caplog.set_level(logging.INFO)
         with mock_npm_command_env(npm_command_env):
             quibble.commands.NpmTest('/tmp').execute()
         mock_call.assert_any_call([expected_npm_command, 'test'], cwd='/tmp')
+        assert ">>> Start: npm test run in '/tmp'" in [
+            rec.message for rec in caplog.records
+        ]
 
 
 class CoreComposerTestTest(unittest.TestCase):
@@ -983,6 +993,7 @@ class QunitTestsTest(unittest.TestCase):
 
 
 class ApiTestingTest:
+    @pytest.mark.usefixtures('caplog')
     @mock.patch('builtins.open', mock.mock_open())
     @mock.patch('os.path.exists', return_value=True)
     @mock.patch('json.load')
@@ -1001,7 +1012,9 @@ class ApiTestingTest:
         mock_path_exists,
         npm_command_env,
         expected_npm_command,
+        caplog,
     ):
+        caplog.set_level(logging.INFO)
         mock_load.return_value = {'scripts': {'api-testing': 'run tests'}}
 
         with mock_npm_command_env(npm_command_env):
@@ -1018,6 +1031,9 @@ class ApiTestingTest:
             cwd='/tmp',
             env=mock.ANY,
         )
+        assert ">>> Start: api-testing run in 'mediawiki/core'" in [
+            rec.message for rec in caplog.records
+        ]
 
     @mock.patch('os.path.exists', return_value=True)
     @mock.patch('builtins.open', mock.mock_open())
@@ -1198,10 +1214,14 @@ class BrowserTestsTest:
             ">>> Start: Browser tests in 'mediawiki/core'",
             ">>> Start: npm install in 'mediawiki/core'",
             "<<< Finish: npm install in 'mediawiki/core'",
+            ">>> Start: wdio/cypress tests in 'mediawiki/core'",
+            "<<< Finish: wdio/cypress tests in 'mediawiki/core'",
             "<<< Finish: Browser tests in 'mediawiki/core'",
             ">>> Start: Browser tests in 'mediawiki/extensions/HasTest'",
             ">>> Start: npm install in 'mediawiki/extensions/HasTest'",
             "<<< Finish: npm install in 'mediawiki/extensions/HasTest'",
+            ">>> Start: wdio/cypress tests in 'mediawiki/extensions/HasTest'",
+            "<<< Finish: wdio/cypress tests in 'mediawiki/extensions/HasTest'",
             "<<< Finish: Browser tests in 'mediawiki/extensions/HasTest'",
         ]
 

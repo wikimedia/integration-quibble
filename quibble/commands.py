@@ -84,6 +84,11 @@ def run(cmd: list, cwd: str, shell=False, env=None):
         )
 
 
+def _timed_run(label, cmd, cwd, **kwargs):
+    with quibble.Chronometer(label, log.info):
+        run(cmd, cwd=cwd, **kwargs)
+
+
 def _npm_install(project_dir, label=None):
     # A label wraps npm install in its own timed section named after the
     # caller; without one it runs unwrapped to avoid a duplicate stage.
@@ -527,7 +532,11 @@ class NpmTest:
     def execute(self):
         if repo_has_npm_script(self.directory, 'test'):
             _npm_install(self.directory, label=self.directory)
-            run([quibble.get_npm_command(), 'test'], cwd=self.directory)
+            _timed_run(
+                "npm test run in '%s'" % self.directory,
+                [quibble.get_npm_command(), 'test'],
+                cwd=self.directory,
+            )
         else:
             log.warning("%s lacks a package.json", self.directory)
 
@@ -1290,7 +1299,8 @@ class ApiTesting:
             )
             if repo_has_npm_script(project_dir, 'api-testing'):
                 _npm_install(project_dir, label=project)
-                run(
+                _timed_run(
+                    "api-testing run in '%s'" % project,
                     [quibble.get_npm_command(), 'run', 'api-testing'],
                     cwd=project_dir,
                     env=quibble_testing_config_env,
@@ -1343,7 +1353,8 @@ class BrowserTests:
 
         if not self.parallel_npm_install:
             _npm_install(project_dir, label=project)
-        run(
+        _timed_run(
+            "wdio/cypress tests in '%s'" % project,
             [quibble.get_npm_command(), 'run', 'selenium-test'],
             cwd=project_dir,
             env=webdriver_env,
