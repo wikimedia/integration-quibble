@@ -1,8 +1,19 @@
 Quibble changelog
 =================
 
-master (UNRELEASED)
+1.19.0 (2026-08-06)
 -------------------
+
+Features
+~~~~~~~~
+* Report stage outcome (success/failure). This makes failures stand out and lets
+  us collect them for analysis.
+  `T432934 <https://phabricator.wikimedia.org/T432934>`_
+  Peter Hedenskog
+* Report npm install as its own stage. It is now an independent item in the
+  duration report.
+  `T432943 <https://phabricator.wikimedia.org/T432943>`_
+  Peter Hedenskog
 * Add ``--skip-npm-install`` to skip the standalone npm install step for
   jobs whose commands do not need Node.js dependencies (e.g. PHP-only
   coverage). Composer dependencies are still installed, unlike with
