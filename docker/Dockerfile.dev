@@ -1,6 +1,7 @@
 # Development Dockerfile for testing local Quibble changes.
 #
-# Installs your working copy of Quibble over the system version.
+# Installs your working copy of Quibble into the virtualenv that the CI
+# image keeps Quibble in.
 #
 # Build:
 # docker build --platform linux/amd64 -f docker/Dockerfile.dev -t quibble-dev .
@@ -12,7 +13,7 @@ FROM docker-registry.wikimedia.org/releng/quibble-bookworm-php83:latest
 USER root
 
 COPY . /opt/quibble
-RUN pip3 install --no-cache-dir --break-system-packages /opt/quibble
+RUN "$QUIBBLE_VENV"/bin/pip install --no-cache-dir /opt/quibble
 
 USER nobody
 
