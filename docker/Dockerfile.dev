@@ -7,12 +7,12 @@
 #
 # Check the README for how to run tests
 
-FROM docker-registry.wikimedia.org/releng/quibble-bullseye-php83:latest
+FROM docker-registry.wikimedia.org/releng/quibble-bookworm-php83:latest
 
 USER root
 
 COPY . /opt/quibble
-RUN pip3 install --no-cache-dir /opt/quibble
+RUN pip3 install --no-cache-dir --break-system-packages /opt/quibble
 
 USER nobody
 

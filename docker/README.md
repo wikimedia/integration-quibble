@@ -8,7 +8,7 @@ For every change you do build a new version of the container.
 
 ```bash
 # Make sure you pull the latest version
-docker pull docker-registry.wikimedia.org/releng/quibble-bullseye-php83:latest
+docker pull docker-registry.wikimedia.org/releng/quibble-bookworm-php83:latest
 docker build --platform linux/amd64 -f docker/Dockerfile.dev -t quibble-dev .
 ```
 
