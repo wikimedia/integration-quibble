@@ -24,6 +24,7 @@ import tempfile
 import threading
 import time
 import urllib
+import sys
 
 import quibble
 
@@ -216,7 +217,10 @@ class Postgres(DatabaseServer):
                 # Option for pg_createcluster
                 '-c',
                 '--socketdir=%s' % self.socket,
-                'python3',
+                # Use the interpreter that runs Quibble. A bare
+                # 'python3' starts the system interpreter. That
+                # interpreter cannot import quibble from a virtualenv.
+                sys.executable,
                 '-m', 'quibble.pg_virtualenv_hook'
                 # fmt: on
             ],
