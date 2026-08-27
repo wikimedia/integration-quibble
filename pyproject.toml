@@ -78,6 +78,7 @@ line-length = 79
 # Require markers to be registered, see
 # https://docs.pytest.org/en/stable/how-to/mark.html
 addopts = "--verbose --strict-markers"
+python_classes = ["Test*", "*Test"]
 markers = [
   "integration: tests requiring another software (PHP, PostgreSQL...)"
 ]
