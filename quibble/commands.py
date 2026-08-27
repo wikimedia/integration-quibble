@@ -99,10 +99,13 @@ def _npm_install(project_dir, label=None):
     )
     with section:
         if _repo_has_npm_lock(project_dir):
-            cmd = 'ci'
+            # The audit and fund reports send an extra request to the npm
+            # registry and CI does not use them. pnpm does not know these
+            # options.
+            cmd = ['ci', '--no-audit', '--no-fund']
             if quibble.get_npm_command() == 'pnpm':
-                cmd = 'install'
-            run([quibble.get_npm_command(), cmd], cwd=project_dir)
+                cmd = ['install']
+            run([quibble.get_npm_command(), *cmd], cwd=project_dir)
         else:
             run([quibble.get_npm_command(), 'prune'], cwd=project_dir)
             run(
