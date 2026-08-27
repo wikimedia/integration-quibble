@@ -265,7 +265,7 @@ class ReportDurationsTest:
             id="SuccessCache.Hit",
         )
 
-    @pytest.mark.parametrize('expected,exc_type', results_exceptions())
+    @pytest.mark.parametrize('expected,exc_type', list(results_exceptions()))
     def test_result_from_exception(self, expected, exc_type):
         result = quibble.commands.ReportDurations.result_from_exception(
             exc_type

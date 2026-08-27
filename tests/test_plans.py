@@ -22,7 +22,7 @@ def plans():
         )
 
 
-@pytest.mark.parametrize('expected,args,env', plans())
+@pytest.mark.parametrize('expected,args,env', list(plans()))
 def test_plan(expected, args, env):
     # Explicitly set options those default value differs when run under a
     # Docker environment.
