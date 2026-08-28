@@ -56,8 +56,8 @@ class TestClone(unittest.TestCase):
         )
 
         (args, kwargs) = mock_cloner.call_args
-        self.assertIn('projects', kwargs)
-        self.assertIsInstance(kwargs['projects'], list)
+        assert 'projects' in kwargs
+        assert isinstance(kwargs['projects'], list)
 
     @mock.patch('quibble.zuul.Cloner')
     def test_branch(self, mock_cloner):
@@ -76,8 +76,8 @@ class TestClone(unittest.TestCase):
         )
 
         (args, kwargs) = mock_cloner.call_args
-        self.assertIn('branch', kwargs)
-        self.assertEqual(kwargs['branch'], 'REL1_42')
+        assert 'branch' in kwargs
+        assert 'REL1_42' in kwargs['branch']
 
     @mock.patch('quibble.zuul.Cloner')
     def test_project_branch(self, mock_cloner):
@@ -96,10 +96,8 @@ class TestClone(unittest.TestCase):
         )
 
         (args, kwargs) = mock_cloner.call_args
-        self.assertIn('mediawiki/core', kwargs['project_branches'])
-        self.assertEqual(
-            'REL1_42', kwargs['project_branches']['mediawiki/core']
-        )
+        assert 'mediawiki/core' in kwargs['project_branches']
+        assert kwargs['project_branches']['mediawiki/core'] == 'REL1_42'
 
     @mock.patch('quibble.zuul.Cloner')
     def test_multiple_project_branch(self, mock_cloner):
@@ -121,14 +119,10 @@ class TestClone(unittest.TestCase):
         )
 
         (args, kwargs) = mock_cloner.call_args
-        self.assertIn('mediawiki/core', kwargs['project_branches'])
-        self.assertIn('mediawiki/vendor', kwargs['project_branches'])
-        self.assertEqual(
-            'REL1_42', kwargs['project_branches']['mediawiki/core']
-        )
-        self.assertEqual(
-            'REL1_42', kwargs['project_branches']['mediawiki/vendor']
-        )
+        assert 'mediawiki/core' in kwargs['project_branches']
+        assert 'mediawiki/vendor' in kwargs['project_branches']
+        assert kwargs['project_branches']['mediawiki/core'] == 'REL1_42'
+        assert kwargs['project_branches']['mediawiki/vendor'] == 'REL1_42'
 
     @mock.patch('quibble.zuul.ThreadPoolExecutor')
     @mock.patch('quibble.zuul.Cloner')
@@ -156,9 +150,9 @@ class TestClone(unittest.TestCase):
             )
 
         # Make sure MediaWiki core does not get cloned
-        self.assertNotIn(
-            mock.call().prepareRepo('mediawiki/core', mock.ANY),
-            mock_cloner.mock_calls,
+        assert (
+            mock.call().prepareRepo('mediawiki/core', mock.ANY)
+            not in mock_cloner.mock_calls
         )
 
         # Verify the ThreadExecutor that invokes Cloner().prepareRepo has only
@@ -225,48 +219,46 @@ class TestClone(unittest.TestCase):
         )
 
 
-class TestRepoDir(unittest.TestCase):
+class TestRepoDir:
     def test_maps_mediawiki_core_to_current_directory(self):
-        self.assertEqual('.', quibble.zuul.repo_dir('mediawiki/core'))
+        assert quibble.zuul.repo_dir('mediawiki/core') == '.'
 
     def test_maps_mediawiki_vendor_to_vendor_directory(self):
-        self.assertEqual('vendor', quibble.zuul.repo_dir('mediawiki/vendor'))
+        assert quibble.zuul.repo_dir('mediawiki/vendor') == 'vendor'
 
     def test_maps_extensions_to_extensions_directory(self):
-        self.assertEqual(
-            'extensions/AnExt',
-            quibble.zuul.repo_dir('mediawiki/extensions/AnExt'),
+        assert (
+            quibble.zuul.repo_dir('mediawiki/extensions/AnExt')
+            == 'extensions/AnExt'
         )
 
     def test_maps_skins_to_extensions_directory(self):
-        self.assertEqual(
-            'skins/NiceSkin', quibble.zuul.repo_dir('mediawiki/skins/NiceSkin')
+        assert (
+            quibble.zuul.repo_dir('mediawiki/skins/NiceSkin')
+            == 'skins/NiceSkin'
         )
 
     def test_maps_parsoid_to_services_directory(self):
-        self.assertEqual(
-            'services/parsoid',
-            quibble.zuul.repo_dir('mediawiki/services/parsoid'),
+        assert (
+            quibble.zuul.repo_dir('mediawiki/services/parsoid')
+            == 'services/parsoid'
         )
 
 
-class TestWorkingTrees(unittest.TestCase):
+class TestWorkingTrees:
     def test_maps_multiple_projects(self):
-        self.assertEqual(
-            {
-                'mediawiki/core': '/tmp/workspace',
-                'mediawiki/skins/NiceSkin': '/tmp/workspace/skins/NiceSkin',
-                'mediawiki/vendor': '/tmp/workspace/vendor',
-            },
-            # CloneMapper yields an OrderedDict
-            dict(
-                quibble.zuul.working_trees(
-                    '/tmp/workspace',
-                    [
-                        'mediawiki/core',
-                        'mediawiki/vendor',
-                        'mediawiki/skins/NiceSkin',
-                    ],
-                )
-            ),
-        )
+        # CloneMapper yields an OrderedDict
+        assert dict(
+            quibble.zuul.working_trees(
+                '/tmp/workspace',
+                [
+                    'mediawiki/core',
+                    'mediawiki/vendor',
+                    'mediawiki/skins/NiceSkin',
+                ],
+            )
+        ) == {
+            'mediawiki/core': '/tmp/workspace',
+            'mediawiki/skins/NiceSkin': '/tmp/workspace/skins/NiceSkin',
+            'mediawiki/vendor': '/tmp/workspace/vendor',
+        }

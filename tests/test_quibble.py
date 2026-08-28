@@ -17,70 +17,60 @@ class TestQuibble(unittest.TestCase):
         logger.setLevel(initial_level)
 
         with quibble.logginglevel(logger_name, transient_level):
-            self.assertEqual(
-                transient_level,
-                logger.getEffectiveLevel(),
-                'logginglevel must set a transient logging level',
-            )
-        self.assertEqual(
-            initial_level,
-            logger.getEffectiveLevel(),
-            'logginglevel must restore the initial logging level',
-        )
+            assert (
+                logger.getEffectiveLevel() == transient_level
+            ), 'logginglevel must set a transient logging level'
+        assert (
+            logger.getEffectiveLevel() == initial_level
+        ), 'logginglevel must restore the initial logging level'
 
     @mock.patch.dict(os.environ, {'DISPLAY': ':0'})
     def test_use_headless__display_set(self):
-        self.assertEqual(
-            False,
-            quibble.use_headless(),
-            'Do not use headless when a DISPLAY is provided',
-        )
+        assert (
+            quibble.use_headless() is False
+        ), 'Do not use headless when a DISPLAY is provided'
 
     @mock.patch.dict(os.environ, {'DISPLAY': ''})
     def test_use_headless__empty_display(self):
-        self.assertEqual(
-            True,
-            quibble.use_headless(),
-            'Use headless mode when DISPLAY is an empty string',
-        )
+        assert (
+            quibble.use_headless() is True
+        ), 'Use headless mode when DISPLAY is an empty string'
 
     @mock.patch.dict(os.environ, clear=True)
     def test_use_headless__unset_display(self):
-        self.assertNotIn('DISPLAY', os.environ)
-        self.assertEqual(
-            True,
-            quibble.use_headless(),
-            'Use headless mode when DISPLAY is not set',
-        )
+        assert 'DISPLAY' not in os.environ
+        assert (
+            quibble.use_headless() is True
+        ), 'Use headless mode when DISPLAY is not set'
 
     @mock.patch('quibble.is_in_docker', return_value=True)
     def test_chrome_in_docker_does_not_use_sandbox(self, mock):
-        self.assertIn('--no-sandbox', quibble.chromium_flags())
+        assert '--no-sandbox' in quibble.chromium_flags()
 
     @mock.patch('quibble.is_in_docker', return_value=False)
     def test_chrome_outside_docker_uses_sandbox(self, mock):
-        self.assertNotIn('--no-sandbox', quibble.chromium_flags())
+        assert '--no-sandbox' not in quibble.chromium_flags()
 
     @mock.patch('quibble.use_headless', return_value=True)
     def test_chrome_headless_arg(self, mock):
-        self.assertIn('--headless', quibble.chromium_flags())
+        assert '--headless' in quibble.chromium_flags()
 
     @mock.patch('quibble.use_headless', return_value=False)
     def test_chrome_no_headless_arg(self, mock):
-        self.assertNotIn('--headless', quibble.chromium_flags())
+        assert '--headless' not in quibble.chromium_flags()
 
     # https://developers.google.com/web/updates/2017/09/autoplay-policy-changes
     # T197687
     def test_chrome_autoplay_does_not_require_user_gesture(self):
-        self.assertIn(
-            '--autoplay-policy=no-user-gesture-required',
-            quibble.chromium_flags(),
+        assert (
+            '--autoplay-policy=no-user-gesture-required'
+            in quibble.chromium_flags()
         )
 
     # https://bugs.chromium.org/p/chromium/issues/detail?id=769592
     # T198171
     def test_chrome_does_not_throttle_history_state_changes(self):
-        self.assertIn('--disable-pushstate-throttle', quibble.chromium_flags())
+        assert '--disable-pushstate-throttle' in quibble.chromium_flags()
 
     # Chrome 111 no more accepts multiple arguments when running in headless
     # mode, we have to ensure we do not pass an empty string which counts
@@ -89,15 +79,13 @@ class TestQuibble(unittest.TestCase):
     # https://chromium-review.googlesource.com/c/chromium/src/+/4160268
     @mock.patch.dict(os.environ, clear=True)
     def test_chromium_flags_with_empty_env_variable(self):
-        self.assertNotIn(
-            '',
-            quibble.chromium_flags().split(' '),
-            'Must not insert empty arguments',
-        )
+        assert '' not in quibble.chromium_flags().split(
+            ' '
+        ), 'Must not insert empty arguments'
 
     @mock.patch.dict(os.environ, {'CHROMIUM_FLAGS': '--foo'}, clear=True)
     def test_chromium_flags_with_flags_in_env_variable(self):
-        self.assertIn('--foo', quibble.chromium_flags().split(' '))
+        assert '--foo' in quibble.chromium_flags().split(' ')
 
     @mock.patch('time.time')
     def test_chronometer(self, mock_time):

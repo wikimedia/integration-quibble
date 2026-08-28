@@ -16,8 +16,8 @@ class TestMediawikiMaintenance(unittest.TestCase):
         (args, kwargs) = mock_popen.call_args
         env = kwargs.get('env', {})
 
-        self.assertIn('BAR', env)
-        self.assertEqual('foo', env['BAR'])
+        assert 'BAR' in env
+        assert env['BAR'] == 'foo'
 
     @mock.patch.dict('os.environ', {'BAR': 'foo'}, clear=True)
     @mock.patch('subprocess.Popen')
@@ -28,8 +28,8 @@ class TestMediawikiMaintenance(unittest.TestCase):
         (args, kwargs) = mock_popen.call_args
         env = kwargs.get('env', {})
 
-        self.assertIn('BAR', env)
-        self.assertEqual('foo', env['BAR'])
+        assert 'BAR' in env
+        assert env['BAR'] == 'foo'
 
     @mock.patch.dict('os.environ', {'LANG': 'C'}, clear=True)
     @mock.patch('subprocess.Popen')
@@ -40,7 +40,7 @@ class TestMediawikiMaintenance(unittest.TestCase):
         (args, kwargs) = mock_popen.call_args
         env = kwargs.get('env', {})
 
-        self.assertEqual({'LANG': 'C.UTF-8'}, env)
+        assert env == {'LANG': 'C.UTF-8'}
 
     @mock.patch.dict('os.environ', {'BAR': 'foo'}, clear=True)
     @mock.patch('subprocess.Popen')
@@ -51,7 +51,7 @@ class TestMediawikiMaintenance(unittest.TestCase):
         (args, kwargs) = mock_popen.call_args
         env = kwargs.get('env', {})
 
-        self.assertEqual({'BAR': 'foo'}, env)
+        assert env == {'BAR': 'foo'}
 
     @mock.patch.dict('os.environ', {'BAR': 'foo'}, clear=True)
     @mock.patch('subprocess.Popen')
@@ -62,7 +62,7 @@ class TestMediawikiMaintenance(unittest.TestCase):
         (args, kwargs) = mock_popen.call_args
         env = kwargs.get('env', {})
 
-        self.assertEqual({'BAR': 'foo'}, env)
+        assert env == {'BAR': 'foo'}
 
     @mock.patch.dict('os.environ', {'BAR': 'foo'}, clear=True)
     @mock.patch('subprocess.Popen')
@@ -73,7 +73,7 @@ class TestMediawikiMaintenance(unittest.TestCase):
         (args, kwargs) = mock_popen.call_args
         env = kwargs.get('env', {})
 
-        self.assertEqual({'BAR': 'foo'}, env)
+        assert env == {'BAR': 'foo'}
 
     @mock.patch.dict('os.environ', clear=True)
     @mock.patch('subprocess.Popen')
@@ -84,7 +84,7 @@ class TestMediawikiMaintenance(unittest.TestCase):
         (args, kwargs) = mock_popen.call_args
         env = kwargs.get('env', {})
 
-        self.assertNotIn('MW_INSTALL_PATH', env)
+        assert 'MW_INSTALL_PATH' not in env
 
     @mock.patch.dict('os.environ', clear=True)
     @mock.patch('subprocess.Popen')
@@ -95,8 +95,8 @@ class TestMediawikiMaintenance(unittest.TestCase):
         (args, kwargs) = mock_popen.call_args
         env = kwargs.get('env', {})
 
-        self.assertIn('MW_INSTALL_PATH', env)
-        self.assertEqual(env['MW_INSTALL_PATH'], 'test/sources')
+        assert 'MW_INSTALL_PATH' in env
+        assert env['MW_INSTALL_PATH'] == 'test/sources'
 
     @mock.patch('subprocess.Popen')
     def test_update_php_raises_exception_on_bad_exit_code(self, mock_popen):
@@ -114,7 +114,7 @@ class TestMediawikiMaintenance(unittest.TestCase):
         (args, kwargs) = mock_popen.call_args
         params = args[0][2:]
 
-        self.assertEqual(['--lang', 'en'], params)
+        assert params == ['--lang', 'en']
 
     @mock.patch('subprocess.Popen')
     def test_rebuildlocalisationcache_lang_parameter(self, mock_popen):
@@ -126,7 +126,7 @@ class TestMediawikiMaintenance(unittest.TestCase):
         (args, kwargs) = mock_popen.call_args
         params = args[0][2:]
 
-        self.assertEqual(['--lang', 'fr,zh'], params)
+        assert params == ['--lang', 'fr,zh']
 
     @mock.patch('subprocess.Popen')
     def test_rebuildlocalisationcache_raises_exception_on_bad_exit_code(

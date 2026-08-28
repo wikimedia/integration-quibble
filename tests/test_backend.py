@@ -40,38 +40,34 @@ class TestBackendRegistry(unittest.TestCase):
         getDatabase('mysql', '/tmp/db', '/tmp/dump', '/tmp/log')
 
 
-class TestDatabaseServer(unittest.TestCase):
+class TestDatabaseServer:
     @mock.patch('quibble.backend.os.makedirs')
     @mock.patch('quibble.backend.tempfile.TemporaryDirectory')
     def test_creates_basedir(self, mock_makedirs, _):
         DatabaseServer(base_dir='/tmp/booo').start()
-        self.assertTrue(
-            mock_makedirs.called,
-            'Must try to create the database base directory',
-        )
+        assert (
+            mock_makedirs.called is True
+        ), 'Must try to create the database base directory'
 
     @mock.patch('quibble.backend.os.makedirs')
     @mock.patch('quibble.backend.tempfile.TemporaryDirectory')
     def test_honor_basedir_and_prefix(self, mock_makedirs, _):
         DatabaseServer(base_dir='/tmp/booo').start()
         (args, kwargs) = mock_makedirs.call_args
-        self.assertEqual(
-            {
-                'dir': '/tmp/booo',
-                'prefix': 'quibble-databaseserver-',
-            },
-            kwargs,
-        )
+        assert kwargs == {
+            'dir': '/tmp/booo',
+            'prefix': 'quibble-databaseserver-',
+        }
 
     @mock.patch('quibble.backend.os.makedirs')
     @mock.patch('quibble.backend.tempfile.TemporaryDirectory')
     def test_basedir_is_made_absolute(self, mock_makedirs, _):
         DatabaseServer(base_dir='data').start()
         (args, kwargs) = mock_makedirs.call_args
-        self.assertEqual(os.path.join(os.getcwd(), 'data'), kwargs.get('dir'))
+        assert kwargs.get('dir') == os.path.join(os.getcwd(), 'data')
 
 
-class TestChromeWebDriver(unittest.TestCase):
+class TestChromeWebDriver:
     @mock.patch('quibble.backend._stream_relay', return_value=True)
     @mock.patch('quibble.is_in_docker', return_value=True)
     @mock.patch('subprocess.Popen')
@@ -80,13 +76,11 @@ class TestChromeWebDriver(unittest.TestCase):
 
         (args, kwargs) = mock_popen.call_args
         env = kwargs.get('env', {})
-        self.assertIn('CHROMIUM_FLAGS', env)
+        assert 'CHROMIUM_FLAGS' in env
 
-        self.assertIn(
-            '--no-sandbox',
-            env.get('CHROMIUM_FLAGS', ''),
-            'In a Docker container we must pass --no-sandbox',
-        )
+        assert '--no-sandbox' in env.get(
+            'CHROMIUM_FLAGS', ''
+        ), 'In a Docker container we must pass --no-sandbox'
 
     @mock.patch.dict(os.environ, clear=True)
     @mock.patch('quibble.backend._stream_relay', return_value=True)
@@ -96,13 +90,11 @@ class TestChromeWebDriver(unittest.TestCase):
 
         (args, kwargs) = mock_popen.call_args
         env = kwargs.get('env', {})
-        self.assertIn('CHROMIUM_FLAGS', env)
+        assert 'CHROMIUM_FLAGS' in env
 
-        self.assertIn(
-            '--headless',
-            env.get('CHROMIUM_FLAGS', ''),
-            'Without DISPLAY, we must run headlessly with --headless',
-        )
+        assert '--headless' in env.get(
+            'CHROMIUM_FLAGS', ''
+        ), 'Without DISPLAY, we must run headlessly with --headless'
 
     @mock.patch.dict(os.environ, clear=True)
     @mock.patch('quibble.backend._stream_relay', return_value=True)
@@ -113,23 +105,21 @@ class TestChromeWebDriver(unittest.TestCase):
         (args, kwargs) = mock_popen.call_args
         env = kwargs.get('env', {})
 
-        self.assertIn('DISPLAY', env)
-        self.assertEqual(':42', env.get('DISPLAY'))
-        self.assertIn('CHROMIUM_FLAGS', env)
-        self.assertNotIn('--headless', env.get('CHROMIUM_FLAGS', ''))
+        assert 'DISPLAY' in env
+        assert env.get('DISPLAY') == ':42'
+        assert 'CHROMIUM_FLAGS' in env
+        assert '--headless' not in env.get('CHROMIUM_FLAGS', '')
 
-        self.assertNotIn(
-            'DISPLAY',
-            os.environ,
-            'Must not have set DISPLAY when previously not set',
-        )
+        assert (
+            'DISPLAY' not in os.environ
+        ), 'Must not have set DISPLAY when previously not set'
 
     @mock.patch.dict(os.environ, {'DISPLAY': ':30'})
     @mock.patch('quibble.backend._stream_relay', return_value=True)
     @mock.patch('subprocess.Popen')
     def test_restore_display(self, mock_popen, *mocks):
         ChromeWebDriver(display=':42').start()
-        self.assertEqual(os.environ['DISPLAY'], ':30')
+        assert os.environ['DISPLAY'] == ':30'
 
 
 class TestExternalWebserverEngine:
@@ -144,11 +134,12 @@ class TestExternalWebserverEngine:
         _tcp_wait.assert_not_called()
 
 
-class TestPhpWebserver(unittest.TestCase):
+class TestPhpWebserver:
     def assertServerRespond(self, flavor, url):
         with urllib.request.urlopen(url) as resp:
-            self.assertEqual(
-                "Built-in %s server reached.\n" % flavor, resp.read().decode()
+            assert (
+                resp.read().decode()
+                == "Built-in %s server reached.\n" % flavor
             )
 
     @mark.integration
@@ -183,9 +174,9 @@ class TestPhpWebserver(unittest.TestCase):
                     env_resp = resp.read().decode()
                     server_env = json.loads(env_resp)
 
-        self.assertIn('MW_INSTALL_PATH', server_env)
-        self.assertIn('MW_LOG_DIR', server_env)
-        self.assertIn('LOG_DIR', server_env)
+        assert 'MW_INSTALL_PATH' in server_env
+        assert 'MW_LOG_DIR' in server_env
+        assert 'LOG_DIR' in server_env
 
     @mock.patch.dict(os.environ, clear=True)
     @mock.patch('quibble.backend.subprocess.Popen')
@@ -195,7 +186,7 @@ class TestPhpWebserver(unittest.TestCase):
 
         (args, kwargs) = mock_popen.call_args
         env = kwargs.get('env', {})
-        self.assertNotIn('PHP_CLI_SERVER_WORKERS', env)
+        assert 'PHP_CLI_SERVER_WORKERS' not in env
 
     @mock.patch.dict(os.environ, clear=True)
     @mock.patch('quibble.backend.subprocess.Popen')
@@ -207,8 +198,8 @@ class TestPhpWebserver(unittest.TestCase):
 
         (args, kwargs) = mock_popen.call_args
         env = kwargs.get('env', {})
-        self.assertIn('PHP_CLI_SERVER_WORKERS', env)
-        self.assertEqual('4', env['PHP_CLI_SERVER_WORKERS'])
+        assert 'PHP_CLI_SERVER_WORKERS' in env
+        assert env['PHP_CLI_SERVER_WORKERS'] == '4'
 
     @mock.patch('quibble.backend.subprocess.Popen')
     def test_php_workers_from_env(self, mock_popen):
@@ -227,8 +218,8 @@ class TestPhpWebserver(unittest.TestCase):
         (args, kwargs) = mock_popen.call_args
         env = kwargs.get('env', {})
 
-        self.assertIn('PHP_CLI_SERVER_WORKERS', env)
-        self.assertEqual('42', env['PHP_CLI_SERVER_WORKERS'])
+        assert 'PHP_CLI_SERVER_WORKERS' in env
+        assert env['PHP_CLI_SERVER_WORKERS'] == '42'
 
 
 class TestMySQL(unittest.TestCase):
@@ -262,14 +253,14 @@ class TestMySQL(unittest.TestCase):
     not shutil.which('pg_virtualenv'),
     reason='Requires pg_virtualenv PostgreSQL command',
 )
-class TestPostgres(unittest.TestCase):
+class TestPostgres:
     @mark.integration
     def test_it_starts(self):
         pg = Postgres()
         with pg:
-            self.assertTrue(
-                os.path.exists(pg.socket), 'PostgreSQL socket has been created'
-            )
+            assert (
+                os.path.exists(pg.socket) is True
+            ), 'PostgreSQL socket has been created'
 
 
 @mark.skipif(

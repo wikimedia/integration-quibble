@@ -360,11 +360,9 @@ class TestExtSkinSubmoduleUpdate(unittest.TestCase):
 
                 # There should only be three calls, if there are more then we
                 # must have recursed into a sub-subdirectory.
-                self.assertEqual(
-                    3,
-                    mock_run.call_count,
-                    "Stopped after the first level directory",
-                )
+                assert (
+                    mock_run.call_count == 3
+                ), 'Stopped after the first level directory'
 
     @staticmethod
     def walk_extensions(path):
@@ -1273,16 +1271,13 @@ class TestUserScripts(unittest.TestCase):
 
         (args, kwargs) = mock_run.call_args
         env = kwargs.get('env', {})
-        self.assertEqual(
-            env,
-            {
-                'MEDIAWIKI_PASSWORD': 'testwikijenkinspass',
-                'MEDIAWIKI_USER': 'WikiAdmin',
-                'MW_SERVER': 'http://192.0.2.1:9413',
-                'MW_SCRIPT_PATH': '/',
-                'QUIBBLE_APACHE': '1',
-            },
-        )
+        assert env == {
+            'MEDIAWIKI_PASSWORD': 'testwikijenkinspass',
+            'MEDIAWIKI_USER': 'WikiAdmin',
+            'MW_SERVER': 'http://192.0.2.1:9413',
+            'MW_SCRIPT_PATH': '/',
+            'QUIBBLE_APACHE': '1',
+        }
 
     @mock.patch('quibble.backend.PhpWebserver')
     def test_commands_raises_exception_on_error(self, *_):
@@ -1385,7 +1380,7 @@ def test_run_handles_invalid_unicode(mock_popen, capfdbinary):
 class TestParallel(unittest.TestCase):
     def test_init(self):
         p = quibble.commands.Parallel(steps=range(3))
-        self.assertEqual(3, len(p.steps))
+        assert len(p.steps) == 3
 
     @mock.patch('multiprocessing.Pool')
     def test_execute_empty(self, mock_pool):
@@ -1396,7 +1391,7 @@ class TestParallel(unittest.TestCase):
     def test_execute_single(self, mock_pool):
         command = mock.MagicMock()
         quibble.commands.Parallel(steps=[command]).execute()
-        self.assertTrue(command.execute.called)
+        assert command.execute.called is True
         mock_pool.assert_not_called()
 
     @mock.patch('multiprocessing.Pool', new_callable=sequential_pool)
@@ -1406,9 +1401,9 @@ class TestParallel(unittest.TestCase):
         command2 = mock.MagicMock()
         command2.execute.return_value = None
         quibble.commands.Parallel(steps=[command1, command2]).execute()
-        self.assertTrue(mock_pool.called)
-        self.assertTrue(command1.execute.called)
-        self.assertTrue(command2.execute.called)
+        assert mock_pool.called is True
+        assert command1.execute.called is True
+        assert command2.execute.called is True
 
     def test_execute_parallel_error(self):
         commands = [
