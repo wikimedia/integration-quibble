@@ -54,7 +54,7 @@ def mock_npm_command_env(env_value):
         return mock.patch.dict('os.environ', {'NPM_COMMAND': env_value})
 
 
-class NpmInstallTest:
+class TestNpmInstall:
     @pytest.mark.usefixtures('caplog')
     @mock.patch('quibble.commands.run')
     @mock.patch('quibble.commands._repo_has_npm_lock', return_value=True)
@@ -111,7 +111,7 @@ class NpmInstallTest:
         mock_run.assert_called()
 
 
-class ReportVersionsTest:
+class TestReportVersions:
     @pytest.mark.usefixtures('caplog')
     @mock.patch('subprocess.check_output')
     @mock.patch('quibble.commands.ReportVersions.getCommands')
@@ -206,7 +206,7 @@ class ReportVersionsTest:
         ]
 
 
-class ReportDurationsTest:
+class TestReportDurations:
     def test_without_a_log_dir_does_not_write_json_report(self):
         reporter = quibble.commands.ReportDurations(contextlib.ExitStack())
         with mock.patch.object(
@@ -310,7 +310,7 @@ class ReportDurationsTest:
         )
 
 
-class ExtSkinSubmoduleUpdateTest(unittest.TestCase):
+class TestExtSkinSubmoduleUpdate(unittest.TestCase):
     def test_submodule_update_errors(self):
         c = quibble.commands.ExtSkinSubmoduleUpdate('/tmp')
 
@@ -401,7 +401,7 @@ class ExtSkinSubmoduleUpdateTest(unittest.TestCase):
         ] in quibble.commands.ExtSkinSubmoduleUpdate.getCommands(jobs=8)
 
 
-class CreateComposerLocalTest(unittest.TestCase):
+class TestCreateComposerLocal(unittest.TestCase):
     @mock.patch('json.dump')
     def test_execute(self, mock_dump):
         quibble.commands.CreateComposerLocal(
@@ -428,7 +428,7 @@ class CreateComposerLocalTest(unittest.TestCase):
         )
 
 
-class ExtSkinComposerTestTest(unittest.TestCase):
+class TestExtSkinComposerTest(unittest.TestCase):
     @mock.patch(
         'quibble.commands._repo_has_composer_script', return_value=True
     )
@@ -438,7 +438,7 @@ class ExtSkinComposerTestTest(unittest.TestCase):
         mock_call.assert_any_call(['composer', '--ansi', 'test'], cwd='/tmp')
 
 
-class NpmTestTest:
+class TestNpmTest:
     @pytest.mark.usefixtures('caplog')
     @mock.patch('quibble.commands.repo_has_npm_script', return_value=True)
     @mock.patch('quibble.commands.run')
@@ -460,7 +460,7 @@ class NpmTestTest:
         ]
 
 
-class CoreComposerTestTest(unittest.TestCase):
+class TestCoreComposerTest(unittest.TestCase):
     @mock.patch.dict('os.environ', {'somevar': '42'}, clear=True)
     @mock.patch(
         'quibble.gitchangedinhead.GitChangedInHead.changedFiles',
@@ -477,7 +477,7 @@ class CoreComposerTestTest(unittest.TestCase):
         )
 
 
-class VendorComposerDependenciesTest(unittest.TestCase):
+class TestVendorComposerDependencies(unittest.TestCase):
     @mock.patch('quibble.util.copylog')
     @mock.patch('builtins.open', mock.mock_open())
     @mock.patch('json.load')
@@ -507,7 +507,7 @@ class VendorComposerDependenciesTest(unittest.TestCase):
         )
 
 
-class StartBackendsTest(unittest.TestCase):
+class TestStartBackends(unittest.TestCase):
     def test_execute(self):
         context_stack = contextlib.ExitStack()
 
@@ -808,7 +808,7 @@ class TestInstallMediaWiki:
             install_mw._get_install_args()
 
 
-class PhpUnitPrepareParallelRunComposerTest(unittest.TestCase):
+class TestPhpUnitPrepareParallelRunComposer(unittest.TestCase):
     @mock.patch.dict('os.environ', {'somevar': '42'}, clear=True)
     @mock.patch('quibble.commands.copylog')
     @mock.patch('quibble.commands.run')
@@ -842,7 +842,7 @@ class PhpUnitPrepareParallelRunComposerTest(unittest.TestCase):
         )
 
 
-class PhpUnitDatabaseTest(unittest.TestCase):
+class TestPhpUnitDatabase(unittest.TestCase):
     @mock.patch.dict('os.environ', {'somevar': '42'}, clear=True)
     @mock.patch('quibble.commands.run')
     def test_execute(self, mock_run):
@@ -874,7 +874,7 @@ class PhpUnitDatabaseTest(unittest.TestCase):
         )
 
 
-class PhpUnitDatabaselessTest(unittest.TestCase):
+class TestPhpUnitDatabaseless(unittest.TestCase):
     @mock.patch('quibble.commands.run')
     def test_execute(self, mock_run):
         quibble.commands.PhpUnitDatabaseless(
@@ -903,7 +903,7 @@ class PhpUnitDatabaselessTest(unittest.TestCase):
         )
 
 
-class PhpUnitStandaloneTest(unittest.TestCase):
+class TestPhpUnitStandalone(unittest.TestCase):
     @mock.patch.dict('os.environ', {'somevar': '42'}, clear=True)
     @mock.patch('quibble.commands.run')
     def test_execute(self, mock_run):
@@ -935,7 +935,7 @@ class PhpUnitStandaloneTest(unittest.TestCase):
         )
 
 
-class PhpUnitUnitTest(unittest.TestCase):
+class TestPhpUnitUnit(unittest.TestCase):
     @mock.patch('builtins.open', mock.mock_open())
     @mock.patch('json.load')
     @mock.patch('quibble.commands.run')
@@ -976,7 +976,7 @@ class PhpUnitUnitTest(unittest.TestCase):
         )
 
 
-class QunitTestsTest(unittest.TestCase):
+class TestQunitTests(unittest.TestCase):
     @mock.patch.dict('os.environ', {'somevar': '42'}, clear=True)
     @mock.patch('quibble.backend.PhpWebserver')
     @mock.patch('quibble.is_in_docker', return_value=True)
@@ -993,7 +993,7 @@ class QunitTestsTest(unittest.TestCase):
         assert mock_run.call_count > 0
 
 
-class ApiTestingTest:
+class TestApiTesting:
     @pytest.mark.usefixtures('caplog')
     @mock.patch('builtins.open', mock.mock_open())
     @mock.patch('os.path.exists', return_value=True)
@@ -1082,7 +1082,7 @@ class ApiTestingTest:
         mock_run.assert_not_called()
 
 
-class BrowserTestsTest:
+class TestBrowserTests:
     @mock.patch('os.path.exists', return_value=True)
     @mock.patch('builtins.open', mock.mock_open())
     @mock.patch('json.load')
@@ -1227,7 +1227,7 @@ class BrowserTestsTest:
         ]
 
 
-class UserScriptsTest(unittest.TestCase):
+class TestUserScripts(unittest.TestCase):
     @mock.patch('quibble.backend.PhpWebserver')
     @mock.patch('quibble.commands.run')
     def test_commands(self, mock_run, *_):
@@ -1382,7 +1382,7 @@ def test_run_handles_invalid_unicode(mock_popen, capfdbinary):
     ), 'raw binary is emitted to stdout'
 
 
-class ParallelTest(unittest.TestCase):
+class TestParallel(unittest.TestCase):
     def test_init(self):
         p = quibble.commands.Parallel(steps=range(3))
         self.assertEqual(3, len(p.steps))
@@ -1471,7 +1471,7 @@ class ParallelTest(unittest.TestCase):
         )
 
 
-class SuccessCacheTest(unittest.TestCase):
+class TestSuccessCache(unittest.TestCase):
     @mock.patch('git.Repo')
     @mock.patch('quibble.zuul.working_trees')
     @mock.patch('quibble.commands.log')
@@ -1568,7 +1568,7 @@ class SuccessCacheTest(unittest.TestCase):
         mock_cache_client.set.assert_called_with(key, '')
 
 
-class ResolveRequires(unittest.TestCase):
+class TestResolveRequires(unittest.TestCase):
     @mock.patch('quibble.mediawiki.registry')
     @mock.patch('quibble.zuul.clone')
     def test_clone_logs_list_of_projects(self, _clone, _registry):

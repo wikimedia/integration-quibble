@@ -10,7 +10,7 @@ from quibble.cmd import MultipleChoices, default_stages
 import quibble.commands
 
 
-class MultipleChoicesTest(unittest.TestCase):
+class TestMultipleChoices(unittest.TestCase):
     def test_init(self):
         # It is really just like a list
         self.assertEqual([], MultipleChoices())
@@ -40,7 +40,7 @@ class MultipleChoicesTest(unittest.TestCase):
         self.assertNotIn(['a', 'b', 'c'], subject)
 
 
-class CmdTest(unittest.TestCase):
+class TestCmd(unittest.TestCase):
     @mock.patch.dict('os.environ', clear=True)
     def test_projects_to_clone(self):
         q = cmd.QuibbleCmd()

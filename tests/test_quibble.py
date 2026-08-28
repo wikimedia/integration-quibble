@@ -7,7 +7,7 @@ from unittest import mock
 from quibble import CommandTiming
 
 
-class QuibbleTest(unittest.TestCase):
+class TestQuibble(unittest.TestCase):
     def test_logginglevel(self):
         logger_name = 'SomeTestingLogger'
         initial_level = logging.DEBUG
