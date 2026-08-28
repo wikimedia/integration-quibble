@@ -72,16 +72,10 @@ class TestDatabaseServer(unittest.TestCase):
 
 
 class TestChromeWebDriver(unittest.TestCase):
-    def setUp(self):
-        patcher = mock.patch(
-            'quibble.backend._stream_relay', return_value=True
-        )
-        self.addCleanup(patcher.stop)
-        patcher.start()
-
+    @mock.patch('quibble.backend._stream_relay', return_value=True)
     @mock.patch('quibble.is_in_docker', return_value=True)
     @mock.patch('subprocess.Popen')
-    def test_on_docker_pass_no_sandbox(self, mock_popen, _):
+    def test_on_docker_pass_no_sandbox(self, mock_popen, *mocks):
         ChromeWebDriver().start()
 
         (args, kwargs) = mock_popen.call_args
@@ -95,8 +89,9 @@ class TestChromeWebDriver(unittest.TestCase):
         )
 
     @mock.patch.dict(os.environ, clear=True)
+    @mock.patch('quibble.backend._stream_relay', return_value=True)
     @mock.patch('subprocess.Popen')
-    def test_without_display_env_pass_headless(self, mock_popen):
+    def test_without_display_env_pass_headless(self, mock_popen, *mocks):
         ChromeWebDriver().start()
 
         (args, kwargs) = mock_popen.call_args
@@ -110,8 +105,9 @@ class TestChromeWebDriver(unittest.TestCase):
         )
 
     @mock.patch.dict(os.environ, clear=True)
+    @mock.patch('quibble.backend._stream_relay', return_value=True)
     @mock.patch('subprocess.Popen')
-    def test_explicit_display(self, mock_popen):
+    def test_explicit_display(self, mock_popen, *mocks):
         ChromeWebDriver(display=':42').start()
 
         (args, kwargs) = mock_popen.call_args
@@ -129,8 +125,9 @@ class TestChromeWebDriver(unittest.TestCase):
         )
 
     @mock.patch.dict(os.environ, {'DISPLAY': ':30'})
+    @mock.patch('quibble.backend._stream_relay', return_value=True)
     @mock.patch('subprocess.Popen')
-    def test_restore_display(self, mock_popen):
+    def test_restore_display(self, mock_popen, *mocks):
         ChromeWebDriver(display=':42').start()
         self.assertEqual(os.environ['DISPLAY'], ':30')
 
