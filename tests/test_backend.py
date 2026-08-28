@@ -132,7 +132,7 @@ class TestChromeWebDriver(unittest.TestCase):
         self.assertEqual(os.environ['DISPLAY'], ':30')
 
 
-class TestExternalWebserverEngine(unittest.TestCase):
+class TestExternalWebserverEngine:
     @mock.patch('quibble.backend.subprocess.Popen')
     def test_start_does_not_invoke_any_command(self, mock_popen):
         ExternalWebserver().start()
@@ -276,7 +276,7 @@ class TestPostgres(unittest.TestCase):
     not shutil.which('memcached'),
     reason='Requires memcached command',
 )
-class TestMemcached(unittest.TestCase):
+class TestMemcached:
     @mark.integration
     def test_it_starts(self):
         # Get a free port to listen on

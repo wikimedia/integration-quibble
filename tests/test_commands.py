@@ -401,7 +401,7 @@ class TestExtSkinSubmoduleUpdate(unittest.TestCase):
         ] in quibble.commands.ExtSkinSubmoduleUpdate.getCommands(jobs=8)
 
 
-class TestCreateComposerLocal(unittest.TestCase):
+class TestCreateComposerLocal:
     @mock.patch('json.dump')
     def test_execute(self, mock_dump):
         quibble.commands.CreateComposerLocal(
@@ -428,7 +428,7 @@ class TestCreateComposerLocal(unittest.TestCase):
         )
 
 
-class TestExtSkinComposerTest(unittest.TestCase):
+class TestExtSkinComposerTest:
     @mock.patch(
         'quibble.commands._repo_has_composer_script', return_value=True
     )
@@ -460,7 +460,7 @@ class TestNpmTest:
         ]
 
 
-class TestCoreComposerTest(unittest.TestCase):
+class TestCoreComposerTest:
     @mock.patch.dict('os.environ', {'somevar': '42'}, clear=True)
     @mock.patch(
         'quibble.gitchangedinhead.GitChangedInHead.changedFiles',
@@ -477,7 +477,7 @@ class TestCoreComposerTest(unittest.TestCase):
         )
 
 
-class TestVendorComposerDependencies(unittest.TestCase):
+class TestVendorComposerDependencies:
     @mock.patch('quibble.util.copylog')
     @mock.patch('builtins.open', mock.mock_open())
     @mock.patch('json.load')
@@ -808,7 +808,7 @@ class TestInstallMediaWiki:
             install_mw._get_install_args()
 
 
-class TestPhpUnitPrepareParallelRunComposer(unittest.TestCase):
+class TestPhpUnitPrepareParallelRunComposer:
     @mock.patch.dict('os.environ', {'somevar': '42'}, clear=True)
     @mock.patch('quibble.commands.copylog')
     @mock.patch('quibble.commands.run')
@@ -842,7 +842,7 @@ class TestPhpUnitPrepareParallelRunComposer(unittest.TestCase):
         )
 
 
-class TestPhpUnitDatabase(unittest.TestCase):
+class TestPhpUnitDatabase:
     @mock.patch.dict('os.environ', {'somevar': '42'}, clear=True)
     @mock.patch('quibble.commands.run')
     def test_execute(self, mock_run):
@@ -874,7 +874,7 @@ class TestPhpUnitDatabase(unittest.TestCase):
         )
 
 
-class TestPhpUnitDatabaseless(unittest.TestCase):
+class TestPhpUnitDatabaseless:
     @mock.patch('quibble.commands.run')
     def test_execute(self, mock_run):
         quibble.commands.PhpUnitDatabaseless(
@@ -903,7 +903,7 @@ class TestPhpUnitDatabaseless(unittest.TestCase):
         )
 
 
-class TestPhpUnitStandalone(unittest.TestCase):
+class TestPhpUnitStandalone:
     @mock.patch.dict('os.environ', {'somevar': '42'}, clear=True)
     @mock.patch('quibble.commands.run')
     def test_execute(self, mock_run):
@@ -935,7 +935,7 @@ class TestPhpUnitStandalone(unittest.TestCase):
         )
 
 
-class TestPhpUnitUnit(unittest.TestCase):
+class TestPhpUnitUnit:
     @mock.patch('builtins.open', mock.mock_open())
     @mock.patch('json.load')
     @mock.patch('quibble.commands.run')
@@ -976,7 +976,7 @@ class TestPhpUnitUnit(unittest.TestCase):
         )
 
 
-class TestQunitTests(unittest.TestCase):
+class TestQunitTests:
     @mock.patch.dict('os.environ', {'somevar': '42'}, clear=True)
     @mock.patch('quibble.backend.PhpWebserver')
     @mock.patch('quibble.is_in_docker', return_value=True)
@@ -1471,7 +1471,7 @@ class TestParallel(unittest.TestCase):
         )
 
 
-class TestSuccessCache(unittest.TestCase):
+class TestSuccessCache:
     @mock.patch('git.Repo')
     @mock.patch('quibble.zuul.working_trees')
     @mock.patch('quibble.commands.log')
