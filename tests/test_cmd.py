@@ -329,9 +329,9 @@ class CmdTest(unittest.TestCase):
             3, 'Command failed'
         )
         with mock.patch('sys.argv', ['quibble', '-c', 'somecommand']):
-            with self.assertRaises(
+            with self.assertRaisesRegex(
                 subprocess.CalledProcessError,
-                msg='Command failed',
+                'Command failed',
             ):
                 cmd.main()
 

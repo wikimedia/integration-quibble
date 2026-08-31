@@ -237,10 +237,17 @@ class TestPhpWebserver(unittest.TestCase):
 class TestMySQL(unittest.TestCase):
     @mock.patch('quibble.backend.subprocess.Popen')
     def test_install_db_exception(self, mock_popen):
-        mock_popen.return_value.communicate.return_value = 'some output'
+        mock_popen.return_value.communicate.return_value = ('some output', '')
         mock_popen.return_value.returncode = 42
-        with self.assertRaises(Exception, msg='FAILED (42): some output'):
-            MySQL()._install_db()
+
+        mysql = MySQL()
+        # The root dir is normalized initialized by start() which we do not
+        # need to invoke for the purpose of this test.
+        with mock.patch('tempfile.TemporaryDirectory'):
+            mysql._init_rootdir('/tmp/base_dir')
+
+        with self.assertRaisesRegex(Exception, 'FAILED \\(42\\): some output'):
+            mysql._install_db()
 
     @mock.patch('quibble.backend.MySQL._install_db')
     @mock.patch('quibble.backend.subprocess.Popen')
@@ -250,7 +257,7 @@ class TestMySQL(unittest.TestCase):
             None,
         )
         mock_popen.return_value.returncode = 42
-        with self.assertRaises(Exception, msg='FAILED (42): some output'):
+        with self.assertRaisesRegex(Exception, 'FAILED \\(42\\): some output'):
             MySQL()._createwikidb()
 
 

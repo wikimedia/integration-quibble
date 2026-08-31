@@ -1286,12 +1286,12 @@ class UserScriptsTest(unittest.TestCase):
 
     @mock.patch('quibble.backend.PhpWebserver')
     def test_commands_raises_exception_on_error(self, *_):
-        with self.assertRaises(subprocess.CalledProcessError, msg=''):
+        with self.assertRaises(subprocess.CalledProcessError):
             quibble.commands.UserScripts(
                 '/tmp', ['false'], '', 'external'
             ).execute()
 
-        with self.assertRaises(subprocess.CalledProcessError, msg=''):
+        with self.assertRaises(subprocess.CalledProcessError):
             quibble.commands.UserScripts(
                 '/tmp', ['true', 'false'], '', 'external'
             ).execute()
@@ -1320,6 +1320,14 @@ class InvalidUnicodeCommand:
     def execute(self):
         sys.stdout.buffer.write(b"stdout " + self.invalid_unicode)
         sys.stderr.buffer.write(b"stderr " + self.invalid_unicode)
+
+
+class RaisingCommand:
+    def __init__(self, exception):
+        self.exception = exception
+
+    def execute(self):
+        raise self.exception
 
 
 def sequential_pool():
@@ -1403,12 +1411,12 @@ class ParallelTest(unittest.TestCase):
         self.assertTrue(command2.execute.called)
 
     def test_execute_parallel_error(self):
-        command1 = mock.MagicMock()
-        command1.execute.return_value = None
-        command2 = mock.MagicMock()
-        command2.execute.side_effect = Exception("bad")
-        with self.assertRaises(Exception, msg="bad"):
-            quibble.commands.Parallel(steps=[command1, command2]).execute()
+        commands = [
+            EchoCommand(),
+            RaisingCommand(Exception('bad')),
+        ]
+        with self.assertRaisesRegex(Exception, "^bad$"):
+            quibble.commands.Parallel(steps=commands).execute()
         # TODO: also test that we short-circuit all children after any failure.
 
     @broken_on_macos
@@ -1437,7 +1445,7 @@ class ParallelTest(unittest.TestCase):
     @broken_on_macos
     @mock.patch('quibble.commands.log')
     def test_parallel_captures_logging_despite_failure(self, mock_log):
-        with self.assertRaises(Exception, msg="bad"):
+        with self.assertRaisesRegex(Exception, "bad"):
             quibble.commands.Parallel(
                 steps=[EchoCommand(), EchoCommand(fail=True)]
             ).execute()
