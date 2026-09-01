@@ -1,18 +1,19 @@
 import os.path
-import unittest
 from unittest import mock
 
 import quibble.mediawiki.registry
 from quibble.mediawiki.registry import ExtensionRegistration
 
+import pytest
+
 FIXTURES_DIR = os.path.join(os.path.dirname(__file__), 'fixtures')
 
 
-class TestFromPath(unittest.TestCase):
+class TestFromPath:
     def test_on_a_non_existing_path(self):
         with mock.patch('os.path.isdir') as isdir:
             isdir.return_value = False
-            with self.assertRaises(NotADirectoryError):
+            with pytest.raises(NotADirectoryError):
                 quibble.mediawiki.registry.from_path('.')
 
     def test_with_no_registration_file(self):
@@ -33,10 +34,9 @@ class TestFromPath(unittest.TestCase):
             with mock.patch('os.path.exists') as exists:
                 exists.return_value = True
                 fake_path = 'path does not matter'
-                with self.assertRaisesRegex(
-                    Exception,
-                    'Found both extension.json and skin.json in %s'
-                    % fake_path,
+                with pytest.raises(
+                    match='Found both extension.json and skin.json in %s'
+                    % fake_path
                 ):
                     quibble.mediawiki.registry.from_path(fake_path)
 
@@ -50,14 +50,14 @@ class TestFromPath(unittest.TestCase):
         assert expected, reg.getRequiredRepos()
 
 
-class TestRead(unittest.TestCase):
+class TestRead:
     def test_read_with_a_json_file(self):
         assert 'requires' in quibble.mediawiki.registry._read(
             os.path.join(FIXTURES_DIR, 'extension.json')
         )
 
     def test_read_with_an_unexisting_file(self):
-        with self.assertRaises(FileNotFoundError):
+        with pytest.raises(FileNotFoundError):
             quibble.mediawiki.registry._read('')
 
 

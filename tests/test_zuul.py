@@ -1,12 +1,13 @@
-import unittest
 from unittest import mock
 
 import quibble.zuul
 
+import pytest
 
-class TestClone(unittest.TestCase):
+
+class TestClone:
     def test_ref_requires_url_to_fetch_from(self):
-        with self.assertRaisesRegex(Exception, 'Zuul ref requires a Zuul url'):
+        with pytest.raises(match='Zuul ref requires a Zuul url'):
             quibble.zuul.clone(
                 branch=None,
                 cache_dir='/tmp/cache',
@@ -22,9 +23,7 @@ class TestClone(unittest.TestCase):
             )
 
     def test_newrev_requires_a_project(self):
-        with self.assertRaisesRegex(
-            Exception, 'Zuul newrev requires a Zuul project'
-        ):
+        with pytest.raises(match='Zuul newrev requires a Zuul project'):
             quibble.zuul.clone(
                 branch=None,
                 cache_dir='/tmp/cache',

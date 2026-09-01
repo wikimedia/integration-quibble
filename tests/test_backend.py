@@ -2,12 +2,12 @@ import json
 import os
 import shutil
 import socket
-import unittest
 from unittest import mock
 from unittest.mock import ANY
 import urllib.request
 
 from pytest import mark
+import pytest
 from quibble.backend import getDatabase, get_backend, _tcp_wait
 from quibble.backend import DatabaseServer
 from quibble.backend import ChromeWebDriver
@@ -21,7 +21,7 @@ FIXTURES_DIR = os.path.join(os.path.dirname(__file__), 'fixtures')
 PHPDOCROOT = os.path.join(FIXTURES_DIR, 'phpdocroot')
 
 
-class TestBackendRegistry(unittest.TestCase):
+class TestBackendRegistry:
     def test_recognizes_mysql(self):
         get_backend(DatabaseServer, 'mysql')
         get_backend(DatabaseServer, 'MySQL')
@@ -30,9 +30,8 @@ class TestBackendRegistry(unittest.TestCase):
         get_backend(DatabaseServer, 'sqlite')
 
     def test_raises_an_exception_on_unknown_db(self):
-        with self.assertRaisesRegex(
-            Exception,
-            "^Backend .*DatabaseServer.*" + "not supported: fakedbengine",
+        with pytest.raises(
+            match="^Backend .*DatabaseServer.*" + "not supported: fakedbengine"
         ):
             get_backend(DatabaseServer, 'fakeDBengine')
 
@@ -222,19 +221,18 @@ class TestPhpWebserver:
         assert env['PHP_CLI_SERVER_WORKERS'] == '42'
 
 
-class TestMySQL(unittest.TestCase):
+class TestMySQL:
     @mock.patch('quibble.backend.subprocess.Popen')
     def test_install_db_exception(self, mock_popen):
         mock_popen.return_value.communicate.return_value = ('some output', '')
         mock_popen.return_value.returncode = 42
-
         mysql = MySQL()
         # The root dir is normalized initialized by start() which we do not
         # need to invoke for the purpose of this test.
         with mock.patch('tempfile.TemporaryDirectory'):
             mysql._init_rootdir('/tmp/base_dir')
 
-        with self.assertRaisesRegex(Exception, 'FAILED \\(42\\): some output'):
+        with pytest.raises(match='FAILED \\(42\\): some output'):
             mysql._install_db()
 
     @mock.patch('quibble.backend.MySQL._install_db')
@@ -245,7 +243,7 @@ class TestMySQL(unittest.TestCase):
             None,
         )
         mock_popen.return_value.returncode = 42
-        with self.assertRaisesRegex(Exception, 'FAILED \\(42\\): some output'):
+        with pytest.raises(match='FAILED \\(42\\): some output'):
             MySQL()._createwikidb()
 
 

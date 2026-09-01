@@ -1,13 +1,14 @@
 import logging
 import os
 import quibble
-import unittest
 from unittest import mock
 
 from quibble import CommandTiming
 
+import pytest
 
-class TestQuibble(unittest.TestCase):
+
+class TestQuibble:
     def test_logginglevel(self):
         logger_name = 'SomeTestingLogger'
         initial_level = logging.DEBUG
@@ -104,7 +105,7 @@ class TestQuibble(unittest.TestCase):
     def test_chronometer_reports_failure(self, mock_time):
         mock_time.side_effect = [1.5, 2.5]
         mock_log = mock.MagicMock()
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             with quibble.Chronometer('method', mock_log):
                 raise ValueError('boom')
         mock_log.assert_has_calls(

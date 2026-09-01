@@ -9,6 +9,8 @@ from quibble import cmd
 from quibble.cmd import MultipleChoices, default_stages
 import quibble.commands
 
+import pytest
+
 
 class TestMultipleChoices:
     def test_init(self):
@@ -315,9 +317,9 @@ class TestCmd(unittest.TestCase):
             3, 'Command failed'
         )
         with mock.patch('sys.argv', ['quibble', '-c', 'somecommand']):
-            with self.assertRaisesRegex(
+            with pytest.raises(
                 subprocess.CalledProcessError,
-                'Command failed',
+                match='Command failed',
             ):
                 cmd.main()
 
@@ -545,7 +547,7 @@ class TestCmd(unittest.TestCase):
             quibble.commands.SuccessCache.Hit()
         )
 
-        with self.assertRaises(quibble.commands.SuccessCache.Hit):
+        with pytest.raises(quibble.commands.SuccessCache.Hit):
             q.execute([successCacheHitCmd], '/workspace/src')
 
     def test_execute_called_process_error_calls_earlywarns(self):
@@ -562,9 +564,9 @@ class TestCmd(unittest.TestCase):
             otherCmd,
         ]
 
-        with self.assertRaisesRegex(
+        with pytest.raises(
             subprocess.CalledProcessError,
-            "Command 'fail' returned non-zero exit status 42",
+            match="Command 'fail' returned non-zero exit status 42",
         ):
             with mock.patch('quibble.cmd.QuibbleCmd.earlywarn'):
                 quibbleCmd = cmd.QuibbleCmd()

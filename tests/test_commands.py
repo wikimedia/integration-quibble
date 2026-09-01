@@ -310,7 +310,7 @@ class TestReportDurations:
         )
 
 
-class TestExtSkinSubmoduleUpdate(unittest.TestCase):
+class TestExtSkinSubmoduleUpdate:
     def test_submodule_update_errors(self):
         c = quibble.commands.ExtSkinSubmoduleUpdate('/tmp')
 
@@ -321,7 +321,7 @@ class TestExtSkinSubmoduleUpdate(unittest.TestCase):
                 mock_run.side_effect = subprocess.CalledProcessError(
                     1, 'git something'
                 )
-                with self.assertRaises(subprocess.CalledProcessError):
+                with pytest.raises(subprocess.CalledProcessError):
                     c.execute()
 
                 mock_run.assert_called_once_with(
@@ -1225,7 +1225,7 @@ class TestBrowserTests:
         ]
 
 
-class TestUserScripts(unittest.TestCase):
+class TestUserScripts:
     @mock.patch('quibble.backend.PhpWebserver')
     @mock.patch('quibble.commands.run')
     def test_commands(self, mock_run, *_):
@@ -1281,12 +1281,18 @@ class TestUserScripts(unittest.TestCase):
 
     @mock.patch('quibble.backend.PhpWebserver')
     def test_commands_raises_exception_on_error(self, *_):
-        with self.assertRaises(subprocess.CalledProcessError):
+        with pytest.raises(
+            subprocess.CalledProcessError,
+            match="Command 'false' returned non-zero exit status 1",
+        ):
             quibble.commands.UserScripts(
                 '/tmp', ['false'], '', 'external'
             ).execute()
 
-        with self.assertRaises(subprocess.CalledProcessError):
+        with pytest.raises(
+            subprocess.CalledProcessError,
+            match="Command 'false' returned non-zero exit status 1",
+        ):
             quibble.commands.UserScripts(
                 '/tmp', ['true', 'false'], '', 'external'
             ).execute()
@@ -1377,7 +1383,7 @@ def test_run_handles_invalid_unicode(mock_popen, capfdbinary):
     ), 'raw binary is emitted to stdout'
 
 
-class TestParallel(unittest.TestCase):
+class TestParallel:
     def test_init(self):
         p = quibble.commands.Parallel(steps=range(3))
         assert len(p.steps) == 3
@@ -1410,7 +1416,7 @@ class TestParallel(unittest.TestCase):
             EchoCommand(),
             RaisingCommand(Exception('bad')),
         ]
-        with self.assertRaisesRegex(Exception, "^bad$"):
+        with pytest.raises(Exception, match="bad"):
             quibble.commands.Parallel(steps=commands).execute()
         # TODO: also test that we short-circuit all children after any failure.
 
@@ -1440,7 +1446,7 @@ class TestParallel(unittest.TestCase):
     @broken_on_macos
     @mock.patch('quibble.commands.log')
     def test_parallel_captures_logging_despite_failure(self, mock_log):
-        with self.assertRaisesRegex(Exception, "bad"):
+        with pytest.raises(Exception, match="bad"):
             quibble.commands.Parallel(
                 steps=[EchoCommand(), EchoCommand(fail=True)]
             ).execute()
