@@ -10,7 +10,6 @@ import pytest
 import re
 import subprocess
 import sys
-import unittest
 from unittest import mock
 from unittest.mock import call
 
@@ -55,7 +54,6 @@ def mock_npm_command_env(env_value):
 
 
 class TestNpmInstall:
-    @pytest.mark.usefixtures('caplog')
     @mock.patch('quibble.commands.run')
     @mock.patch('quibble.commands._repo_has_npm_lock', return_value=True)
     def test_reports_section(self, _has_lock, mock_run, caplog):
@@ -77,7 +75,6 @@ class TestNpmInstall:
             for m in messages
         )
 
-    @pytest.mark.usefixtures('caplog')
     @mock.patch('quibble.commands.run')
     @mock.patch('quibble.commands._repo_has_npm_lock', return_value=True)
     def test_reports_failure(self, _has_lock, mock_run, caplog):
@@ -98,7 +95,6 @@ class TestNpmInstall:
             for m in messages
         )
 
-    @pytest.mark.usefixtures('caplog')
     @mock.patch('quibble.commands.run')
     @mock.patch('quibble.commands._repo_has_npm_lock', return_value=True)
     def test_no_section_without_label(self, _has_lock, mock_run, caplog):
@@ -112,7 +108,6 @@ class TestNpmInstall:
 
 
 class TestReportVersions:
-    @pytest.mark.usefixtures('caplog')
     @mock.patch('subprocess.check_output')
     @mock.patch('quibble.commands.ReportVersions.getCommands')
     def test_reports_builtin_python_version(
@@ -136,7 +131,6 @@ class TestReportVersions:
         with mock_npm_command_env(npm_command_env):
             assert [expected_npm_command, '--version'] in c.getCommands()
 
-    @pytest.mark.usefixtures('caplog')
     @mock.patch('subprocess.check_output')
     @mock.patch('quibble.commands.ReportVersions.getCommands')
     def test_formatting(self, get_commands, check_output, caplog):
@@ -171,7 +165,6 @@ class TestReportVersions:
             'This software is bugged',
         ]
 
-    @pytest.mark.usefixtures('caplog')
     @mock.patch('subprocess.check_output')
     @mock.patch('quibble.commands.ReportVersions.getCommands')
     def test_warn_on_failed_command(self, get_commands, check_output, caplog):
@@ -188,7 +181,6 @@ class TestReportVersions:
             ('WARNING', 'Failed to run command: false'),
         ]
 
-    @pytest.mark.usefixtures('caplog')
     @mock.patch('subprocess.check_output')
     @mock.patch('quibble.commands.ReportVersions.getCommands')
     def test_warn_on_missing_command(self, get_commands, check_output, caplog):
@@ -218,7 +210,6 @@ class TestReportDurations:
         writeJsonReport.assert_not_called()
 
     @mock.patch('builtins.open', mock.mock_open())
-    @pytest.mark.usefixtures('caplog')
     def test_log_the_file_it_writes(self, caplog):
         caplog.set_level(logging.INFO)
         test_log_dir = '/tmp/quibble-test-log'
@@ -234,7 +225,6 @@ class TestReportDurations:
             % os.path.join(test_log_dir, 'quibble-durations.json')
         ]
 
-    @pytest.mark.usefixtures('caplog')
     def test_log_a_warning_when_log_dir_is_missing(self, caplog):
         caplog.set_level(logging.WARNING)
         reporter = quibble.commands.ReportDurations(
@@ -437,7 +427,6 @@ class TestExtSkinComposerTest:
 
 
 class TestNpmTest:
-    @pytest.mark.usefixtures('caplog')
     @mock.patch('quibble.commands.repo_has_npm_script', return_value=True)
     @mock.patch('quibble.commands.run')
     @pytest.mark.parametrize(*npm_envs_parameters)
@@ -505,8 +494,8 @@ class TestVendorComposerDependencies:
         )
 
 
-class TestStartBackends(unittest.TestCase):
-    def test_execute(self):
+class TestStartBackends:
+    def test_execute(self, caplog):
         context_stack = contextlib.ExitStack()
 
         @contextlib.contextmanager
@@ -518,12 +507,14 @@ class TestStartBackends(unittest.TestCase):
 
         cmd = quibble.commands.StartBackends(context_stack, [mock_backend()])
 
-        with self.assertLogs(level='DEBUG') as log, context_stack:
+        with caplog.at_level(logging.DEBUG), context_stack:
             cmd.execute()
 
-        self.assertRegex(log.output[0], "Started mock.")
-        self.assertRegex(log.output[1], "Shutting down backends:.*contextlib")
-        self.assertRegex(log.output[2], "Stopped mock.")
+        assert caplog.messages[0] == 'Started mock.'
+        assert caplog.messages[1].startswith(
+            'Shutting down backends: <contextlib'
+        )
+        assert caplog.messages[2] == 'Stopped mock.'
 
 
 class TestInstallMediaWiki:
@@ -992,7 +983,6 @@ class TestQunitTests:
 
 
 class TestApiTesting:
-    @pytest.mark.usefixtures('caplog')
     @mock.patch('builtins.open', mock.mock_open())
     @mock.patch('os.path.exists', return_value=True)
     @mock.patch('json.load')
@@ -1166,7 +1156,6 @@ class TestBrowserTests:
         c.execute()
         mock_run.assert_not_called()
 
-    @pytest.mark.usefixtures('caplog')
     @mock.patch('os.path.exists', return_value=True)
     @mock.patch('builtins.open', mock.mock_open())
     @mock.patch('json.load')
@@ -1569,10 +1558,10 @@ class TestSuccessCache:
         mock_cache_client.set.assert_called_with(key, '')
 
 
-class TestResolveRequires(unittest.TestCase):
+class TestResolveRequires:
     @mock.patch('quibble.mediawiki.registry')
     @mock.patch('quibble.zuul.clone')
-    def test_clone_logs_list_of_projects(self, _clone, _registry):
+    def test_clone_logs_list_of_projects(self, _clone, _registry, caplog):
         _registry.from_path.return_value.getRequiredRepos.side_effect = [
             set(['p1']),
             [],
@@ -1596,7 +1585,6 @@ class TestResolveRequires(unittest.TestCase):
             zuul_params,
         )
 
-        with self.assertLogs('quibble.commands', level='INFO') as log:
+        with caplog.at_level(logging.INFO, logger='quibble.commands'):
             quibble.commands.execute_command(clone)
-            print("\n".join(log.output))
-            assert '"projects": ["p1"]' in log.records[4].message
+            assert '"projects": ["p1"]' in caplog.messages[4]

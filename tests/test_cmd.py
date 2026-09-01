@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
+import logging
 import os
 import subprocess
-import unittest
 from unittest import mock
 
 from quibble import cmd
@@ -42,7 +42,7 @@ class TestMultipleChoices:
         assert ['a' not in 'b', 'c'], subject
 
 
-class TestCmd(unittest.TestCase):
+class TestCmd:
     @mock.patch.dict('os.environ', clear=True)
     def test_projects_to_clone(self):
         q = cmd.QuibbleCmd()
@@ -118,24 +118,23 @@ class TestCmd(unittest.TestCase):
                 'mediawiki/skins/Vector',
             ]
 
-    def test_env_dependencies_log_a_warning(self):
+    def test_env_dependencies_log_a_warning(self, caplog):
         env = {
             'EXT_DEPENDENCIES': '',
             'SKIN_DEPENDENCIES': '',
         }
         with mock.patch.dict('os.environ', env, clear=True):
-            with self.assertLogs('quibble.cmd', level='WARNING') as log:
+            with caplog.at_level(logging.WARNING, logger='quibble.cmd'):
                 q = cmd.QuibbleCmd()
                 q._repos_to_clone(
                     projects=[], zuul_project=None, clone_vendor=False
                 )
 
-        self.assertRegex(
-            log.output[0], '^WARNING:quibble.cmd:SKIN_DEPENDENCIES'
-        )
-        self.assertRegex(
-            log.output[1], '^WARNING:quibble.cmd:EXT_DEPENDENCIES'
-        )
+        msg = 'env variable is deprecated. Instead pass projects as arguments.'
+        assert caplog.record_tuples == [
+            ('quibble.cmd', logging.WARNING, 'SKIN_DEPENDENCIES ' + msg),
+            ('quibble.cmd', logging.WARNING, 'EXT_DEPENDENCIES ' + msg),
+        ]
 
     @mock.patch('quibble.is_in_docker', return_value=False)
     def test_args_defaults(self, _):
@@ -529,14 +528,16 @@ class TestCmd(unittest.TestCase):
                 fetchinfo.change.assert_called_once_with('12345', '99')
             assert dict(os.environ).items() > zuul_env.items()
 
-    def test_execute(self):
+    def test_execute(self, caplog):
         q = cmd.QuibbleCmd()
 
-        with self.assertLogs(level='DEBUG') as log:
+        with caplog.at_level(logging.DEBUG):
             q.execute([], '/workspace/src')
 
-        self.assertRegex(
-            log.output[0], "DEBUG:quibble.cmd:Project dir: /workspace/src"
+        assert caplog.record_tuples[0] == (
+            'quibble.cmd',
+            logging.DEBUG,
+            'Project dir: /workspace/src',
         )
 
     def test_execute_reraise_SuccessCache_Hit(self):
