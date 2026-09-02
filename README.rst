@@ -142,6 +142,9 @@ Coverage report::
 
     tox -e cover && open cover/index.html
 
+The coverage report is also generated automatically after a change has been
+merged and is published at https://doc.wikimedia.org/cover/quibble/.
+
 quibble.yaml
 ------------
 

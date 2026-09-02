@@ -3,7 +3,13 @@ Quibble changelog
 
 master (UNRELEASED)
 -------------------
-* …
+
+Features
+~~~~~~~~
+* The test coverage report is now published at
+  https://doc.wikimedia.org/cover/quibble/. `T428642
+  <https://phabricator.wikimedia.org/T428642>`_
+  Antoine Musso
 
 1.19.0 (2026-08-06)
 -------------------
