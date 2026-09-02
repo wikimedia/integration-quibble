@@ -1,15 +1,52 @@
 Quibble changelog
 =================
 
-master (UNRELEASED)
+1.20.0 (2026-09-02)
 -------------------
+
+Breaking change
+~~~~~~~~~~~~~~~
+* Remove ``--commands`` which has been deprecated since `0.0.32 (2019-06-24)`_.
+  Instead use one or many ``--command`` or its alias ``-c``.
+  `T321617 <https://phabricator.wikimedia.org/T321617>`_
+  Antoine Musso
 
 Features
 ~~~~~~~~
+* Measure specific test commands, this differentiates between installation time
+  and test run time.
+  `T432966 <https://phabricator.wikimedia.org/T432966>`_
+  Peter Hedenskog
 * The test coverage report is now published at
-  https://doc.wikimedia.org/cover/quibble/. `T428642
-  <https://phabricator.wikimedia.org/T428642>`_
+  https://doc.wikimedia.org/cover/quibble/ , a lcov report file is generated
+  locally when running ``tox -e coverage``.
+  `T428642 <https://phabricator.wikimedia.org/T428642>`_
   Antoine Musso
+* Skip npm audit and fund reports on install
+  `T435975 <https://phabricator.wikimedia.org/T435975>`_
+  Peter Hedenskog
+
+Fixes
+~~~~~
+* Fix Postgres install failing when Quibble runs under a virtualenv.
+  James D. Forrester
+
+Internal
+~~~~~~~~
+* Base Docker development image on Bookworm
+  `T435275 <https://phabricator.wikimedia.org/T435275>`_
+  Peter Wangai
+* Docker development image now uses a virtualenv for Quibble installation.
+  James D. Forrester
+* Migrate to pytest and fix tests `T436226
+  <https://phabricator.wikimedia.org/T436226>`_ Antoine Musso:
+
+  * Restore and fix InstallMediaWiki tests
+  * Require test classes to use pytest default suffixes ``Test*``.
+  * Fix warning with pytest.mark.parametrize and generators
+  * Fix assertRaises() that were doing wild catch and hiding unexpected
+    exceptions.
+  * Remove usage of ``unittest.TestCase``
 
 1.19.0 (2026-08-06)
 -------------------
