@@ -70,9 +70,10 @@ def test_move_item_to_head_absent():
 
 
 def test_redirect_stream():
-    with tempfile.TemporaryFile(mode='w+') as stream, tempfile.TemporaryFile(
-        mode='w+'
-    ) as collector:
+    with (
+        tempfile.TemporaryFile(mode='w+') as stream,
+        tempfile.TemporaryFile(mode='w+') as collector,
+    ):
         with quibble.util._redirect_stream(stream, collector):
             stream.write("line\n")
 
@@ -91,11 +92,13 @@ def test_redirect_all_streams():
     """This just proves that the redirect function is trying something
     unsupported in the test context.
     """
-    with tempfile.TemporaryFile() as collector:
-        with quibble.util.redirect_all_streams(collector):
-            print("test out")
-            print("test error", file=sys.stderr)
-            logging.getLogger().error("test log")
+    with (
+        tempfile.TemporaryFile() as collector,
+        quibble.util.redirect_all_streams(collector),
+    ):
+        print("test out")
+        print("test error", file=sys.stderr)
+        logging.getLogger().error("test log")
 
         collector.flush()
         collector.seek(0, io.SEEK_SET)

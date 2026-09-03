@@ -123,12 +123,14 @@ class TestCli:
             'EXT_DEPENDENCIES': '',
             'SKIN_DEPENDENCIES': '',
         }
-        with mock.patch.dict('os.environ', env, clear=True):
-            with caplog.at_level(logging.WARNING, logger='quibble.cli'):
-                q = cli.QuibbleCli()
-                q._repos_to_clone(
-                    projects=[], zuul_project=None, clone_vendor=False
-                )
+        with (
+            mock.patch.dict('os.environ', env, clear=True),
+            caplog.at_level(logging.WARNING, logger='quibble.cli'),
+        ):
+            q = cli.QuibbleCli()
+            q._repos_to_clone(
+                projects=[], zuul_project=None, clone_vendor=False
+            )
 
         msg = 'env variable is deprecated. Instead pass projects as arguments.'
         assert caplog.record_tuples == [
@@ -291,23 +293,26 @@ class TestCli:
         env = {
             'SHELL': user_shell,
         }
-        with mock.patch.dict('os.environ', env, clear=True):
-            with mock.patch('sys.argv', ['quibble', '--shell']):
-                QuibbleCli().build_execution_plan.return_value = ('', [])
-                cli.main()
+        with (
+            mock.patch.dict('os.environ', env, clear=True),
+            mock.patch('sys.argv', ['quibble', '--shell']),
+        ):
+            QuibbleCli().build_execution_plan.return_value = ('', [])
+            cli.main()
 
-                args = QuibbleCli().build_execution_plan.call_args[0][0]
-                assert args.shell == [user_shell]
-                assert args.commands == [user_shell]
+            args = QuibbleCli().build_execution_plan.call_args[0][0]
+            assert args.shell == [user_shell]
+            assert args.commands == [user_shell]
 
     @mock.patch('quibble.cli.QuibbleCli')
     def test_shell_option_with_no_shell_enviroment_variable(self, QuibbleCli):
-        with mock.patch.dict('os.environ', clear=True):
-            with mock.patch('sys.argv', ['quibble', '--shell']):
-                QuibbleCli().build_execution_plan.return_value = ('', [])
-                cli.main()
-                args = QuibbleCli().build_execution_plan.call_args[0][0]
-                assert args.shell == ['bash']
+        with mock.patch.dict('os.environ', clear=True), mock.patch(
+            'sys.argv', ['quibble', '--shell']
+        ):
+            QuibbleCli().build_execution_plan.return_value = ('', [])
+            cli.main()
+            args = QuibbleCli().build_execution_plan.call_args[0][0]
+            assert args.shell == ['bash']
 
     @mock.patch.dict('os.environ', clear=True)
     @mock.patch('quibble.commands.execute_command')
@@ -315,12 +320,14 @@ class TestCli:
         execute_command.side_effect = subprocess.CalledProcessError(
             3, 'Command failed'
         )
-        with mock.patch('sys.argv', ['quibble', '-c', 'somecommand']):
-            with pytest.raises(
+        with (
+            mock.patch('sys.argv', ['quibble', '-c', 'somecommand']),
+            pytest.raises(
                 subprocess.CalledProcessError,
                 match='Command failed',
-            ):
-                cli.main()
+            ),
+        ):
+            cli.main()
 
     @mock.patch.dict('os.environ', clear=True)
     @mock.patch('quibble.commands.execute_command')
@@ -332,9 +339,11 @@ class TestCli:
         env = {
             'SHELL': user_shell,
         }
-        with mock.patch.dict('os.environ', env, clear=True):
-            with mock.patch('sys.argv', ['quibble', '--shell']):
-                cli.main()
+        with (
+            mock.patch.dict('os.environ', env, clear=True),
+            mock.patch('sys.argv', ['quibble', '--shell']),
+        ):
+            cli.main()
 
     def test_project_branch_arg(self):
         args = cli._parse_arguments(args=[])
@@ -377,11 +386,14 @@ class TestCli:
     @mock.patch('quibble.is_in_docker', return_value=False)
     def test_build_execution_plan_adds_ZUUL_PROJECT(self, _):
         env = {'ZUUL_PROJECT': 'mediawiki/extensions/ZuulProjectEnvVar'}
-        with mock.patch.dict('os.environ', env, clear=True):
+        with (
+            mock.patch.dict('os.environ', env, clear=True),
+            mock.patch('quibble.commands.ZuulClone') as mock_clone,
+        ):
             q = cli.QuibbleCli()
             args = cli._parse_arguments(args=['--packages-source=composer'])
-            with mock.patch('quibble.commands.ZuulClone') as mock_clone:
-                q.build_execution_plan(args)
+            q.build_execution_plan(args)
+
         assert mock_clone.call_args[1]['projects'] == [
             'mediawiki/core',  # must be first
             'mediawiki/extensions/ZuulProjectEnvVar',
@@ -398,11 +410,14 @@ class TestCli:
         for repo in hardcoded_repos:
             q = cli.QuibbleCli()
             args = cli._parse_arguments(args=['--packages-source=composer'])
-            with mock.patch.dict(
-                'os.environ', {'ZUUL_PROJECT': repo}, clear=True
+            with (
+                mock.patch.dict(
+                    'os.environ', {'ZUUL_PROJECT': repo}, clear=True
+                ),
+                mock.patch('quibble.commands.ZuulClone') as mock_clone,
             ):
-                with mock.patch('quibble.commands.ZuulClone') as mock_clone:
-                    q.build_execution_plan(args)
+                q.build_execution_plan(args)
+
             assert mock_clone.call_args[1]['projects'] == [
                 'mediawiki/core',  # must be first
                 'mediawiki/skins/Vector',
@@ -480,34 +495,43 @@ class TestCli:
         )
 
     def test_skip_lock_check_for_patches_to_vendor(self):
-        with mock.patch.dict(
-            'os.environ', {'ZUUL_PROJECT': 'mediawiki/vendor'}, clear=True
+        with (
+            mock.patch.dict(
+                'os.environ', {'ZUUL_PROJECT': 'mediawiki/vendor'}, clear=True
+            ),
+            mock.patch('quibble.commands.ZuulClone'),
         ):
             q = cli.QuibbleCli()
             args = cli._parse_arguments(['--packages-source', 'vendor'])
-            with mock.patch('quibble.commands.ZuulClone'):
-                q.build_execution_plan(args)
+            q.build_execution_plan(args)
+
             assert 'MW_SKIP_EXTERNAL_DEPENDENCIES' in os.environ
             assert os.environ['MW_SKIP_EXTERNAL_DEPENDENCIES'] == '1'
 
     def test_skip_lock_check_for_patches_to_core_with_vendor(self):
-        with mock.patch.dict(
-            'os.environ', {'ZUUL_PROJECT': 'mediawiki/core'}, clear=True
+        with (
+            mock.patch.dict(
+                'os.environ', {'ZUUL_PROJECT': 'mediawiki/core'}, clear=True
+            ),
+            mock.patch('quibble.commands.ZuulClone'),
         ):
             q = cli.QuibbleCli()
             args = cli._parse_arguments(['--packages-source', 'vendor'])
-            with mock.patch('quibble.commands.ZuulClone'):
-                q.build_execution_plan(args)
+            q.build_execution_plan(args)
+
             assert 'MW_SKIP_EXTERNAL_DEPENDENCIES' not in os.environ
 
     def test_skip_lock_check_for_patches_to_core_with_composer(self):
-        with mock.patch.dict(
-            'os.environ', {'ZUUL_PROJECT': 'mediawiki/core'}, clear=True
+        with (
+            mock.patch.dict(
+                'os.environ', {'ZUUL_PROJECT': 'mediawiki/core'}, clear=True
+            ),
+            mock.patch('quibble.commands.ZuulClone'),
         ):
             q = cli.QuibbleCli()
             args = cli._parse_arguments(['--packages-source', 'composer'])
-            with mock.patch('quibble.commands.ZuulClone'):
-                q.build_execution_plan(args)
+            q.build_execution_plan(args)
+
             assert 'MW_SKIP_EXTERNAL_DEPENDENCIES' not in os.environ
             # Ensure setup_environment applied
             assert 'LOG_DIR' in os.environ
@@ -519,13 +543,16 @@ class TestCli:
             'ZUUL_BRANCH': 'tartempion',
             'ZUUL_REF': 'refs/changes/99/12345',
         }
-        with mock.patch.dict('os.environ', clear=True):
+        with (
+            mock.patch.dict('os.environ', clear=True),
+            mock.patch('quibble.util.FetchInfo') as fetchinfo,
+        ):
             q = cli.QuibbleCli()
             args = cli._parse_arguments(['--change', '12345,99'])
-            with mock.patch('quibble.util.FetchInfo') as fetchinfo:
-                fetchinfo.change.return_value.asZuulEnv.return_value = zuul_env
-                q.build_execution_plan(args)
-                fetchinfo.change.assert_called_once_with('12345', '99')
+            fetchinfo.change.return_value.asZuulEnv.return_value = zuul_env
+            q.build_execution_plan(args)
+            fetchinfo.change.assert_called_once_with('12345', '99')
+
             assert dict(os.environ).items() > zuul_env.items()
 
     def test_execute(self, caplog):
@@ -565,12 +592,15 @@ class TestCli:
             otherCmd,
         ]
 
-        with pytest.raises(
-            subprocess.CalledProcessError,
-            match="Command 'fail' returned non-zero exit status 42",
+        with (
+            mock.patch('quibble.cli.QuibbleCli.earlywarn'),
+            pytest.raises(
+                subprocess.CalledProcessError,
+                match="Command 'fail' returned non-zero exit status 42",
+            ),
         ):
-            with mock.patch('quibble.cli.QuibbleCli.earlywarn'):
-                quibbleCmd = cli.QuibbleCli()
-                quibbleCmd.execute(plan, '/tmp')
-                assert quibbleCmd.earlywarn.assert_called_once()
-                assert otherCmd.assert_not_called, 'build plan must be aborted'
+            quibbleCli = cli.QuibbleCli()
+            quibbleCli.execute(plan, '/tmp')
+
+            assert quibbleCli.earlywarn.assert_called_once()
+            assert otherCmd.assert_not_called, 'build plan must be aborted'

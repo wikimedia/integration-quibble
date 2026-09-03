@@ -201,11 +201,13 @@ class TestReportVersions:
 class TestReportDurations:
     def test_without_a_log_dir_does_not_write_json_report(self):
         reporter = quibble.commands.ReportDurations(contextlib.ExitStack())
-        with mock.patch.object(
-            quibble.commands.ReportDurations, 'writeJsonReport'
-        ) as writeJsonReport:
-            with reporter:
-                pass
+        with (
+            mock.patch.object(
+                quibble.commands.ReportDurations, 'writeJsonReport'
+            ) as writeJsonReport,
+            reporter,
+        ):
+            pass
 
         writeJsonReport.assert_not_called()
 
@@ -216,9 +218,11 @@ class TestReportDurations:
         reporter = quibble.commands.ReportDurations(
             contextlib.ExitStack(), log_dir=test_log_dir
         )
-        with mock.patch('os.path.exists', return_value=True):
-            with reporter:
-                pass
+        with (
+            mock.patch('os.path.exists', return_value=True),
+            reporter,
+        ):
+            pass
 
         assert [rec.message for rec in caplog.records] == [
             'Wrote durations to %s'
@@ -230,9 +234,11 @@ class TestReportDurations:
         reporter = quibble.commands.ReportDurations(
             contextlib.ExitStack(), log_dir='/nonexistent'
         )
-        with mock.patch('os.path.exists', return_value=False):
-            with reporter:
-                pass
+        with (
+            mock.patch('os.path.exists', return_value=False),
+            reporter,
+        ):
+            pass
 
         assert [rec.message for rec in caplog.records] == [
             'Can not write JSON duration reports: /nonexistent does not exist'
@@ -272,12 +278,13 @@ class TestReportDurations:
             CommandTiming(7.867813110351562e-05, "Ensure dir: 'wrkspc/log'"),
         ]
 
-        # py310: use parentheses to break context managers on individual lines
-        with mock.patch('quibble.DURATIONS', fixture):
-            with mock.patch('os.path.exists', return_value=True):
-                with mock.patch('builtins.open', mock.mock_open()) as m:
-                    with reporter:
-                        pass
+        with (
+            mock.patch('quibble.DURATIONS', fixture),
+            mock.patch('os.path.exists', return_value=True),
+            mock.patch('builtins.open', mock.mock_open()) as m,
+            reporter,
+        ):
+            pass
 
         # Collect json encoded chunks written individually to the filepointer
         json_str = "".join(
@@ -304,55 +311,60 @@ class TestExtSkinSubmoduleUpdate:
     def test_submodule_update_errors(self):
         c = quibble.commands.ExtSkinSubmoduleUpdate('/tmp')
 
-        with mock.patch('os.walk') as mock_walk:
+        with (
+            mock.patch('os.walk') as mock_walk,
+            mock.patch('quibble.commands.run') as mock_run,
+        ):
             mock_walk.side_effect = self.walk_extensions
-            with mock.patch('quibble.commands.run') as mock_run:
-                # A git command failing aborts.
-                mock_run.side_effect = subprocess.CalledProcessError(
-                    1, 'git something'
-                )
-                with pytest.raises(subprocess.CalledProcessError):
-                    c.execute()
 
-                mock_run.assert_called_once_with(
-                    [
-                        'git',
-                        'submodule',
-                        'foreach',
-                        'git',
-                        'clean',
-                        '-xdff',
-                        '-q',
-                    ],
-                    cwd='/tmp/extensions/VisualEditor',
-                )
+            # A git command failing aborts.
+            mock_run.side_effect = subprocess.CalledProcessError(
+                1, 'git something'
+            )
+            with pytest.raises(subprocess.CalledProcessError):
+                c.execute()
+
+            mock_run.assert_called_once_with(
+                [
+                    'git',
+                    'submodule',
+                    'foreach',
+                    'git',
+                    'clean',
+                    '-xdff',
+                    '-q',
+                ],
+                cwd='/tmp/extensions/VisualEditor',
+            )
 
     def test_submodule_update(self):
         c = quibble.commands.ExtSkinSubmoduleUpdate('/tmp')
 
-        with mock.patch('os.walk') as mock_walk:
+        with (
+            mock.patch('os.walk') as mock_walk,
+            mock.patch('quibble.commands.run') as mock_run,
+        ):
             mock_walk.side_effect = self.walk_extensions
-            with mock.patch('quibble.commands.run') as mock_run:
-                c.execute()
+            c.execute()
 
-                mock_run.assert_any_call(
-                    [
-                        'git',
-                        'submodule',
-                        'foreach',
-                        'git',
-                        'clean',
-                        '-xdff',
-                        '-q',
-                    ],
-                    cwd='/tmp/extensions/VisualEditor',
-                )
+            mock_run.assert_any_call(
+                [
+                    'git',
+                    'submodule',
+                    'foreach',
+                    'git',
+                    'clean',
+                    '-xdff',
+                    '-q',
+                ],
+                cwd='/tmp/extensions/VisualEditor',
+            )
 
-                # There should only be three calls, if there are more then we
-                # must have recursed into a sub-subdirectory.
-                assert (
-                    mock_run.call_count == 3
-                ), 'Stopped after the first level directory'
+            # There should only be three calls, if there are more then we must
+            # have recursed into a sub-subdirectory.
+            assert (
+                mock_run.call_count == 3
+            ), 'Stopped after the first level directory'
 
     @staticmethod
     def walk_extensions(path):
@@ -545,26 +557,28 @@ class TestInstallMediaWiki:
             '/src', db, url, '/log', 11211, '/tmp'
         )
 
-        with mock.patch.object(
-            install_mw, '_get_install_args'
-        ) as mock_install_args:
-            with mock.patch.multiple(
+        with (
+            mock.patch.object(
+                install_mw, '_get_install_args'
+            ) as mock_install_args,
+            mock.patch.multiple(
                 quibble.commands.InstallMediaWiki,
                 _expand_template=mock.DEFAULT,
                 _apply_custom_settings=mock.DEFAULT,
-            ) as mocks:
-                install_mw.execute()
-                mock_install_args.assert_called_once()
+            ) as mocks,
+        ):
+            install_mw.execute()
+            mock_install_args.assert_called_once()
 
-                mocks['_expand_template'].assert_called_with(
-                    'mediawiki/local_settings.php.tpl',
-                    php_constants={
-                        'MW_LOG_DIR': '/log',
-                        'TMPDIR': '/tmp',
-                        'QUIBBLE_MEMCACHED': '127.0.0.1:11211',
-                    },
-                )
-                mocks['_apply_custom_settings'].assert_called_once()
+            mocks['_expand_template'].assert_called_with(
+                'mediawiki/local_settings.php.tpl',
+                php_constants={
+                    'MW_LOG_DIR': '/log',
+                    'TMPDIR': '/tmp',
+                    'QUIBBLE_MEMCACHED': '127.0.0.1:11211',
+                },
+            )
+            mocks['_apply_custom_settings'].assert_called_once()
 
         mock_update.assert_called_once_with(mwdir='/src')
 
@@ -607,14 +621,15 @@ class TestInstallMediaWiki:
 
         # Make it an exception to early abort execute() so we don't have to
         # mock everything else.
-        with mock.patch.object(
-            install_mw, 'clearQuibbleLocalSettings'
-        ) as clear:
-            clear.side_effect = Exception("clearQuibbleLocalSettings called")
-            with pytest.raises(
-                Exception, match="clearQuibbleLocalSettings called"
-            ):
-                install_mw.execute()
+        with (
+            mock.patch.object(
+                install_mw,
+                'clearQuibbleLocalSettings',
+                side_effect=Exception("clearQuibbleLocalSettings called"),
+            ),
+            pytest.raises(Exception, match="clearQuibbleLocalSettings called"),
+        ):
+            install_mw.execute()
 
     def test_clearQuibbleLocalSettings_skips_non_existing(self):
         install_mw = quibble.commands.InstallMediaWiki('/somepath', *range(5))
@@ -644,16 +659,19 @@ class TestInstallMediaWiki:
         self, unlink, _
     ):
         install_mw = quibble.commands.InstallMediaWiki('/somepath', *range(5))
-        with mock.patch('builtins.open', mock.mock_open()):
-            with pytest.raises(
+        with (
+            mock.patch('builtins.open', mock.mock_open()),
+            pytest.raises(
                 Exception,
                 match=re.escape(
                     "Unknown configuration file /somepath/LocalSettings.php\n"
                     "Marker not found: '# Quibble MediaWiki configuration\\n'"
                 ),
-            ):
-                install_mw.clearQuibbleLocalSettings()
-            unlink.assert_not_called()
+            ),
+        ):
+            install_mw.clearQuibbleLocalSettings()
+
+        unlink.assert_not_called()
 
     def test__expand_localsettings_template(self):
         template = (

@@ -157,21 +157,23 @@ class TestPhpWebserver:
 
     @mark.integration
     def test_has_os_environment_variables(self):
-        with mock.patch.dict(
-            'quibble.backend.os.environ',
-            {
-                'MW_INSTALL_PATH': '/tmp/mw',
-                'MW_LOG_DIR': '/tmp/log',
-                'LOG_DIR': '/tmp/log',
-            },
-            clear=True,
+        url = 'http://127.0.0.1:4885'
+        env_url = url + '/env.php'
+        with (
+            mock.patch.dict(
+                'quibble.backend.os.environ',
+                {
+                    'MW_INSTALL_PATH': '/tmp/mw',
+                    'MW_LOG_DIR': '/tmp/log',
+                    'LOG_DIR': '/tmp/log',
+                },
+                clear=True,
+            ),
+            PhpWebserver(mwdir=PHPDOCROOT, url=url),
+            urllib.request.urlopen(env_url) as resp,
         ):
-            url = 'http://127.0.0.1:4885'
-            with PhpWebserver(mwdir=PHPDOCROOT, url=url):
-                env_url = url + '/env.php'
-                with urllib.request.urlopen(env_url) as resp:
-                    env_resp = resp.read().decode()
-                    server_env = json.loads(env_resp)
+            env_resp = resp.read().decode()
+            server_env = json.loads(env_resp)
 
         assert 'MW_INSTALL_PATH' in server_env
         assert 'MW_LOG_DIR' in server_env
@@ -202,17 +204,17 @@ class TestPhpWebserver:
 
     @mock.patch('quibble.backend.subprocess.Popen')
     def test_php_workers_from_env(self, mock_popen):
-        with mock.patch.dict(
-            'quibble.backend.os.environ',
-            {
-                'PHP_CLI_SERVER_WORKERS': '42',
-            },
-            clear=True,
+        with (
+            mock.patch.dict(
+                'quibble.backend.os.environ',
+                {
+                    'PHP_CLI_SERVER_WORKERS': '42',
+                },
+                clear=True,
+            ),
+            mock.patch('quibble.backend._stream_relay'),
         ):
-            with mock.patch('quibble.backend._stream_relay'):
-                PhpWebserver(
-                    mwdir=PHPDOCROOT, url='http://example.org'
-                ).start()
+            PhpWebserver(mwdir=PHPDOCROOT, url='http://example.org').start()
 
         (args, kwargs) = mock_popen.call_args
         env = kwargs.get('env', {})
@@ -272,12 +274,13 @@ class TestMemcached:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.bind(('localhost', 0))
             (addr, free_port) = s.getsockname()
-        mc = Memcached(port=free_port)
 
-        with mock.patch(
-            'quibble.backend._tcp_wait', side_effect=_tcp_wait
-        ) as tcp_wait:
-            with mc:
-                tcp_wait.assert_called_once_with(
-                    host=ANY, port=free_port, timeout=ANY
-                )
+        with (
+            mock.patch(
+                'quibble.backend._tcp_wait', side_effect=_tcp_wait
+            ) as tcp_wait,
+            Memcached(port=free_port),
+        ):
+            tcp_wait.assert_called_once_with(
+                host=ANY, port=free_port, timeout=ANY
+            )
