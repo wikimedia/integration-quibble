@@ -208,7 +208,7 @@ class FetchInfo:
         def get_url_ref(rev):
             fetch = rev['fetch']['anonymous http']
             # url, reference
-            return (fetch['url'][: -len(fetchinfo.project)], fetch['ref'])
+            return (fetch['url'].removesuffix(fetchinfo.project), fetch['ref'])
 
         if patchset is None:
             current = change_info['current_revision']
