@@ -1117,6 +1117,84 @@ class TestBrowserTests:
     @mock.patch('builtins.open', mock.mock_open())
     @mock.patch('json.load')
     @mock.patch('quibble.commands.run')
+    @mock.patch('quibble.commands._repo_has_npm_lock', return_value=True)
+    @mock.patch('quibble.backend.PhpWebserver')
+    @mock.patch('quibble.backend.ChromeWebDriver')
+    def test_npm_install_ahead_runs_before_the_tests(
+        self,
+        mock_driver,
+        mock_server,
+        _has_lock,
+        mock_run,
+        mock_load,
+        mock_path_exists,
+        caplog,
+    ):
+        caplog.set_level(logging.INFO)
+        mock_load.return_value = {
+            'scripts': {'selenium-test': 'run that stuff'}
+        }
+
+        c = quibble.commands.BrowserTests(
+            '/tmp',
+            ['mediawiki/core', 'mediawiki/skins/Vector'],
+            ':0',
+            'http://192.0.2.1:4321',
+            'php',
+            npm_install_ahead=True,
+        )
+        c.execute()
+
+        calls = [
+            (call.args[0], call.kwargs.get('cwd'))
+            for call in mock_run.mock_calls
+        ]
+        # The install for a project must complete before its tests start.
+        # A background install runs with the lowest scheduling priority.
+        for cwd in ('/tmp', '/tmp/skins/Vector'):
+            install = calls.index(
+                (
+                    [
+                        'nice',
+                        '-n',
+                        '19',
+                        'npm',
+                        'ci',
+                        '--no-audit',
+                        '--no-fund',
+                    ],
+                    cwd,
+                )
+            )
+            test = calls.index((['npm', 'run', 'selenium-test'], cwd))
+            assert install < test
+
+        # The sections are in serial order and do not mix. The time when
+        # the background installs ran has no effect on the order.
+        markers = [
+            re.sub(r', in .* s$', '', rec.message)
+            for rec in caplog.records
+            if rec.message.startswith(('>>> Start:', '<<< Finish:'))
+        ]
+        assert markers == [
+            ">>> Start: npm install in 'mediawiki/core'",
+            "<<< Finish: npm install in 'mediawiki/core'",
+            ">>> Start: Browser tests in 'mediawiki/core'",
+            ">>> Start: wdio/cypress tests in 'mediawiki/core'",
+            "<<< Finish: wdio/cypress tests in 'mediawiki/core'",
+            "<<< Finish: Browser tests in 'mediawiki/core'",
+            ">>> Start: npm install in 'mediawiki/skins/Vector'",
+            "<<< Finish: npm install in 'mediawiki/skins/Vector'",
+            ">>> Start: Browser tests in 'mediawiki/skins/Vector'",
+            ">>> Start: wdio/cypress tests in 'mediawiki/skins/Vector'",
+            "<<< Finish: wdio/cypress tests in 'mediawiki/skins/Vector'",
+            "<<< Finish: Browser tests in 'mediawiki/skins/Vector'",
+        ]
+
+    @mock.patch('os.path.exists', return_value=True)
+    @mock.patch('builtins.open', mock.mock_open())
+    @mock.patch('json.load')
+    @mock.patch('quibble.commands.run')
     @mock.patch('quibble.backend.PhpWebserver')
     @mock.patch('quibble.backend.ChromeWebDriver')
     def test_project_missing_selenium(

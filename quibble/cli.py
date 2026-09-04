@@ -573,49 +573,16 @@ class QuibbleCli(object):
             )
 
         if 'selenium' in stages:
-            selenium_steps = []
-            if args.parallel_npm_install:
-                parallel_steps = []
-                """
-                Parallelize the execution of npm install for all browser tests.
-                Ideally, we'd parallelize the Selenium test execution too, but
-                since that is going to require quite a bit more work (T226869),
-                let's start with the part that can be done now.
-                Note that his has the potential to increase the build time for
-                projects where a test failure occurs early on (i.e. in core, or
-                in AbuseFilter), because the tests don't run until npm install
-                completes for all projects that have browser tests. But for the
-                common scenario where the tests pass for all repos, this should
-                result in reducing build time.
-                """
-                for project in dependencies_with_project_first:
-                    parallel_steps.append(
-                        quibble.commands.NpmInstall(
-                            mw_install_path=mw_install_path,
-                            project=project,
-                            with_package_command='selenium-test',
-                        )
-                    )
-
-                selenium_steps.append(
-                    quibble.commands.Parallel(
-                        name="Parallel npm install for projects with "
-                        "'selenium-test' in package.json",
-                        steps=parallel_steps,
-                    )
-                )
-
-            selenium_steps.append(
+            plan.append(
                 quibble.commands.BrowserTests(
                     mw_install_path,
                     dependencies_with_project_first,
                     display,
                     web_backend.url,
                     args.web_backend,
-                    args.parallel_npm_install,
+                    args.npm_install_ahead,
                 )
             )
-            plan.extend(selenium_steps)
 
         if 'api-testing' in stages:
             plan.append(
@@ -877,10 +844,12 @@ def get_arg_parser():
         help='Source to install PHP dependencies from. Default: vendor',
     )
     deps.add_argument(
-        '--parallel-npm-install',
+        '--npm-install-ahead',
         action='store_true',
-        help='Whether to run "npm install" in parallel for all projects at '
-        'the beginning of the BrowserTest stage.',
+        help='In the BrowserTest stage, run "npm install" for the next '
+        'project in the background while the tests for the current project '
+        'run. By default the install runs right before the tests of each '
+        'project.',
     )
 
     install = parser.add_argument_group('MediaWiki install')

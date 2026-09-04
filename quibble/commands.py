@@ -11,6 +11,7 @@ import multiprocessing
 import os
 import os.path
 import textwrap
+import time
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -36,7 +37,7 @@ def execute_command(command):
         command.execute()
 
 
-def run(cmd: list, cwd: str, shell=False, env=None):
+def run(cmd: list, cwd: str, shell=False, env=None, out=None):
     """
     Wrapper around subprocess.Popen(), with default values for
     stdout, stderr, shell, and env set for convenience and
@@ -45,13 +46,17 @@ def run(cmd: list, cwd: str, shell=False, env=None):
     :param cwd: The current working directory.
     :param shell: Whether to set shell=True, default to False.
     :param env: The optional environment override, default to None.
+    :param out: Optional binary file object. When set, the command output
+        goes to this object and not to stdout. Use it for a command in a
+        background thread, so its output does not mix with the foreground
+        output.
     """
 
     # We run attached to a terminal (ex: quibble -c bash), in which case there
     # is no need for capturing output and we want stdout/stderr/stdin to remain
     # attached to a tty, else the commands would think they run non
     # interactively (ex: bash shows no prompt)
-    if sys.stdin.isatty() and sys.stdout.isatty():
+    if out is None and sys.stdin.isatty() and sys.stdout.isatty():
         subprocess.check_call(cmd, cwd=cwd, shell=shell, env=env)
         return
 
@@ -72,8 +77,11 @@ def run(cmd: list, cwd: str, shell=False, env=None):
         #
         # py38: while line := proc.stdout.readline()
         for line in iter(proc.stdout.readline, b''):
-            sys.stdout.buffer.write(line)
-            sys.stdout.flush()
+            if out is None:
+                sys.stdout.buffer.write(line)
+                sys.stdout.flush()
+            else:
+                out.write(line)
             collected_output += line
     if proc.returncode:
         raise subprocess.CalledProcessError(
@@ -89,7 +97,7 @@ def _timed_run(label, cmd, cwd, **kwargs):
         run(cmd, cwd=cwd, **kwargs)
 
 
-def _npm_install(project_dir, label=None):
+def _npm_install(project_dir, label=None, out=None, background=False):
     # A label wraps npm install in its own timed section named after the
     # caller; without one it runs unwrapped to avoid a duplicate stage.
     section = (
@@ -97,6 +105,11 @@ def _npm_install(project_dir, label=None):
         if label
         else contextlib.nullcontext()
     )
+    # A background install runs at the same time as the tests. Give it
+    # the lowest scheduling priority, so it does not take CPU from the
+    # tests. The install only has to complete before the tests of its own
+    # project start.
+    prefix = ['nice', '-n', '19'] if background else []
     with section:
         if _repo_has_npm_lock(project_dir):
             # The audit and fund reports send an extra request to the npm
@@ -105,18 +118,45 @@ def _npm_install(project_dir, label=None):
             cmd = ['ci', '--no-audit', '--no-fund']
             if quibble.get_npm_command() == 'pnpm':
                 cmd = ['install']
-            run([quibble.get_npm_command(), *cmd], cwd=project_dir)
+            run(
+                [*prefix, quibble.get_npm_command(), *cmd],
+                cwd=project_dir,
+                out=out,
+            )
         else:
-            run([quibble.get_npm_command(), 'prune'], cwd=project_dir)
+            run(
+                [*prefix, quibble.get_npm_command(), 'prune'],
+                cwd=project_dir,
+                out=out,
+            )
             run(
                 [
+                    *prefix,
                     quibble.get_npm_command(),
                     'install',
                     '--no-progress',
                     '--prefer-offline',
                 ],
                 cwd=project_dir,
+                out=out,
             )
+
+
+def _install_and_capture(project_dir):
+    """Run _npm_install with its output captured, for a background thread.
+
+    Return the output, the duration in seconds and the error. The error is
+    None when the install is successful. The caller writes the section and
+    raises the error, so the output is also available for a failed install.
+    """
+    out = io.BytesIO()
+    start = time.monotonic()
+    error = None
+    try:
+        _npm_install(project_dir, out=out, background=True)
+    except Exception as e:  # noqa: BLE001 - re-raised by the caller
+        error = e
+    return out.getvalue(), time.monotonic() - start, error
 
 
 class ReportVersions:
@@ -670,32 +710,10 @@ class VendorComposerDependencies:
 
 
 class NpmInstall:
-    def __init__(
-        self, mw_install_path, project=None, with_package_command=None
-    ):
-        if not project:
-            self.directory = mw_install_path
-        else:
-            self.directory = quibble.commands.get_project_dir(
-                mw_install_path, project
-            )
-        self.with_package_command = with_package_command
-        self.project = project
+    def __init__(self, mw_install_path):
+        self.directory = mw_install_path
 
     def execute(self):
-        if (
-            self.with_package_command
-            and not quibble.commands.repo_has_npm_script(
-                self.directory, self.with_package_command
-            )
-        ):
-            log.info(
-                '%s command does not exist in project %s package.json, '
-                'skipping npm install',
-                self.with_package_command,
-                self.project,
-            )
-            return
         _npm_install(self.directory)
 
     def __str__(self):
@@ -1321,22 +1339,75 @@ class BrowserTests:
         display,
         web_url,
         web_backend,
-        parallel_npm_install=False,
+        npm_install_ahead=False,
     ):
         self.mw_install_path = mw_install_path
         self.projects = projects
         self.display = display
         self.web_url = web_url
         self.web_backend = web_backend
-        self.parallel_npm_install = parallel_npm_install
+        self.npm_install_ahead = npm_install_ahead
 
     def execute(self):
-        for project in self.projects:
-            project_dir = get_project_dir(self.mw_install_path, project)
-            if repo_has_npm_script(project_dir, 'selenium-test'):
-                chrono_name = "Browser tests in '%s'" % project
-                with quibble.Chronometer(chrono_name, log.info):
+        projects = [
+            (project, get_project_dir(self.mw_install_path, project))
+            for project in self.projects
+        ]
+        projects = [
+            (project, project_dir)
+            for (project, project_dir) in projects
+            if repo_has_npm_script(project_dir, 'selenium-test')
+        ]
+
+        if self.npm_install_ahead:
+            self._execute_install_ahead(projects)
+            return
+
+        for project, project_dir in projects:
+            with self._project_section(project):
+                _npm_install(project_dir, label=project)
+                self._run_webdriver(project_dir, project)
+
+    @staticmethod
+    def _project_section(project):
+        return quibble.Chronometer("Browser tests in '%s'" % project, log.info)
+
+    def _execute_install_ahead(self, projects):
+        # Run "npm install" for the next project in a background thread,
+        # while the tests for the current project run. The thread starts a
+        # subprocess. It does not fork the interpreter. This prevents the
+        # deadlock seen with multiprocessing (T303270).
+        if not projects:
+            return
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            install = executor.submit(_install_and_capture, projects[0][1])
+            for i, (project, project_dir) in enumerate(projects):
+                self._report_install(project, install)
+                if i + 1 < len(projects):
+                    install = executor.submit(
+                        _install_and_capture, projects[i + 1][1]
+                    )
+                with self._project_section(project):
                     self._run_webdriver(project_dir, project)
+
+    @staticmethod
+    def _report_install(project, install):
+        # Write the section for a background install as one block, so it
+        # does not mix with the test output. The duration is the measured
+        # install duration. The position in the log is not the time when
+        # the install ran. The format is the same as quibble.Chronometer.
+        output, seconds, error = install.result()
+        name = "npm install in '%s'" % project
+        log.info('>>> Start: %s', name)
+        sys.stdout.buffer.write(output)
+        sys.stdout.flush()
+        outcome = 'Failed' if error else 'Finish'
+        log.info('<<< %s: %s, in %.03f s', outcome, name, seconds)
+        quibble.DURATIONS.append(
+            quibble.CommandTiming(command=name, seconds=seconds)
+        )
+        if error:
+            raise error
 
     def _run_webdriver(self, project_dir, project):
         webdriver_env = {}
@@ -1354,8 +1425,6 @@ class BrowserTests:
         if self.web_backend == 'external':
             webdriver_env.update({'QUIBBLE_APACHE': '1'})
 
-        if not self.parallel_npm_install:
-            _npm_install(project_dir, label=project)
         _timed_run(
             "wdio/cypress tests in '%s'" % project,
             [quibble.get_npm_command(), 'run', 'selenium-test'],

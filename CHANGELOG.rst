@@ -3,7 +3,29 @@ Quibble changelog
 
 master (UNRELEASED)
 -------------------
-* …
+
+Features
+~~~~~~~~
+* Add ``--npm-install-ahead`` to run the ``npm install`` of the next browser
+  tests project in a background thread while the tests of the current
+  project run. The install runs with ``nice -n 19`` and its output is
+  written as one block before the test section of its project, so the
+  console keeps the section structure of a serial run. On the gated
+  selenium job this hides about 130 seconds of install on an idle agent
+  and about 170 seconds on a busy one, with no change to the test durations.
+  The install runs in a thread with a subprocess instead of a forked
+  interpreter, which hopefully avoids the hang of the removed
+  ``--parallel-npm-install``
+  `T303270 <https://phabricator.wikimedia.org/T303270>`_
+  Peter Hedenskog
+
+Breaking change
+~~~~~~~~~~~~~~~
+* Remove ``--parallel-npm-install``. It installed the npm dependencies for
+  all projects at once before any browser test ran, caused intermittent hangs
+  and has been disabled in CI since 2022.
+  `T303270 <https://phabricator.wikimedia.org/T303270>`_
+  Peter Hedenskog
 
 1.20.0 (2026-09-02)
 -------------------
