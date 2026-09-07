@@ -1,0 +1,22 @@
+# SQLite database backend running only the PHPUnit tests that need a
+# database. The tests that do not need a database run in the MySQL job.
+
+env:
+  DISPLAY: :0
+  QUIBBLE_PHPUNIT_PARALLEL: "1"
+
+args: ['--db=sqlite', '--run=phpunit-database']
+
+plan:
+  - 'Report durations'
+  - 'Versions'
+  - "Ensure dir: '/WORKSPACE/log'"
+  - 'Zuul clone {"cache_dir": "/var/cache/git", "projects": ["mediawiki/core", "mediawiki/skins/Vector", "mediawiki/vendor"], "workers": 4, "workspace": "/WORKSPACE/src"}'
+  - 'Submodule update: /WORKSPACE/src'
+  - 'Install composer dev-requires for vendor.git'
+  - 'Start backends: <SQLite>'
+  - |-
+    Run Post-dependency install, pre-database dependent steps in parallel (concurrency=1):
+    * Install MediaWiki, db=<SQLite>
+  - 'Start backends: <Memcached on port 11211>'
+  - 'PHPUnit default suite (with database)'

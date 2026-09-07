@@ -38,6 +38,7 @@ known_stages = [
     'phpunit-unit',
     'phpbench',
     'phpunit',
+    'phpunit-database',
     'phpunit-standalone',
     'phpunit-parallel',
     'npm-test',
@@ -176,7 +177,9 @@ class QuibbleCli(object):
             stages = [s for s in stages if s not in skip]
         if len(run) > 0:
             stages = run
-        if os.getenv('QUIBBLE_PHPUNIT_PARALLEL') and 'phpunit' in stages:
+        if os.getenv('QUIBBLE_PHPUNIT_PARALLEL') and (
+            'phpunit' in stages or 'phpunit-database' in stages
+        ):
             stages.append('phpunit-parallel')
         return stages
 
@@ -483,14 +486,15 @@ class QuibbleCli(object):
                     args.phpunit_junit,
                 )
             )
-            plan.append(
-                quibble.commands.PhpUnitDatabaselessParallelComposer(
-                    mw_install_path,
-                    phpunit_testsuite,
-                    log_dir,
-                    args.phpunit_junit,
+            if 'phpunit' in stages:
+                plan.append(
+                    quibble.commands.PhpUnitDatabaselessParallelComposer(
+                        mw_install_path,
+                        phpunit_testsuite,
+                        log_dir,
+                        args.phpunit_junit,
+                    )
                 )
-            )
 
         if 'phpunit' in stages and 'phpunit-parallel' not in stages:
             plan.append(
@@ -623,7 +627,9 @@ class QuibbleCli(object):
                 )
             )
 
-        if 'phpunit' in stages and 'phpunit-parallel' not in stages:
+        if (
+            'phpunit' in stages or 'phpunit-database' in stages
+        ) and 'phpunit-parallel' not in stages:
             plan.append(
                 quibble.commands.PhpUnitDatabase(
                     mw_install_path,
