@@ -1,11 +1,28 @@
 Quibble changelog
 =================
 
-master (UNRELEASED)
+1.21.0 (2026-09-08)
 -------------------
+
+Breaking changes
+~~~~~~~~~~~~~~~~
+* Quibble now requires Python 3.11. Code has been adjusted to use
+  ``str.removesuffix()`` and `Parenthesized Context Managers
+  <https://docs.python.org/3.10/whatsnew/3.10.html#parenthesized-context-managers>`_.
+  `T429715 <https://phabricator.wikimedia.org/T429715>`_
+  Antoine Musso
+* Remove ``--parallel-npm-install``. It installed the npm dependencies for
+  all projects at once before any browser test ran, caused intermittent hangs
+  and has been disabled in CI since 2022.
+  `T303270 <https://phabricator.wikimedia.org/T303270>`_
+  Peter Hedenskog
 
 Features
 ~~~~~~~~
+* New stage ``phpunit-database``, allows running on the PHPUnit tests needing a
+  database.
+  `T437134 <https://phabricator.wikimedia.org/T437134>`_
+  Peter Hedenskog
 * Add ``--npm-install-ahead`` to run the ``npm install`` of the next browser
   tests project in a background thread while the tests of the current
   project run. The install runs with ``nice -n 19`` and its output is
@@ -19,13 +36,11 @@ Features
   `T303270 <https://phabricator.wikimedia.org/T303270>`_
   Peter Hedenskog
 
-Breaking change
-~~~~~~~~~~~~~~~
-* Remove ``--parallel-npm-install``. It installed the npm dependencies for
-  all projects at once before any browser test ran, caused intermittent hangs
-  and has been disabled in CI since 2022.
-  `T303270 <https://phabricator.wikimedia.org/T303270>`_
-  Peter Hedenskog
+Internal
+~~~~~~~~
+* Rename ``quibble.cmd`` to ``quibble.cli``.
+  `T300727 <https://phabricator.wikimedia.org/T300727>`_
+  Antoine Musso
 
 1.20.0 (2026-09-02)
 -------------------
