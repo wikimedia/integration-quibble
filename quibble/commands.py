@@ -1364,13 +1364,8 @@ class BrowserTests:
             return
 
         for project, project_dir in projects:
-            with self._project_section(project):
-                _npm_install(project_dir, label=project)
-                self._run_webdriver(project_dir, project)
-
-    @staticmethod
-    def _project_section(project):
-        return quibble.Chronometer("Browser tests in '%s'" % project, log.info)
+            _npm_install(project_dir, label=project)
+            self._run_webdriver(project_dir, project)
 
     def _execute_install_ahead(self, projects):
         # Run "npm install" for the next project in a background thread,
@@ -1387,8 +1382,7 @@ class BrowserTests:
                     install = executor.submit(
                         _install_and_capture, projects[i + 1][1]
                     )
-                with self._project_section(project):
-                    self._run_webdriver(project_dir, project)
+                self._run_webdriver(project_dir, project)
 
     @staticmethod
     def _report_install(project, install):

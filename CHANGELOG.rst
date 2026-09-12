@@ -3,7 +3,17 @@ Quibble changelog
 
 master (UNRELEASED)
 -------------------
-* …
+
+Bug fixes
+~~~~~~~~~
+* Remove the ``Browser tests in '<project>'`` duration. It was meant to hold
+  the install and test time of one project. With ``--npm-install-ahead``
+  the install of a project runs during the tests of the previous project, so
+  the section only wrapped the test run and repeated the
+  ``wdio/cypress tests in '<project>'`` duration. Use that duration and
+  ``npm install in '<project>'`` instead.
+  `T437752 <https://phabricator.wikimedia.org/T437752>`_
+  Peter Hedenskog
 
 1.21.0 (2026-09-08)
 -------------------

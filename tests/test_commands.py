@@ -1197,16 +1197,12 @@ class TestBrowserTests:
         assert markers == [
             ">>> Start: npm install in 'mediawiki/core'",
             "<<< Finish: npm install in 'mediawiki/core'",
-            ">>> Start: Browser tests in 'mediawiki/core'",
             ">>> Start: wdio/cypress tests in 'mediawiki/core'",
             "<<< Finish: wdio/cypress tests in 'mediawiki/core'",
-            "<<< Finish: Browser tests in 'mediawiki/core'",
             ">>> Start: npm install in 'mediawiki/skins/Vector'",
             "<<< Finish: npm install in 'mediawiki/skins/Vector'",
-            ">>> Start: Browser tests in 'mediawiki/skins/Vector'",
             ">>> Start: wdio/cypress tests in 'mediawiki/skins/Vector'",
             "<<< Finish: wdio/cypress tests in 'mediawiki/skins/Vector'",
-            "<<< Finish: Browser tests in 'mediawiki/skins/Vector'",
         ]
 
     @mock.patch('os.path.exists', return_value=True)
@@ -1287,7 +1283,6 @@ class TestBrowserTests:
             'php',
         )
 
-        # npm install is now nested per browser stage; ignore durations here.
         with mock.patch('quibble.time.time', side_effect=range(1000)):
             c.execute()
 
@@ -1295,18 +1290,14 @@ class TestBrowserTests:
             re.sub(r', in .* s$', '', rec.message) for rec in caplog.records
         ]
         assert markers == [
-            ">>> Start: Browser tests in 'mediawiki/core'",
             ">>> Start: npm install in 'mediawiki/core'",
             "<<< Finish: npm install in 'mediawiki/core'",
             ">>> Start: wdio/cypress tests in 'mediawiki/core'",
             "<<< Finish: wdio/cypress tests in 'mediawiki/core'",
-            "<<< Finish: Browser tests in 'mediawiki/core'",
-            ">>> Start: Browser tests in 'mediawiki/extensions/HasTest'",
             ">>> Start: npm install in 'mediawiki/extensions/HasTest'",
             "<<< Finish: npm install in 'mediawiki/extensions/HasTest'",
             ">>> Start: wdio/cypress tests in 'mediawiki/extensions/HasTest'",
             "<<< Finish: wdio/cypress tests in 'mediawiki/extensions/HasTest'",
-            "<<< Finish: Browser tests in 'mediawiki/extensions/HasTest'",
         ]
 
 
