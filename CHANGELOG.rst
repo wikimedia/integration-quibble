@@ -1,8 +1,14 @@
 Quibble changelog
 =================
 
-master (UNRELEASED)
+1.22.0 (2026-09-25)
 -------------------
+
+Features
+~~~~~~~~
+* Run SQLite tests in parallel by having one db per worker
+  `T426684 <https://phabricator.wikimedia.org/T426684>`_
+  Peter Hedenskog
 
 Bug fixes
 ~~~~~~~~~
